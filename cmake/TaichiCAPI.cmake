@@ -74,6 +74,11 @@ else()
 endif()
 target_enable_function_level_linking(${TAICHI_C_API_NAME})
 
+if(APPLE)
+set(CLANG_OSX_FLAGS -DTARGET_OS_OSX -x objective-c++)
+target_compile_options(${TAICHI_C_API_NAME} PRIVATE ${CLANG_OSX_FLAGS})
+endif()
+
 # Strip shared library
 set_target_properties(${TAICHI_C_API_NAME} PROPERTIES LINK_FLAGS_RELEASE -s)
 
