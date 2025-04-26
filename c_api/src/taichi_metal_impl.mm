@@ -1,7 +1,21 @@
 #ifdef TI_WITH_METAL
-#include "taichi_metal_impl.h"
+
+#include <math.h>
+
+extern "C" {
+void __sincospif(float x, float *sinp, float *cosp) {
+  *sinp = sinf(M_PI * x);
+  *cosp = cosf(M_PI * x);
+}
+void __sincospi(double x, double *sinp, double *cosp) {
+  *sinp = sin(M_PI * x);
+  *cosp = cos(M_PI * x);
+}
+}
+
 #include "taichi/rhi/metal/metal_device.h"
 #include "taichi/runtime/gfx/runtime.h"
+#include "taichi_metal_impl.h"
 
 namespace capi {
 
