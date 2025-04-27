@@ -22,7 +22,17 @@ TEST(ControlFlowGraph, Basic) {
 
   SNode *root_snode = prog->get_snode_root(0);
   std::vector<Stmt *> indices;
-  builder.create_global_ptr(root_snode, indices);
+  auto *tmp3 = builder.create_global_ptr(root_snode, indices);
+
+  auto *tmp4 = builder.get_float64(1.23f);
+  auto *tmp5 = builder.get_float64(2.34f);
+  auto *tmp6 = builder.get_float64(3.45f);
+
+  auto *tmp7 = builder.create_matrix_init({tmp4, tmp5, tmp6});
+  builder.create_global_store(tmp3, tmp7);
+  auto *tmp8 = builder.get_int32(8);
+  auto *tmp9 = builder.get_bool(true);
+  builder.create_assert(tmp9, "assertion failed");
 
   auto ir = builder.extract_ir();
   auto print = irpass::make_pass_printer(true, true, "", tmp1);
