@@ -21,13 +21,9 @@ TEST(ControlFlowGraph, Basic) {
   prog->materialize_runtime();
 
   SNode *root_snode = prog->get_snode_root(0);
-
-  SNode snode(0, SNodeType::dense, nullptr, nullptr);
-  Axis axis(0);
-  //   auto vec3 = snode.dense(axis, 3);
-  //   stmt_ref_vector stmts;
   std::vector<Stmt *> indices;
   builder.create_global_ptr(root_snode, indices);
+
   auto ir = builder.extract_ir();
   auto print = irpass::make_pass_printer(true, true, "", tmp1);
   std::string ir_string;
