@@ -4,9 +4,22 @@
 
 namespace taichi::lang {
 
+class HostMemoryPoolTestHelper {
+ public:
+  static void setDefaultAllocatorSize(std::size_t size) {
+    UnifiedAllocator::default_allocator_size = size;
+  }
+  static size_t getDefaultAllocatorSize() {
+    return UnifiedAllocator::default_allocator_size;
+  }
+};
+
 TEST(HostMemoryPool, AllocateMemory) {
   // fairly sure this leaks 1GB memory, but it's a test, so yeah
   // Just don't make lots of copies of this test :sweat_smile:
+
+  auto oldAllocatorSize = HostMemoryPoolTestHelper::getDefaultAllocatorSize();
+  HostMemoryPoolTestHelper::setDefaultAllocatorSize(102400);  // 100KB
 
   HostMemoryPool pool;
 
@@ -20,6 +33,8 @@ TEST(HostMemoryPool, AllocateMemory) {
 
   EXPECT_EQ((std::size_t)ptr2, (std::size_t)ptr1 + 1024);
   EXPECT_EQ((std::size_t)ptr3, (std::size_t)ptr2 + 1024);
+
+  HostMemoryPoolTestHelper::setDefaultAllocatorSize(oldAllocatorSize);
 }
 
 }  // namespace taichi::lang
