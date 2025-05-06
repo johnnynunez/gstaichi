@@ -4,6 +4,9 @@
 
 namespace taichi::lang {
 
+#ifndef TARGET_OS_IPHONE
+// This code will only compile and run on non-iOS platforms
+
 class HostMemoryPoolTestHelper {
  public:
   static void setDefaultAllocatorSize(std::size_t size) {
@@ -33,5 +36,6 @@ TEST(HostMemoryPool, AllocateMemory) {
 
   HostMemoryPoolTestHelper::setDefaultAllocatorSize(oldAllocatorSize);
 }
+#endif
 
 }  // namespace taichi::lang
