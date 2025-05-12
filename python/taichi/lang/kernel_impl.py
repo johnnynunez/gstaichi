@@ -989,7 +989,7 @@ class Kernel:
             start = time.time()
             compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
             elapsed = time.time() - start
-            if 'TAICHI_DUMP_KERNEL_COMPILATION_TIMES' in os.environ:
+            if "TAICHI_DUMP_KERNEL_COMPILATION_TIMES" in os.environ:
                 dump_dir = "/tmp/compilation_times"
                 os.makedirs(dump_dir, exist_ok=True)
                 with open(os.path.join(dump_dir, f"{self.func.__name__}.json"), "w") as f:
