@@ -1409,6 +1409,14 @@ void ReferenceExpression::flatten(FlattenContext *ctx) {
   stmt = ctx->back_stmt();
 }
 
+ASTBuilder::ASTBuilder(Block *initial, Arch arch, bool is_kernel)
+: is_kernel_(is_kernel), arch_(arch) {
+std::cout << "ASTBuilder constructor called id_counter " << id_counter_ << std::endl;
+Stmt::reset_counter();
+stack_.push_back(initial);
+loop_state_stack_.push_back(None);
+}
+
 Block *ASTBuilder::current_block() {
   if (stack_.empty())
     return nullptr;
