@@ -672,6 +672,43 @@ class Kernel:
             self.runtime.compiling_callable = kernel_cxx
             try:
                 ctx.ast_builder = kernel_cxx.ast_builder()
+                def ast_to_dict(node):
+                    if isinstance(node, ast.AST):
+                        fields = {k: ast_to_dict(v) for k, v in ast.iter_fields(node)}
+                        return {
+                            "type": node.__class__.__name__,
+                            "fields": fields,
+                            # Optional: Store line/col info
+                            "lineno": getattr(node, "lineno", None),
+                            "col_offset": getattr(node, "col_offset", None),
+                        }
+                    elif isinstance(node, list):
+                        return [ast_to_dict(x) for x in node]
+                    else:
+                        return node  # Basic types (str, int, None, etc.)
+
+                if "TAICHI_DUMP_AST" in os.environ:
+                    import time
+
+                    target_dir = "/tmp/ast"
+                    os.makedirs(target_dir, exist_ok=True)
+
+                    start = time.time()
+                    ast_str = ast.dump(tree, indent=2)
+                    with open(os.path.join(target_dir, f"{kernel_name}_ast.txt"), "w") as f:
+                        f.write(ast_str)
+                    elapsed_txt = time.time() - start
+
+                    start = time.time()
+                    json_str = json.dumps(ast_to_dict(tree), indent=2)
+                    with open(os.path.join(target_dir, f"{kernel_name}_ast.json"), "w") as f:
+                        f.write(json_str)
+                    elapsed_json = time.time() - start
+
+                    with open(os.path.join(target_dir, f"{kernel_name}_gen_time.json"), "w") as f:
+                        f.write(json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2))
+                    # print("elapsed", elapsed)
+
                 print("     calling transform_tree...")
                 start = time.time()
                 transform_tree(tree, ctx)
