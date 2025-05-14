@@ -688,8 +688,6 @@ class Kernel:
                         return node  # Basic types (str, int, None, etc.)
 
                 if "TAICHI_DUMP_AST" in os.environ:
-                    import time
-
                     target_dir = "/tmp/ast"
                     os.makedirs(target_dir, exist_ok=True)
 
