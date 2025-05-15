@@ -20,10 +20,10 @@ class Template:
         >>> def test_template(a: ti.template()):
         >>>     print(a)
         >>>
-        >>> test(a)  # will print 1
+        >>> test()  # will print 1
         >>> test_template(a)  # will also print 1
         >>> a = 2
-        >>> test(a)  # will still print 1
+        >>> test()  # will still print 1
         >>> test_template(a)  # will print 2
     """
 
