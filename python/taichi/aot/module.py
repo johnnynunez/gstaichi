@@ -47,8 +47,9 @@ class KernelTemplate:
         for index, (key, value) in enumerate(kwargs.items()):
             template_args[index] = (key, value)
 
+        print("# aaot.modulle.py check kernel argumetns")
         for arg in kernel.arguments:
-            if isinstance(arg.annotation, template):
+            if isinstance(arg.annotation, template) or arg.annotation == template:
                 (k, v) = template_args[anno_index]
                 key_p += k
                 key_p = self.keygen(v, key_p, self._aot_module._fields.items())
