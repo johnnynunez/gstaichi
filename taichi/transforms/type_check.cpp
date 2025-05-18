@@ -63,6 +63,7 @@ class TypeCheck : public IRVisitor {
     // Make a copy since type casts may be inserted for type promotion.
     for (auto &stmt : stmt_list->statements) {
       stmts.push_back(stmt.get());
+      stmts.reserve(stmt_list->statements.size());
     }
     for (auto stmt : stmts)
       stmt->accept(this);
