@@ -59,14 +59,22 @@ class TypeCheck : public IRVisitor {
   }
 
   void visit(Block *stmt_list) override {
-    std::vector<Stmt *> stmts;
-    // Make a copy since type casts may be inserted for type promotion.
-    for (auto &stmt : stmt_list->statements) {
-      stmts.push_back(stmt.get());
+    auto i = 0;
+    try {
+      std::vector<Stmt *> stmts;
       stmts.reserve(stmt_list->statements.size());
+      // Make a copy since type casts may be inserted for type promotion.
+      for (auto &stmt : stmt_list->statements) {
+        stmts.push_back(stmt.get());
+      }
+      for (auto stmt : stmts)
+        stmt->accept(this);
+        i += 1;
+    } catch(std::runtime_error &e) {
+      std::cout << "hit exception whilst processing block, statement idx " << i << std::endl;
+      irpass::print(stmt_list);
+      throw e;
     }
-    for (auto stmt : stmts)
-      stmt->accept(this);
   }
 
   void visit(AtomicOpStmt *stmt) override {
