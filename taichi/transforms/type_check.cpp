@@ -58,6 +58,17 @@ class TypeCheck : public IRVisitor {
     }
   }
 
+  class AlreadyCaught: std::exception {
+  public:
+    // AlreadyCaught()
+    AlreadyCaught(std::runtime_error &e) : e(e) {}
+    const char* what() const noexcept override {
+      return e.what();
+    }
+  private:
+    std::runtime_error &e;
+  };
+
   void visit(Block *stmt_list) override {
     auto i = 0;
     try {
@@ -67,13 +78,35 @@ class TypeCheck : public IRVisitor {
       for (auto &stmt : stmt_list->statements) {
         stmts.push_back(stmt.get());
       }
-      for (auto stmt : stmts)
-        stmt->accept(this);
+      for (auto stmt : stmts) {
+        try {
+          stmt->accept(this);
+        } catch (std::runtime_error &e) {
+          std::cout << "hit exception whilst processing block, statement " << stmt->name() << std::endl;
+          throw e;
+        }
         i += 1;
+      }
     } catch(std::runtime_error &e) {
       std::cout << "hit exception whilst processing block, statement idx " << i << std::endl;
-      irpass::print(stmt_list);
-      throw e;
+      // irpass::print(stmt_list);
+      
+      // Create directory if not exists and dump IR to file
+      {
+        std::string dumpOutDir = "/tmp/ir_dump";
+        std::filesystem::create_directories(dumpOutDir);
+
+        std::string filename = dumpOutDir + "/type_check.ll";
+        std::ofstream out_file(filename);
+        if (out_file.is_open()) {
+          std::string outString;
+          irpass::print(stmt_list, &outString);
+          out_file << outString;
+          out_file.close();
+        }            
+        std::cout << "IR dump written to: " << filename << std::endl;
+      }
+      throw AlreadyCaught(e);
     }
   }
 
