@@ -31,4 +31,5 @@ jobs:
                 libxi-dev \
                 libxinerama-dev \
                 libxrandr-dev
-          ./build.py --shell
+          bash .github/workflows/scripts_new/linux_x86.sh
+          # ./build.py --shell
