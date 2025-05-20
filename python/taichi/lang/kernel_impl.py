@@ -676,6 +676,7 @@ class Kernel:
             self.runtime.compiling_callable = kernel_cxx
             try:
                 ctx.ast_builder = kernel_cxx.ast_builder()
+
                 def ast_to_dict(node):
                     if isinstance(node, ast.AST):
                         fields = {k: ast_to_dict(v) for k, v in ast.iter_fields(node)}
