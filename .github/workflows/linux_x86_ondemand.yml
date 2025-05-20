@@ -1,4 +1,4 @@
-name: Manual workflow
+name: Linux x86 on-demand
 on:
   workflow_dispatch:
 jobs:
