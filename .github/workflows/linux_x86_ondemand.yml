@@ -15,4 +15,20 @@ jobs:
           cat /etc/lsb-release
           ls -la
           python -V
+          sudo apt update
+          sudo apt install -y \
+                freeglut3-dev \
+                libglfw3-dev \
+                libglm-dev \
+                libglu1-mesa-dev \
+                libwayland-dev \
+                libx11-xcb-dev \
+                libxcb-dri3-dev \
+                libxcb-ewmh-dev \
+                libxcb-keysyms1-dev \
+                libxcb-randr0-dev \
+                libxcursor-dev \
+                libxi-dev \
+                libxinerama-dev \
+                libxrandr-dev
           ./build.py --shell
