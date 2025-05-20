@@ -1017,7 +1017,25 @@ class Kernel:
         try:
             prog = impl.get_runtime().prog
             # Compile kernel (& Online Cache & Offline Cache)
+            start = time.time()
             compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
+            elapsed = time.time() - start
+            if "TAICHI_DUMP_KERNEL_COMPILATION_TIMES" in os.environ:
+                dump_dir = "/tmp/compilation_times"
+                os.makedirs(dump_dir, exist_ok=True)
+                with open(os.path.join(dump_dir, f"{self.func.__name__}.json"), "w") as f:
+                    f.write(
+                        json.dumps(
+                            {
+                                "kernel_name": self.func.__name__,
+                                "elapsed_time": elapsed,
+                                "arch": str(impl.current_cfg().arch),
+                                "autodiff_mode": str(self.autodiff_mode),
+                            },
+                            indent=2,
+                        )
+                    )
+                    f.write("\n")
             # Launch kernel
             prog.launch_kernel(compiled_kernel_data, launch_ctx)
         except Exception as e:
