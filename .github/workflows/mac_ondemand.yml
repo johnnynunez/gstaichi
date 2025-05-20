@@ -1,0 +1,22 @@
+name: Linux x86 on-demand
+on:
+  workflow_dispatch:
+jobs:
+  echo-hello:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Echo Hello
+        run: |
+          echo "Hello, world!"
+          pwd
+          sw_vers
+          clang++ --version
+          uname -a
+          clang --version
+          free -m
+          ls -la
+          python -V
+          brew install molten-vk
+          brew install llvm@15
+          ./build.py --shell
