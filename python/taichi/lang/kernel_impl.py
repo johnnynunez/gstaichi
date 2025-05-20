@@ -704,7 +704,23 @@ class Kernel:
                     with open(os.path.join(target_dir, f"{kernel_name}_gen_time.json"), "w") as f:
                         f.write(json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2))
                     # print("elapsed", elapsed)
+                start = time.time()
                 transform_tree(tree, ctx)
+                elapsed = time.time() - start
+                if "TAICHI_DUMP_TRANSFORM_TREE_TIMES" in os.environ:
+                    dump_dir = "/tmp/transform_tree_times"
+                    os.makedirs(dump_dir, exist_ok=True)
+                    with open(os.path.join(dump_dir, f"{self.func.__name__}.json"), "w") as f:
+                        f.write(
+                            json.dumps(
+                                {
+                                    "kernel_name": self.func.__name__,
+                                    "elapsed_time": elapsed,
+                                },
+                                indent=2,
+                            )
+                        )
+                        f.write("\n")
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                         raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
