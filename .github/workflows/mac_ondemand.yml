@@ -8,16 +8,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Echo Hello
         run: |
-          echo "Hello, world!"
-          pwd
-          sw_vers
-          clang++ --version
-          uname -a
-          clang --version
-          free -m
-          ls -la
-          python -V
-          brew install molten-vk
-          brew install llvm@15
           bash .github/workflows/scripts_new/macos_15.sh
-          # ./build.py --shell

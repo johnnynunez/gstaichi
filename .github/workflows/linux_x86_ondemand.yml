@@ -6,30 +6,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Echo Hello
+      - name: Build
         run: |
-          echo "Hello, world!"
-          pwd
-          uname -a
-          free -m
-          cat /etc/lsb-release
-          ls -la
-          python -V
-          sudo apt update
-          sudo apt install -y \
-                freeglut3-dev \
-                libglfw3-dev \
-                libglm-dev \
-                libglu1-mesa-dev \
-                libwayland-dev \
-                libx11-xcb-dev \
-                libxcb-dri3-dev \
-                libxcb-ewmh-dev \
-                libxcb-keysyms1-dev \
-                libxcb-randr0-dev \
-                libxcursor-dev \
-                libxi-dev \
-                libxinerama-dev \
-                libxrandr-dev
           bash .github/workflows/scripts_new/linux_x86.sh
-          # ./build.py --shell
