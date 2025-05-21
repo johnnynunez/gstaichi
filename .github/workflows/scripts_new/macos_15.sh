@@ -8,7 +8,10 @@ brew list
 # brew uninstall python@3.13
 brew install python@3.10
 brew link --force python@3.10
+which python
+which python3
 export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"
+brew link --force python@3.13
 python --version
 sw_vers
 clang++ --version
@@ -17,7 +20,7 @@ clang --version
 # free -m
 ls -la
 python -V
-brew install molten-vk
-brew install llvm@15
-./build.py --shell
-python setup.py develop
+# brew install molten-vk
+# brew install llvm@15
+# ./build.py --shell
+# python setup.py develop
