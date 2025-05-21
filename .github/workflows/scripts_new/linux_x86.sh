@@ -28,7 +28,8 @@ sudo apt install -y \
     libxi-dev \
     libxinerama-dev \
     libxrandr-dev \
-    pybind11-dev
+    pybind11-dev \
+    g++-12
 
 sudo apt install -y clang-15 libclang-common-15-dev libclang-cpp15 libclang1-15 cmake ninja-build python3-dev python3-pip
 pip3 install scikit-build
