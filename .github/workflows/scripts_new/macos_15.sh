@@ -28,5 +28,5 @@ pip3.10 install numpy
 # brew install molten-vk
 brew install llvm@15
 export TAICHI_CMAKE_ARGS="-DTI_WITH_VULKAN:BOOL=OFF -DTI_WITH_METAL:BOOL=ON"
-./build.py --shell
-python setup.py develop
+./build.py wheel
+# python setup.py develop
