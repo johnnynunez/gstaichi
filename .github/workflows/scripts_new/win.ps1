@@ -8,4 +8,6 @@ Get-ChildItem
 python -V
 python --version
 
+git submodule update --init --recursive
+
 ./build.py
