@@ -11,7 +11,9 @@ brew link --force python@3.10
 which python
 which python3
 sudo rm /opt/homebrew/bin/python3
+sudo rm /Library/Frameworks/Python.framework/Versions/Current/bin/python
 sudo ln -s /opt/homebrew/bin/python3.10 /opt/homebrew/bin/python3
+sudo ln -s /opt/homebrew/bin/python3.10 /Library/Frameworks/Python.framework/Versions/Current/bin/python
 # export PATH="/opt/homebrew/:$PATH"
 # export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"
 # brew unlink --force python@3.13
