@@ -29,7 +29,6 @@ sudo apt install -y \
     libxinerama-dev \
     libxrandr-dev \
     pybind11-dev \
-    g++-12 \
     libc++-15-dev \
     libc++abi-15-dev \
     clang-15 \
