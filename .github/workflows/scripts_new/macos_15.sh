@@ -22,6 +22,7 @@ uname -a
 clang --version
 ls -la
 python -V
+pip3.10 install scikit-build
 brew install molten-vk
 brew install llvm@15
 ./build.py --shell
