@@ -2,5 +2,10 @@
 
 echo hello from win.sh
 systeminfo
-pwd
+systeminfo
+Get-Location
+Get-ChildItem
+python -V
 python --version
+
+./build.py
