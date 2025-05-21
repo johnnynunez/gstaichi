@@ -4,6 +4,9 @@ set -ex
 
 echo hello from macos_15.sh
 pwd
+brew list
+brew uninstall python@3.13
+brew install python@3.10
 sw_vers
 clang++ --version
 uname -a
