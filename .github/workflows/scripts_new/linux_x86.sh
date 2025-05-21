@@ -26,7 +26,7 @@ sudo apt install -y \
     libxinerama-dev \
     libxrandr-dev
 
-sudo apt install -y clang-15 clang++-15 cmake ninja-build python3-dev python3-pip
+sudo apt install -y clang-15 libclang-common-15-dev libclang-cpp15 libclang1-15 cmake ninja-build python3-dev python3-pip
 pip3 install scikit-build
 
 ./build.py --shell
