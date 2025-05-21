@@ -29,9 +29,18 @@ sudo apt install -y \
     libxinerama-dev \
     libxrandr-dev \
     pybind11-dev \
-    g++-12
+    g++-12 \
+    libc++-15-dev \
+    libc++abi-15-dev \
+    clang-15 \
+    libclang-common-15-dev \
+    libclang-cpp15 \
+    libclang1-15 \
+    cmake \
+    ninja-build \
+    python3-dev \
+    python3-pip
 
-sudo apt install -y clang-15 libclang-common-15-dev libclang-cpp15 libclang1-15 cmake ninja-build python3-dev python3-pip
 pip3 install scikit-build
 
 ./build.py wheel
