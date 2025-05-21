@@ -37,6 +37,8 @@ def main(ver=None, repo_dir="."):
     latest_release = find_latest_tag_commit(g.tags)
     head = g.head.commit
     mb = g.merge_base(latest_release, head)
+    if len(mb) != 1:
+        print("error: expected length of mb to be 1. mb is:", mb, "ver is", ver)
     assert len(mb) == 1
     mb = mb[0]
     commits_in_base_tag = list(g.iter_commits(latest_release, max_count=500))
