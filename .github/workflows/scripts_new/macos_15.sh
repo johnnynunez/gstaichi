@@ -10,8 +10,11 @@ brew install python@3.10
 brew link --force python@3.10
 which python
 which python3
-export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"
-brew link --force python@3.13
+sudo rm /opt/homebrew/bin/python3
+sudo ln -s /opt/homebrew/bin/python3.10 /opt/homebrew/bin/python3
+# export PATH="/opt/homebrew/:$PATH"
+# export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"
+# brew unlink --force python@3.13
 python --version
 sw_vers
 clang++ --version
