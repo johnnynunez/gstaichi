@@ -25,5 +25,9 @@ sudo apt install -y \
     libxi-dev \
     libxinerama-dev \
     libxrandr-dev
+
+sudo apt install -y clang-15 clang++-15 cmake ninja-build python3-dev python3-pip
+pip3 install scikit-build
+
 ./build.py --shell
 python setup.py develop
