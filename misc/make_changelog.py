@@ -35,6 +35,9 @@ def main(ver=None, repo_dir="."):
     # everything after this commit should be listed in the changelog.
 
     latest_release = find_latest_tag_commit(g.tags)
+    if not latest_release:
+        print("No release tag found => not creating release notes")
+        return
     head = g.head.commit
     mb = g.merge_base(latest_release, head)
     if len(mb) != 1:
