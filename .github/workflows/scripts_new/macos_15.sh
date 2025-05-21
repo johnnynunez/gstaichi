@@ -8,6 +8,7 @@ git submodule
 git submodule update --init --recursive
 brew list
 brew install python@3.10
+brew install pybind11
 brew link --force python@3.10
 which python
 which python3
@@ -23,6 +24,7 @@ clang --version
 ls -la
 python -V
 pip3.10 install scikit-build
+pip3.10 install numpy
 brew install molten-vk
 brew install llvm@15
 ./build.py --shell
