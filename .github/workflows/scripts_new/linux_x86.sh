@@ -24,7 +24,8 @@ sudo apt install -y \
     libxcursor-dev \
     libxi-dev \
     libxinerama-dev \
-    libxrandr-dev
+    libxrandr-dev \
+    pybind11-dev
 
 sudo apt install -y clang-15 libclang-common-15-dev libclang-cpp15 libclang1-15 cmake ninja-build python3-dev python3-pip
 pip3 install scikit-build
