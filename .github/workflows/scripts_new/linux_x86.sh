@@ -44,3 +44,6 @@ sudo apt install -y \
 pip3 install scikit-build
 
 ./build.py wheel
+
+pip3 install dist/*.whl
+python -c "import taichi as ti; ti.init(arch=ti.cpu)"

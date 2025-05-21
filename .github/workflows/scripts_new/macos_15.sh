@@ -25,8 +25,10 @@ ls -la
 python -V
 pip3.10 install scikit-build
 pip3.10 install numpy
-# brew install molten-vk
 brew install llvm@15
 export TAICHI_CMAKE_ARGS="-DTI_WITH_VULKAN:BOOL=OFF -DTI_WITH_METAL:BOOL=ON"
 ./build.py wheel
-# python setup.py develop
+
+pip3.10 install dist/*.whl
+python -c "import taichi as ti; ti.init(arch=ti.cpu)"
+python -c "import taichi as ti; ti.init(arch=ti.metal)"
