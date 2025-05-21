@@ -8,6 +8,7 @@ brew list
 # brew uninstall python@3.13
 brew install python@3.10
 brew link --force python@3.10
+export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"
 python --version
 sw_vers
 clang++ --version
