@@ -11,16 +11,15 @@ jobs:
           python-version: '3.10'
       - name: explore env
         run: |
-          dir
-          ls
-          ps
+          systeminfo
+          Get-Location
+          Get-ChildItem
           python -V
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: 'recursive'
       - name: Windows 2025 Build
         run: |
           pwd
-          .\github\workflows\scripts_new\win.ps1
+          & .\github\workflows\scripts_new\win.ps1
