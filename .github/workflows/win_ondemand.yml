@@ -22,4 +22,4 @@ jobs:
       - name: Windows 2025 Build
         run: |
           pwd
-          & .\github\workflows\scripts_new\win.ps1
+          & .\.github\workflows\scripts_new\win.ps1
