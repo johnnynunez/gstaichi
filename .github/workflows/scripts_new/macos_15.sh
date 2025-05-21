@@ -14,3 +14,4 @@ python -V
 brew install molten-vk
 brew install llvm@15
 ./build.py --shell
+python setup.py develop

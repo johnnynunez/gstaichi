@@ -26,3 +26,4 @@ sudo apt install -y \
     libxinerama-dev \
     libxrandr-dev
 ./build.py --shell
+python setup.py develop

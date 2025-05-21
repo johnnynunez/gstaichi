@@ -6,6 +6,6 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Echo Hello
+      - name: Mac Build
         run: |
           bash .github/workflows/scripts_new/macos_15.sh
