@@ -2771,22 +2771,24 @@ void KernelCodegen::run(TaichiKernelAttributes &kernel_attribs,
     TI_TRACE("SPIRV-Tools-opt: binary size, before={}, after={}",
              task_res.spirv_code.size(), optimized_spv.size());
 
-  const char *dump_ir_env = std::getenv("TAICHI_DUMP_SPIRV");
-    const std::string dumpOutDir = "/tmp/spirv/";
-    if (dump_ir_env != nullptr) {
-      std::filesystem::create_directories(dumpOutDir);
+  {
+    const char *dump_ir_env = std::getenv("TAICHI_DUMP_SPIRV");
+      const std::string dumpOutDir = "/tmp/spirv/";
+      if (dump_ir_env != nullptr) {
+        std::filesystem::create_directories(dumpOutDir);
 
-      // std::vector<uint32_t> &spirv =
-      //     success ? optimized_spv : task_res.spirv_code;
+        // std::vector<uint32_t> &spirv =
+        //     success ? optimized_spv : task_res.spirv_code;
 
-      std::string spirv_asm;
-      spirv_tools_->Disassemble(optimized_spv, &spirv_asm);
-      auto kernel_name = tp.ti_kernel_name;
-      std::string filename = dumpOutDir + "/" + kernel_name + ".spirv";
-      std::ofstream out_file(filename);
-      if (out_file.is_open()) {
-        out_file.write(spirv_asm.c_str(), spirv_asm.size());
-        out_file.close();
+        std::string spirv_asm;
+        spirv_tools_->Disassemble(optimized_spv, &spirv_asm);
+        auto kernel_name = tp.ti_kernel_name;
+        std::string filename = dumpOutDir + "/" + kernel_name + ".spirv";
+        std::ofstream out_file(filename);
+        if (out_file.is_open()) {
+          out_file.write(spirv_asm.c_str(), spirv_asm.size());
+          out_file.close();
+        }
       }
     }
 
