@@ -50,17 +50,16 @@ The language has broad applications spanning real-time physical simulation, nume
 <!--TODO: Precise OS versions-->
 
 - Operating systems
-  - Windows
-  - Linux
-  - macOS
-- Python: 3.6 ~ 3.10 (64-bit only)
+  - Windows (tested on Windows Server 2025)
+  - Linux x86_64 (tested on Ubuntu 22.04)
+  - macOS Sequoia 15 on Silicon (14 appears to work, but not officially supported)
+- Python: 3.10 ~ 3.12 (64-bit only)
 - Compute backends
   - x64/ARM CPUs
-  - CUDA
+  - CUDA (on sm70+ GPUs)
   - Vulkan
-  - OpenGL (4.3+)
   - Apple Metal
-  - WebAssembly (experiemental)
+  - WebAssembly (experimental)
  </details>
 
 Use Python's package installer **pip** to install Taichi Lang:
