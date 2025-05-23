@@ -2714,6 +2714,24 @@ KernelCodegen::KernelCodegen(const Params &params)
 void KernelCodegen::run(TaichiKernelAttributes &kernel_attribs,
                         std::vector<std::vector<uint32_t>> &generated_spirv) {
   auto *root = params_.ir_root->as<Block>();
+
+  {
+    const char *dump_ir_env = std::getenv("TAICHI_DUMP_IR");
+    const std::string dumpOutDir = "/tmp/ir/";
+    if (dump_ir_env != nullptr) {
+      std::filesystem::create_directories(dumpOutDir);
+
+      std::string filename = dumpOutDir + "/" + params_.ti_kernel_name + "_before_final_spirv.ll";
+      std::ofstream out_file(filename);
+      if (out_file.is_open()) {
+        std::string outString;
+        irpass::print((IRNode *)(params_.ir_root), &outString);
+        out_file << outString;
+        out_file.close();
+      }
+    }
+  }
+
   auto &tasks = root->statements;
   for (int i = 0; i < tasks.size(); ++i) {
     TaskCodegen::Params tp;
