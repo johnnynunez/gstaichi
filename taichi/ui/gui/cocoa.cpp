@@ -28,7 +28,7 @@
 typedef const struct __CFAttributedString *CFAttributedStringRef;
 #include <ApplicationServices/ApplicationServices.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 150000  // macOS 15 or newer
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 140000  // macOS 14 or newer
 #include <CoreGraphics/CGBase.h>
 #include <CoreGraphics/CGGeometry.h>
 #include <AppKit/AppKit.h>
@@ -102,7 +102,7 @@ typedef const struct __CFAttributedString *CFAttributedStringRef;
 #define kVK_Delete 0x33
 #define kVK_Escape 0x35
 #define kVK_Space 0x31
-#else  // < mac os 15.0
+#else  // < mac os 14.0
 #include <Carbon/Carbon.h>
 #include <CoreGraphics/CGBase.h>
 #include <CoreGraphics/CGGeometry.h>
@@ -126,7 +126,7 @@ constexpr int NSEventTypeKeyUp = 11;
 constexpr int NSEventTypeFlagsChanged = 12;
 constexpr int NSEventTypeScrollWheel = 22;
 
-#endif  // mac os 15.0
+#endif  // mac os 14.0
 
 namespace {
 using taichi::mac::call;
