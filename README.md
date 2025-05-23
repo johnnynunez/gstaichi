@@ -52,7 +52,7 @@ The language has broad applications spanning real-time physical simulation, nume
 - Operating systems
   - Windows (tested on Windows Server 2025)
   - Linux x86_64 (tested on Ubuntu 22.04)
-  - macOS Sequoia 15 on Silicon (14 appears to work, but not officially supported)
+  - macOS Sequoia 14+
 - Python: 3.10 ~ 3.12 (64-bit only)
 - Compute backends
   - x64/ARM CPUs
