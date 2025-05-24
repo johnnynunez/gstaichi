@@ -234,6 +234,22 @@ std::string JITSessionCUDA::compile_module_to_ptx(
 
   std::string buffer(outstr.begin(), outstr.end());
 
+  const char *dump_ir_env = std::getenv("TAICHI_DUMP_PTX");
+  const std::string dumpOutDir = "/tmp/ptx/";
+  if (dump_ir_env != nullptr) {
+    std::filesystem::create_directories(dumpOutDir);
+
+    std::string moduleName(module->getName().begin(), module->getName().end());
+    std::string filename = dumpOutDir + "/" + moduleName + ".ptx";
+    std::ofstream out_file(filename);
+    if (out_file.is_open()) {
+      // std::string outString;
+      // irpass::print(ir, &outString);
+      out_file << buffer << std::endl;
+      out_file.close();
+    }
+  }
+
   // Null-terminate the ptx source
   buffer.push_back(0);
   return buffer;
