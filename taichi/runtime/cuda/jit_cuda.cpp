@@ -36,7 +36,7 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
     writer.write(ptx);
   }
 
-    const char *dump_ir_env = std::getenv("TAICHI_DUMP_PTX");
+  const char *dump_ir_env = std::getenv("TAICHI_DUMP_PTX");
   const std::string dumpOutDir = "/tmp/ptx/";
   if (dump_ir_env != nullptr) {
     std::filesystem::create_directories(dumpOutDir);
@@ -51,47 +51,24 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
               << filename << std::endl;
   }
   
-  // Load PTX from file if TAICHI_LOAD_PTX is defined
   const char *load_ptx_env = std::getenv("TAICHI_LOAD_PTX");
   if (load_ptx_env != nullptr) {
-      std::cout << "=========================================================" << std::endl;;
-      // std::cout << "ptx before" << ptx[:300] << std::endl;
-    // std::string moduleName(M->getName().begin(), M->getName().end());
     std::string dumpName = moduleToDumpName(M.get());
     std::string filename = dumpOutDir + "/" + dumpName + ".ptx";
     std::ifstream in_file(filename);
     if (in_file.is_open()) {
-      TI_INFO("Loading PTX from file: {}", filename);
+      TI_INFO("########################## Loading PTX from file: {}", filename);
       std::ostringstream ptx_stream;
-      // ptx.clear();
       std::string line;
       while (std::getline(in_file, line)) {
-        // ptx += line + "\n";
         ptx_stream.write(line.c_str(), line.size());
         ptx_stream.write("\n", 1);
       }
       ptx_stream.write("\0", 1); // Null-terminate the stream
       ptx = ptx_stream.str();
       in_file.close();
-      std::cout << "=========================================================" << std::endl;;
-      // std::cout << "ptx after" << ptx[:300] << std::endl;
-      std::cout << "=========================================================" << std::endl;;
-      // Null-terminate the loaded ptx source
-      // ptx.push_back(0);
     } else {
       TI_WARN("Failed to open PTX file for loading: {}", filename);
-    }
-
-    if (dump_ir_env != nullptr) {
-      std::filesystem::create_directories(dumpOutDir);
-
-      // std::string moduleName(M->getName().begin(), M->getName().end());
-      std::string filename = dumpOutDir + "/" + dumpName + "_after_load.ptx";
-      std::ofstream out_file(filename);
-      if (out_file.is_open()) {
-        out_file << ptx << std::endl;
-        out_file.close();
-      }
     }
   }
 
