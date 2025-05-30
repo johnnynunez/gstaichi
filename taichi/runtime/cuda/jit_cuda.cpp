@@ -29,6 +29,24 @@ std::string moduleToDumpName(
 
 JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
                                        int max_reg) {
+
+  const char *dump_ir_env = std::getenv("TAICHI_DUMP_IR");
+  if (dump_ir_env != nullptr) {
+    const std::string dumpOutDir = "/tmp/ir/";
+    std::filesystem::create_directories(dumpOutDir);
+    std::string dumpName = moduleToDumpName(M.get());
+    std::string filename = dumpOutDir + "/" + dumpName + "_before_ptx.ll";
+    std::error_code EC;
+    llvm::raw_fd_ostream dest_file(filename, EC);
+    if (!EC) {
+      M->print(dest_file, nullptr);
+    } else {
+      std::cout << "problem dumping file " << filename
+                << ": " << EC.message() << std::endl;
+      TI_ERROR("Failed to dump LLVM IR to file: {}", filename);
+    }
+  }
+
   auto ptx = compile_module_to_ptx(M);
   if (this->config_.print_kernel_asm) {
     static FileSequenceWriter writer("taichi_kernel_nvptx_{:04d}.ptx",
@@ -36,9 +54,8 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
     writer.write(ptx);
   }
 
-  const char *dump_ir_env = std::getenv("TAICHI_DUMP_PTX");
-  const std::string dumpOutDir = "/tmp/ptx/";
   if (dump_ir_env != nullptr) {
+    const std::string dumpOutDir = "/tmp/ptx/";
     std::filesystem::create_directories(dumpOutDir);
     std::string dumpName = moduleToDumpName(M.get());
     std::string filename = dumpOutDir + "/" + dumpName + ".ptx";
@@ -53,6 +70,7 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
   
   const char *load_ptx_env = std::getenv("TAICHI_LOAD_PTX");
   if (load_ptx_env != nullptr) {
+    const std::string dumpOutDir = "/tmp/ptx/";
     std::string dumpName = moduleToDumpName(M.get());
     std::string filename = dumpOutDir + "/" + dumpName + ".ptx";
     std::ifstream in_file(filename);
@@ -162,6 +180,7 @@ std::string JITSessionCUDA::compile_module_to_ptx(
   const llvm::Target *target =
       TargetRegistry::lookupTarget(triple.str(), err_str);
   TI_ERROR_UNLESS(target, err_str);
+  std::cout << "Target triple: " << triple.str() << std::endl;
 
   TargetOptions options;
   if (this->config_.fast_math) {
