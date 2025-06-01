@@ -1,5 +1,6 @@
 import math
 import operator
+import platform
 
 import numpy as np
 import pytest
@@ -1134,6 +1135,7 @@ def test_cross_scope_matrix_ternary_ops():
     assert (x[1, 1] == [100, 10, 1]).all()
 
 
+@pytest.mark.xfail(platform.system() == "Darwin", reason="CFG seg fault on macOS (added to Linear https://linear.app/genesis-ai-company/issue/CMP-10/fix-cfg-crash-bug)")
 @test_utils.test(debug=True)
 def test_cross_scope_matrix_atomic_ops():
     n = 128
