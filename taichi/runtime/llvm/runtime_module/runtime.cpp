@@ -1550,10 +1550,20 @@ void gpu_parallel_range_for(RuntimeContext *context,
   // AMDGPU doesn't support dynamic array
   // TODO: find a better way to set the tls_size (maybe like struct_for
   alignas(8) char tls_buffer[64];
+  auto tls_ptr = &tls_buffer[0];
+#elif ARCH_cuda
+char *tls_ptr = 0;
+// char *tls_ptr = (char *)malloc(tls_size);
+//   if (tls_ptr == nullptr) {
+//     taichi_printf(context->runtime, "Out of GPU memory for TLS buffer\n");
+//     exit(-1);
+//   }
+  // CUDA requires the TLS buffer to be aligned to 8 bytes
+  // and we use malloc to allocate it, so we can use char array here
 #else
   alignas(8) char tls_buffer[tls_size];
-#endif
   auto tls_ptr = &tls_buffer[0];
+#endif
   if (prologue)
     prologue(context, tls_ptr);
   while (idx < end) {
