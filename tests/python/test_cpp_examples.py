@@ -7,6 +7,8 @@ from tests import test_utils
 
 
 def load_cpp_example_tests():
+    if not os.path.isdir("build"):
+        return []
     files = [file for file in os.listdir("build") if file.startswith("cpp_examples_")]
     filepaths = [join("build", file) for file in files]
     return filepaths
