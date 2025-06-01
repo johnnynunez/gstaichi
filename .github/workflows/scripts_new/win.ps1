@@ -10,4 +10,4 @@ python --version
 
 git submodule update --init --recursive
 
-./build.py
+python build.py
