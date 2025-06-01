@@ -23,4 +23,4 @@ pip install .\dist\taichi-1.8.0-cp310-cp310-win_amd64.whl
 python -c 'import taichi as ti; ti.init();'
 
 pip install -r requirements_test.txt
-
+python .\tests\run_tests.py
