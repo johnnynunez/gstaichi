@@ -712,7 +712,6 @@ class Kernel:
                         f.write(json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2))
                     # print("elapsed", elapsed)
 
-                print("     calling transform_tree...")
                 start = time.time()
                 transform_tree(tree, ctx)
                 elapsed = time.time() - start
