@@ -122,6 +122,8 @@ LlvmRuntimeExecutor::LlvmRuntimeExecutor(CompileConfig &config,
     }
     CUDAContext::get_instance().set_debug(config.debug);
     if (config.cuda_stack_limit != 0) {
+      std::cout << "Setting CUDA stack limit to " << config.cuda_stack_limit
+                << " bytes." << std::endl;
       CUDADriver::get_instance().context_set_limit(CU_LIMIT_STACK_SIZE,
                                                    config.cuda_stack_limit);
     }
@@ -415,9 +417,14 @@ void LlvmRuntimeExecutor::initialize_llvm_runtime_snodes(
 
   TI_TRACE("Allocating data structure of size {} bytes", root_size);
   std::size_t rounded_size = taichi::iroundup(root_size, taichi_page_size);
+  // rounded_size = 134228992;
+  // rounded_size >>= 2;
+  std::cout << "initalize_llvm_runtime_snodes root_size " << root_size << " taichi_page_size " << taichi_page_size << 
+    " rounded size " << rounded_size << std::endl;
 
   Ptr root_buffer = snode_tree_buffer_manager_->allocate(rounded_size, tree_id,
                                                          result_buffer);
+  std::cout << "root_buffer " << (void *)root_buffer << std::endl;
   if (config_.arch == Arch::cuda) {
 #if defined(TI_WITH_CUDA)
     CUDADriver::get_instance().memset(root_buffer, 0, rounded_size);
@@ -439,9 +446,32 @@ void LlvmRuntimeExecutor::initialize_llvm_runtime_snodes(
 
   snode_tree_allocs_[tree_id] = alloc;
 
-  runtime_jit->call<void *, std::size_t, int, int, int, std::size_t, Ptr>(
+  TI_DEBUG("calling runtime initialize_snodes with root_size from TI_DEBUG");
+  TI_TRACE("calling runtime initialize_snodes with root_size from TI_TRACE");
+  TI_TRACE("root size {} root_id {} num_snodes {} tree_id {} rounded_size {} root_buffer {} all_dense {}",
+           root_size, root_id, snode_metas.size(), tree_id, rounded_size,
+           (void *)root_buffer, all_dense);
+  TI_TRACE("root buffer tail {}", (void *)((uint64_t)root_buffer + rounded_size));
+  std::cout << "calling runtime initialize_snodes with root_size "
+            << root_size << " root_id " << root_id
+  //           << " num_snodes " << snode_metas.size()
+  //           << " tree_id " << tree_id
+            << " rounded_size " << rounded_size
+            << " root_buffer " << (void *)root_buffer
+  //           << " all_dense " << all_dense
+            << std::endl;
+  runtime_jit->call<void *, std::size_t, int, int, int, std::size_t, Ptr, bool>(
       "runtime_initialize_snodes", llvm_runtime_, root_size, root_id,
       (int)snode_metas.size(), tree_id, rounded_size, root_buffer, all_dense);
+
+      // void runtime_initialize_snodes(LLVMRuntime *runtime,
+      //                          std::size_t root_size,
+      //                          const int root_id,
+      //                          const int num_snodes,
+      //                          const int snode_tree_id,
+      //                          std::size_t rounded_size,
+      //                          Ptr ptr,
+      //                          bool all_dense) {
 
   for (size_t i = 0; i < snode_metas.size(); i++) {
     if (is_gc_able(snode_metas[i].type)) {
@@ -483,7 +513,7 @@ DeviceAllocation LlvmRuntimeExecutor::allocate_memory_on_device(
        get_llvm_runtime(),
        result_buffer,
        use_device_memory_pool()});
-
+  // std::cout << " allocate_memory_on_device size=" << alloc_size << " ptr " << (void *)(devalloc.get_ptr()) << std::endl;
   TI_ASSERT(allocated_runtime_memory_allocs_.find(devalloc.alloc_id) ==
             allocated_runtime_memory_allocs_.end());
   allocated_runtime_memory_allocs_[devalloc.alloc_id] = devalloc;
@@ -660,6 +690,7 @@ void LlvmRuntimeExecutor::materialize_runtime(KernelProfilerBase *profiler,
   // | ==================preallocated device buffer ========================== |
   // |<- reserved for return ->|<---- usable for allocators on the device ---->|
   auto *const runtime_jit = get_runtime_jit_module();
+  std::cout << "after getting runtime jit module" << std::endl;
 
   size_t runtime_objects_prealloc_size = 0;
   void *runtime_objects_prealloc_buffer = nullptr;
@@ -703,6 +734,7 @@ void LlvmRuntimeExecutor::materialize_runtime(KernelProfilerBase *profiler,
   TI_TRACE("Launching runtime_initialize");
 
   auto *host_memory_pool = &HostMemoryPool::get_instance();
+  std::cout << "got host memory pool" << std::endl;
   runtime_jit
       ->call<void *, void *, std::size_t, void *, int, void *, void *, void *>(
           "runtime_initialize", *result_buffer_ptr, host_memory_pool,

@@ -163,6 +163,8 @@ CUDADriver &CUDADriver::get_instance() {
 }
 
 void CUDADriver::malloc_async(void **dev_ptr, size_t size, CUstream stream) {
+  std::cout << "CUDADriver::malloc_async size = " << size
+            << " stream = " << (void *)stream << std::endl;
   if (CUDAContext::get_instance().supports_mem_pool()) {
     malloc_async_impl(dev_ptr, size, stream);
   } else {

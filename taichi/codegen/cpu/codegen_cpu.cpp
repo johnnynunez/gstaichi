@@ -33,6 +33,7 @@ class TaskCodeGenCPU : public TaskCodeGenLLVM {
                  const Kernel *kernel,
                  IRNode *ir)
       : TaskCodeGenLLVM(id, config, tlctx, kernel, ir, nullptr) {
+      std::cout << "TaskCodeGenCPU constructor called" << std::endl;
     TI_AUTO_PROF
   }
 

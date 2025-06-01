@@ -43,6 +43,8 @@ RhiResult CudaDevice::allocate_memory(const AllocParams &params,
   out_devalloc->alloc_id = allocations_.size();
   out_devalloc->device = this;
 
+  // std::cout << "CudaDevice::allocate_memory size=%lld head = "
+
   allocations_.push_back(info);
   return RhiResult::success;
 }
@@ -51,12 +53,15 @@ DeviceAllocation CudaDevice::allocate_memory_runtime(
     const LlvmRuntimeAllocParams &params) {
   AllocInfo info;
   info.size = taichi::iroundup(params.size, taichi_page_size);
+  std::cout << "CudaDevice::allocate_memory_runtime size " << info.size << std::endl;
   if (info.size == 0) {
     info.ptr = nullptr;
   } else if (params.use_memory_pool) {
+    std::cout << "CudaDevice::allocate_memory_runtime use memory pool " << std::endl;
     CUDADriver::get_instance().malloc_async((void **)&info.ptr, info.size,
                                             nullptr);
   } else {
+    std::cout << "CudaDevice::allocate_memory_runtime use cache " << std::endl;
     info.ptr =
         DeviceMemoryPool::get_instance().allocate_with_cache(this, params);
   }

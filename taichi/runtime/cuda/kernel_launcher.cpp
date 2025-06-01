@@ -75,6 +75,7 @@ void KernelLauncher::launch_llvm_kernel(Handle handle,
           LaunchContextBuilder::DevAllocType::kNone) {
         // External array
         // Note: assuming both data & grad are on the same device
+        std::cout << "check on cuda device for " << (void *)data_ptr << std::endl;
         if (on_cuda_device(data_ptr)) {
           // data_ptr is a raw ptr on CUDA device
           device_ptrs[data_ptr_idx] = data_ptr;

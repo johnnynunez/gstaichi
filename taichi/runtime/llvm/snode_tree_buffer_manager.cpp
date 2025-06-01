@@ -13,6 +13,9 @@ Ptr SNodeTreeBufferManager::allocate(std::size_t size,
                                      const int snode_tree_id,
                                      uint64 *result_buffer) {
   auto devalloc = runtime_exec_->allocate_memory_on_device(size, result_buffer);
+  std::cout << "SNodeTreeBufferManager::allocate size=" << size
+            << " snode_tree_id=" << snode_tree_id
+            << " devalloc=" << (void *)(devalloc.get_ptr().offset) << std::endl;
   snode_tree_id_to_device_alloc_[snode_tree_id] = devalloc;
   return (Ptr)runtime_exec_->get_device_alloc_info_ptr(devalloc);
 }

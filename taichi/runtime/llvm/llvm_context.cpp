@@ -207,7 +207,9 @@ std::string find_existing_command(const std::vector<std::string> &commands) {
 }
 
 std::string get_runtime_fn(Arch arch) {
-  return fmt::format("runtime_{}.bc", arch_name(arch));
+  auto res = fmt::format("runtime_{}.bc", arch_name(arch));
+  std::cout << "get_runtime_fn arch: " << arch_name(arch) << " => " << res << std::endl;
+  return res;
 }
 
 std::string libdevice_path() {
@@ -215,7 +217,9 @@ std::string libdevice_path() {
   folder = runtime_lib_dir();
   auto cuda_version_string = get_cuda_version_string();
   auto cuda_version_major = int(std::atof(cuda_version_string.c_str()));
-  return fmt::format("{}/slim_libdevice.{}.bc", folder, cuda_version_major);
+  auto res = fmt::format("{}/slim_libdevice.{}.bc", folder, cuda_version_major);
+  std::cout << "libdevice_path => " << res << std::endl;
+  return res;
 }
 
 std::unique_ptr<llvm::Module> TaichiLLVMContext::clone_module_to_context(
@@ -251,6 +255,8 @@ TaichiLLVMContext::clone_module_to_this_thread_context(llvm::Module *module) {
 
 std::unique_ptr<llvm::Module> LlvmModuleBitcodeLoader::load(
     llvm::LLVMContext *ctx) const {
+  std::cout << "LlvmModuleBitcodeLoader::load bitcode_path_=" << bitcode_path_
+            << std::endl;
   TI_AUTO_PROF;
   std::ifstream ifs(bitcode_path_, std::ios::binary);
   TI_ERROR_IF(!ifs, "Bitcode file ({}) not found.", bitcode_path_);
@@ -277,6 +283,7 @@ std::unique_ptr<llvm::Module> LlvmModuleBitcodeLoader::load(
     TI_ERROR("Broken bitcode={}", bitcode_path_);
     return nullptr;
   }
+  std::cout << " done loading bitcode " << std::endl;
   return std::move(runtime.get());
 }
 
@@ -357,6 +364,8 @@ std::unique_ptr<llvm::Module> TaichiLLVMContext::clone_runtime_module() {
 
 std::unique_ptr<llvm::Module> TaichiLLVMContext::module_from_file(
     const std::string &file) {
+  std::cout << "TaichiLLVMContext::module_from_file file=" << file
+            << std::endl;
   auto ctx = get_this_thread_context();
   std::unique_ptr<llvm::Module> module = module_from_bitcode_file(
       fmt::format("{}/{}", runtime_lib_dir(), file), ctx);
@@ -934,10 +943,12 @@ auto make_slim_libdevice = [](const std::vector<std::string> &args) {
 };
 
 void TaichiLLVMContext::init_runtime_module(llvm::Module *runtime_module) {
+  std::cout << "TaichiLLVMContext::init_runtime_module" << std::endl;
   if (config_.arch == Arch::cuda) {
     for (auto &f : *runtime_module) {
       bool is_kernel = false;
       const std::string func_name = f.getName().str();
+      std::cout << "  runtime_module " << f.getName().str() << " func_name=" << func_name << std::endl;
       if (starts_with(func_name, "runtime_")) {
         mark_function_as_cuda_kernel(&f);
         is_kernel = true;
@@ -1002,6 +1013,7 @@ llvm::Function *TaichiLLVMContext::get_struct_function(const std::string &name,
 }
 
 llvm::Type *TaichiLLVMContext::get_runtime_type(const std::string &name) {
+  std::cout << "get_runtime_type name=" << name << std::endl;
   auto ty = llvm::StructType::getTypeByName(
       get_this_thread_runtime_module()->getContext(), ("struct." + name));
   if (!ty) {

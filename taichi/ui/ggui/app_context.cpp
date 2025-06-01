@@ -122,6 +122,7 @@ void AppContext::init_with_metal(Program *prog,
                                  TaichiWindow *window,
                                  const AppConfig &config) {
 #ifdef TI_WITH_METAL
+std::cout << "TI_WITH_METAL used" << std::endl;
   taichi_window_ = window;
   prog_ = prog;
   this->config = config;
@@ -133,6 +134,7 @@ void AppContext::init_with_metal(Program *prog,
         prog->get_graphics_device());
   }
 #else
+std::cout << "TI_WITH_METAL NOT used" << std::endl;
   TI_NOT_IMPLEMENTED;
 #endif
 }

@@ -27,6 +27,7 @@ DeviceMemoryPool::DeviceMemoryPool(bool merge_upon_release)
 void *DeviceMemoryPool::allocate_with_cache(
     LlvmDevice *device,
     const LlvmDevice::LlvmRuntimeAllocParams &params) {
+      std::cout << "DeviceMemoryPool::allocate_with_cache size " << params.size << std::endl;
   std::lock_guard<std::mutex> _(mut_allocation_);
 
   return allocator_->allocate(device, params);
@@ -61,12 +62,15 @@ void *DeviceMemoryPool::allocate_raw_memory(std::size_t size, bool managed) {
     when calling this method.
   */
   void *ptr = nullptr;
-
 #if TI_WITH_CUDA
   if (!managed) {
     CUDADriver::get_instance().malloc(&ptr, size);
+    std::cout << "DeviceMemoryPool::allocate_raw_memory size " << size << " managed " << managed << " ptr " << (void *)ptr
+         << " tail " << (void *)((size_t)ptr + size) << std::endl;
   } else {
     CUDADriver::get_instance().malloc_managed(&ptr, size, CU_MEM_ATTACH_GLOBAL);
+    std::cout << "DeviceMemoryPool::allocate_raw_memory size " << size << " managed " << managed << " ptr " << (void *)ptr
+         << " tail " << (void *)((size_t)ptr + size) << std::endl;
   }
 #elif TI_WITH_AMDGPU
   if (!managed) {
@@ -101,6 +105,7 @@ void DeviceMemoryPool::deallocate_raw_memory(void *ptr) {
     The caller ensures that no other thread is accessing the memory pool
     when calling this method.
   */
+ std::cout << "DeviceMemoryPool::deallocate_raw_memory ptr " << (void *)ptr << std::endl;
   if (!raw_memory_chunks_.count(ptr)) {
     TI_ERROR("Memory address ({:}) is not allocated", ptr);
   }
@@ -120,6 +125,7 @@ void DeviceMemoryPool::reset() {
   std::lock_guard<std::mutex> _(mut_allocation_);
 
   const auto ptr_map_copied = raw_memory_chunks_;
+  std::cout << "DeviceMemoryPool::reset, deallocating " << ptr_map_copied.size() << " raw memory chunks" << std::endl;
   for (auto &ptr : ptr_map_copied) {
     deallocate_raw_memory(ptr.first);
   }

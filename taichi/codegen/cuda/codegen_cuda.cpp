@@ -46,6 +46,7 @@ class TaskCodeGenCUDA : public TaskCodeGenLLVM {
                            const Kernel *kernel,
                            IRNode *ir = nullptr)
       : TaskCodeGenLLVM(id, config, tlctx, kernel, ir) {
+        std::cout << "TaskCodeGenCUDA constructor called" << std::endl;
   }
 
   llvm::Value *create_print(std::string tag,
