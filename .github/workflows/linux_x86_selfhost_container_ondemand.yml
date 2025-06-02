@@ -12,6 +12,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y git
+          git config --global --add safe.directory /__w/taichi/taichi
       - uses: actions/checkout@v4
       - name: Linux x86 Build
         run: |
