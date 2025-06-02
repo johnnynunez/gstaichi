@@ -687,10 +687,9 @@ class Kernel:
                             "lineno": getattr(node, "lineno", None),
                             "col_offset": getattr(node, "col_offset", None),
                         }
-                    elif isinstance(node, list):
+                    if isinstance(node, list):
                         return [ast_to_dict(x) for x in node]
-                    else:
-                        return node  # Basic types (str, int, None, etc.)
+                    return node  # Basic types (str, int, None, etc.)
 
                 if "TAICHI_DUMP_AST" in os.environ:
                     target_dir = "/tmp/ast"
