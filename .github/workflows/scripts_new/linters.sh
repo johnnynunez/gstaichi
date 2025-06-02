@@ -11,7 +11,7 @@ uname -a
 # =============
 
 pip install pre-commit
-pre-commit run -a
+pre-commit run -a --show-diff
 
 # python
 # ======
