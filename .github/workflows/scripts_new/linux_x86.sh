@@ -48,4 +48,4 @@ pip3 install dist/*.whl
 python -c "import taichi as ti; ti.init(arch=ti.cpu)"
 
 pip3 install -r requirements_test.txt
-python3.10 tests/run_tests.py
+python3.10 tests/run_tests.py -v
