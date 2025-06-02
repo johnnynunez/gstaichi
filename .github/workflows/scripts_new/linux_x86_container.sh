@@ -4,10 +4,11 @@ set -ex
 
 echo hello from linux_x86_container.sh
 pwd
+dpkg -l '*cuda*' | grep 'ii'
 uname -a
 whoami
 ls
-apt update
+apt-get update
 apt-get install -y git wget python3 python3-pip
 ln -s /usr/bin/python3 /usr/bin/python
 python -V
@@ -19,7 +20,7 @@ free -m
 cat /etc/lsb-release
 ls -la
 python -V
-apt install -y \
+apt-get install -y \
     freeglut3-dev \
     libglfw3-dev \
     libglm-dev \
@@ -48,7 +49,7 @@ apt install -y \
 
 pip3 install scikit-build
 
-apt install libjpeg-dev liblz4-dev libpng-dev libssl-dev libzstd-dev -y
+apt-get install libjpeg-dev liblz4-dev libpng-dev libssl-dev libzstd-dev -y
 
 mkdir -p ~/bin
 cat >~/bin/sudo <<EOF
