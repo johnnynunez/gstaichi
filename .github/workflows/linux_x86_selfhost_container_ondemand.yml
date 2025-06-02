@@ -8,9 +8,11 @@ jobs:
       image: nvidia/cuda:12.3.1-base-ubuntu22.04
       options: --cpus 12
     steps:
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y git
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
       - name: Linux x86 Build
         run: |
           bash .github/workflows/scripts_new/linux_x86_container.sh
