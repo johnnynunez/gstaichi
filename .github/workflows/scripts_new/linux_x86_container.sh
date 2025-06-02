@@ -63,6 +63,7 @@ export PATH=~/bin:$PATH
 
 pip3 install dist/*.whl
 python -c "import taichi as ti; ti.init(arch=ti.cpu)"
+python -c 'import tests.test_utils; print("Available architectures", tests.test_utils.expected_archs())'
 
 pip3 install -r requirements_test.txt
 python3.10 tests/run_tests.py -v
