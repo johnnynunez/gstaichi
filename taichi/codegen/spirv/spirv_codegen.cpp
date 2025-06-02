@@ -2721,7 +2721,8 @@ void KernelCodegen::run(TaichiKernelAttributes &kernel_attribs,
     if (dump_ir_env != nullptr) {
       std::filesystem::create_directories(dumpOutDir);
 
-      std::string filename = dumpOutDir + "/" + params_.ti_kernel_name + "_before_final_spirv.ll";
+      std::string filename =
+          dumpOutDir + "/" + params_.ti_kernel_name + "_before_final_spirv.ll";
       std::ofstream out_file(filename);
       if (out_file.is_open()) {
         std::string outString;
@@ -2771,8 +2772,8 @@ void KernelCodegen::run(TaichiKernelAttributes &kernel_attribs,
     TI_TRACE("SPIRV-Tools-opt: binary size, before={}, after={}",
              task_res.spirv_code.size(), optimized_spv.size());
 
-  {
-    const char *dump_ir_env = std::getenv("TAICHI_DUMP_SPIRV");
+    {
+      const char *dump_ir_env = std::getenv("TAICHI_DUMP_SPIRV");
       const std::string dumpOutDir = "/tmp/spirv/";
       if (dump_ir_env != nullptr) {
         std::filesystem::create_directories(dumpOutDir);

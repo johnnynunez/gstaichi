@@ -13,7 +13,7 @@ ln -s /usr/bin/python3 /usr/bin/python
 python -V
 pip --version
 git status
-git submodule 
+git submodule
 git submodule update --init --recursive
 free -m
 cat /etc/lsb-release

@@ -15,21 +15,20 @@ bool module_has_runtime_initialize(
   return false;
 }
 
-std::string moduleToDumpName(
-    llvm::Module *M) {
-    std::string dumpName(M->getName().begin(), M->getName().end());
-    std::cout << "module get function list len:" << M->getFunctionList().size() << std::endl;
-    auto func0 = M->getFunctionList().begin();
-    std::cout << "function 0 name: " << func0->getName().str() << std::endl;
-    if(!module_has_runtime_initialize(M->getFunctionList())) {
-      dumpName = std::string(func0->getName().begin(), func0->getName().end());
-    }
-    return dumpName;
+std::string moduleToDumpName(llvm::Module *M) {
+  std::string dumpName(M->getName().begin(), M->getName().end());
+  std::cout << "module get function list len:" << M->getFunctionList().size()
+            << std::endl;
+  auto func0 = M->getFunctionList().begin();
+  std::cout << "function 0 name: " << func0->getName().str() << std::endl;
+  if (!module_has_runtime_initialize(M->getFunctionList())) {
+    dumpName = std::string(func0->getName().begin(), func0->getName().end());
+  }
+  return dumpName;
 }
 
 JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
                                        int max_reg) {
-
   const char *dump_ir_env = std::getenv("TAICHI_DUMP_IR");
   if (dump_ir_env != nullptr) {
     const std::string dumpOutDir = "/tmp/ir/";
@@ -41,8 +40,8 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
     if (!EC) {
       M->print(dest_file, nullptr);
     } else {
-      std::cout << "problem dumping file " << filename
-                << ": " << EC.message() << std::endl;
+      std::cout << "problem dumping file " << filename << ": " << EC.message()
+                << std::endl;
       TI_ERROR("Failed to dump LLVM IR to file: {}", filename);
     }
   }
@@ -64,10 +63,10 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
       out_file << ptx << std::endl;
       out_file.close();
     }
-    std::cout << "########################## PTX dumped to: "
-              << filename << std::endl;
+    std::cout << "########################## PTX dumped to: " << filename
+              << std::endl;
   }
-  
+
   const char *load_ptx_env = std::getenv("TAICHI_LOAD_PTX");
   if (load_ptx_env != nullptr) {
     const std::string dumpOutDir = "/tmp/ptx/";
@@ -82,7 +81,7 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
         ptx_stream.write(line.c_str(), line.size());
         ptx_stream.write("\n", 1);
       }
-      ptx_stream.write("\0", 1); // Null-terminate the stream
+      ptx_stream.write("\0", 1);  // Null-terminate the stream
       ptx = ptx_stream.str();
       in_file.close();
     } else {
@@ -313,7 +312,6 @@ std::string JITSessionCUDA::compile_module_to_ptx(
   std::string buffer(outstr.begin(), outstr.end());
   // Null-terminate the ptx source
   buffer.push_back(0);
-
 
   return buffer;
 }

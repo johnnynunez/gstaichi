@@ -4,7 +4,7 @@ set -ex
 
 echo hello from macos_15.sh
 pwd
-git submodule 
+git submodule
 git submodule update --init --recursive
 brew list
 brew install python@3.10

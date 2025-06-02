@@ -268,7 +268,8 @@ void StructCompilerLLVM::run(SNode &root) {
   if (dump_ir_env != nullptr) {
     std::filesystem::create_directories(dumpOutDir);
 
-    std::string filename = dumpOutDir + "/" + std::string(module->getName()) + "_llvm.ll";
+    std::string filename =
+        dumpOutDir + "/" + std::string(module->getName()) + "_llvm.ll";
     // std::ofstream out_file(filename);
     std::error_code EC;
     llvm::raw_fd_ostream dest_file(filename, EC);

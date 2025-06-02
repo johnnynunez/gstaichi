@@ -29,9 +29,9 @@ def test_print_docs_scalar_self_documenting_exp(capfd):
     out, err = capfd.readouterr()
     expected_out = """a[0] = 1.0
 """
-    print('out', out)
-    print('expected_out', expected_out)
-    print('err', err)
+    print("out", out)
+    print("expected_out", expected_out)
+    print("err", err)
     assert out == expected_out and err == ""
 
 

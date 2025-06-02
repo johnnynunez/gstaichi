@@ -6,7 +6,7 @@ echo hello from linux_x86.sh
 pwd
 uname -a
 git status
-git submodule 
+git submodule
 git submodule update --init --recursive
 free -m
 cat /etc/lsb-release

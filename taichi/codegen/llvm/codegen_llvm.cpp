@@ -15,9 +15,8 @@
 #include "taichi/codegen/llvm/struct_llvm.h"
 #include "taichi/util/file_sequence_writer.h"
 #include "taichi/codegen/codegen_utils.h"
-#include "llvm/Support/SourceMgr.h" // Add this line for SMDiagnostic
-#include "llvm/AsmParser/Parser.h"  // Add this line for parseIRFile
-
+#include "llvm/Support/SourceMgr.h"  // Add this line for SMDiagnostic
+#include "llvm/AsmParser/Parser.h"   // Add this line for parseIRFile
 
 namespace taichi::lang {
 
@@ -2768,7 +2767,6 @@ LLVMCompiledTask TaskCodeGenLLVM::run_compilation() {
     }
   }
 
-
   const char *load_ir_env = std::getenv("TAICHI_LOAD_IR");
   // if (const char *load_ir_path = std::getenv("TAICHI_LOAD_IR_FILE")) {
   if (load_ir_env != nullptr) {
@@ -2779,12 +2777,13 @@ LLVMCompiledTask TaskCodeGenLLVM::run_compilation() {
     if (!loaded_module) {
       err.print("TAICHI_LOAD_IR_FILE error", llvm::errs());
       TI_ERROR("Failed to load LLVM IR from {}", filename);
-  } else {
-    // Replace the current module with the loaded one
-    module = std::move(loaded_module);
-    // You might need to update offloaded_tasks and other data based on the loaded module
+    } else {
+      // Replace the current module with the loaded one
+      module = std::move(loaded_module);
+      // You might need to update offloaded_tasks and other data based on the
+      // loaded module
+    }
   }
-}
 
   return {std::move(offloaded_tasks), std::move(module),
           std::move(used_tree_ids), std::move(struct_for_tls_sizes)};
