@@ -179,7 +179,6 @@ std::string JITSessionCUDA::compile_module_to_ptx(
   const llvm::Target *target =
       TargetRegistry::lookupTarget(triple.str(), err_str);
   TI_ERROR_UNLESS(target, err_str);
-  std::cout << "Target triple: " << triple.str() << std::endl;
 
   TargetOptions options;
   if (this->config_.fast_math) {
