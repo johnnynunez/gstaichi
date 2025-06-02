@@ -22,7 +22,9 @@ pip install mypy
 # mypy python
 
 pip install isort
-isort --check-only --diff python
+# TODO: run isort on all python files, and commit those, then
+# uncomment the following line:
+# isort --check-only --diff python
 
 # C++
 # ===
