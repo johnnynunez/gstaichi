@@ -1,4 +1,4 @@
-name: Linux x86 on-demand
+name: Linux x86 self-host container on-demand
 on:
   workflow_dispatch:
 jobs:
