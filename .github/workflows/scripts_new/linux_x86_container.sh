@@ -50,7 +50,7 @@ pip3 install scikit-build
 
 apt install libjpeg-dev liblz4-dev libpng-dev libssl-dev libzstd-dev -y
 
-mkdir ~/bin
+mkdir -p ~/bin
 cat >~/bin/sudo <<EOF
 #!/bin/sh
 exec "\$@"
