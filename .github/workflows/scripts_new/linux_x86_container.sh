@@ -7,6 +7,7 @@ pwd
 uname -a
 whoami
 ls
+apt update
 apt-get install -y git wget python3 python3-pip
 ln -s /usr/bin/python3 /usr/bin/python
 python -V
@@ -18,7 +19,6 @@ free -m
 cat /etc/lsb-release
 ls -la
 python -V
-apt update
 apt install -y \
     freeglut3-dev \
     libglfw3-dev \
