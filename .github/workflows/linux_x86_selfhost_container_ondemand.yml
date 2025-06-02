@@ -9,6 +9,8 @@ jobs:
       options: --cpus 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Linux x86 Build
         run: |
           bash .github/workflows/scripts_new/linux_x86_container.sh
