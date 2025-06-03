@@ -10,7 +10,7 @@
 set -ex
 
 sudo apt-get update
-sudo apt-get install -y clang-tidy-18
+sudo apt-get install -y clang-tidy-14
 git submodule update --init --recursive
 
 sudo apt install -y \
@@ -43,4 +43,4 @@ sudo apt install -y \
 pip install scikit-build
 export TAICHI_CMAKE_ARGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 ./build.py wheel
-python ./scripts/run_clang_tidy.py $PWD/taichi -clang-tidy-binary clang-tidy-18 -header-filter=$PWD/taichi -j2
+python ./scripts/run_clang_tidy.py $PWD/taichi -clang-tidy-binary clang-tidy-14 -header-filter=$PWD/taichi -j2
