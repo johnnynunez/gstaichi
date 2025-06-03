@@ -1,3 +1,4 @@
+import pytest
 import pynvml
 import taichi as ti
 from tests import test_utils
