@@ -45,6 +45,7 @@ def test_ad_sum_fwd():
 @test_utils.test()
 def test_ad_sum_local_atomic_fwd():
     # FIXME: figure out why this seg faults on my 5090, then remove this
+    # tracked at https://linear.app/genesis-ai-company/issue/CMP-18/fix-seg-fault-for-test-ad-sum-local-atomic-tests-on-my-5090
     pynvml.nvmlInit()
     handle = pynvml.nvmlDeviceGetHandleByIndex(0)
     gpu_name = pynvml.nvmlDeviceGetName(handle)
