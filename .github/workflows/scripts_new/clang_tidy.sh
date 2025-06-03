@@ -7,6 +7,8 @@
 # but it's not obvious to me how to do this. So, I'm just going 
 # to run a full build for now, and we can FIXME this later.
 
+set -ex
+
 sudo apt-get update
 sudo apt-get install -y clang-tidy-18
 git submodule update --init --recursive
