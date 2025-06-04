@@ -19,7 +19,7 @@ VULKAN_VERSION = "1.4.304.1"
 def setup_vulkan():
     u = platform.uname()
     if u.system == "Linux" and u.machine == "x86_64":
-        url = f"https://sdk.lunarg.com/sdk/download/1.4.304.1/linux/vulkansdk-linux-x86_64-{VULKAN_VERSION}.tar.xz"
+        url = f"https://sdk.lunarg.com/sdk/download/{VULKAN_VERSION}/linux/vulkansdk-linux-x86_64-{VULKAN_VERSION}.tar.xz"
         prefix = get_cache_home() / f"vulkan-{VULKAN_VERSION}"
         download_dep(url, prefix, strip=1)
         sdk = prefix / "x86_64"
