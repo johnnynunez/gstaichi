@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <filesystem>
 
 #include "taichi/codegen/codegen_utils.h"
 #include "taichi/program/program.h"
@@ -2784,7 +2785,7 @@ void KernelCodegen::run(TaichiKernelAttributes &kernel_attribs,
         std::string spirv_asm;
         spirv_tools_->Disassemble(optimized_spv, &spirv_asm);
         auto kernel_name = tp.ti_kernel_name;
-        std::string filename = dumpOutDir + "/" + kernel_name + ".spirv";
+        std::string filename = std::filesystem::path(dumpOutDir) / (kernel_name + ".spirv");
         std::ofstream out_file(filename);
         if (out_file.is_open()) {
           out_file.write(spirv_asm.c_str(), spirv_asm.size());

@@ -61,7 +61,7 @@ class TypeCheck : public IRVisitor {
   class AlreadyCaught : std::exception {
    public:
     // AlreadyCaught()
-    AlreadyCaught(std::runtime_error &e) : e_(e) {
+    explicit AlreadyCaught(std::runtime_error &e) : e_(e) {
     }
     const char *what() const noexcept override {
       return e_.what();
