@@ -1,4 +1,4 @@
-name: Linux x86 on-demand
+name: Pyright linter
 on:
   workflow_dispatch:
 jobs:
