@@ -25,7 +25,7 @@ See the [Get Started](https://docs.taichi-lang.org/) for more information on qui
   - [Installing optional dependencies](#install-optional-dependencies)
   - [Building Taichi from source](#build-taichi-from-source)
   - [List of TAICHI_CMAKE_ARGS](#list-of-taichi_cmake_args)
-  - [Usage and behavior of `build.py`](#usage-and-behavior-of-buildpy)
+  - [Usage and behavior of `build.py`](#design-goals-behaviors-and-usage-of-buildpy)
   - [Troubleshooting and debugging](#troubleshooting-and-debugging)
   - [Frequently asked questions](#frequently-asked-questions)
 
@@ -421,6 +421,19 @@ The `develop` command serves the developers' needs better because edits to the P
 | USE_MOLD                     | Use mold (A Modern Linker)                                 | OFF     |
 | USE_STDCPP                   | Use -stdlib=libc++                                         | OFF     |
 
+
+## CI Build scripts
+
+These can serve as a reference if you get stuck. Whilst the CI configuration won't match perfectly the configuration of your own machine, these scripts can serve as a reference for what does run correctly on our CI servers.
+
+- [Github runner configuration](../../../../.github/workflows/linux_x86.yml)
+
+### Linux Ubuntu 22.04 x86
+
+- [1_prerequisites.sh](../../../../.github/workflows/scripts_new/linux_x86/1_prerequisites.sh)
+- [2_build.sh](../../../../.github/workflows/scripts_new/linux_x86/2_build.sh)
+- [3_install.sh](../../../../.github/workflows/scripts_new/linux_x86/3_install.sh)
+- [4_test.sh](../../../../.github/workflows/scripts_new/linux_x86/4_test.sh)
 
 ## Design goals, behaviors and usage of `build.py`
 
