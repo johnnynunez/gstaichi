@@ -83,6 +83,7 @@ _build
 *.json
 !tests/**/*.json
 !docs/**/*.json
+!pyrightconfig.json
 imgui.ini
 /venv/
 /_skbuild/
