@@ -19,10 +19,6 @@ def git_repo(tmp_path):
     yield tmp_path
     os.chdir(cwd)
 
-def test_get_main_branch_integration(git_repo):
-    # Should detect 'main'
-    branch = run_modified_files.get_main_branch()
-    assert branch == "main"
 
 def test_get_changed_files_added_file(git_repo):
     # Create a file and add it
@@ -36,12 +32,14 @@ def test_get_changed_files_added_file(git_repo):
     files = run_modified_files.get_changed_files("*.py")
     assert "foo.py" in files or str(f) in files
 
+
 def test_get_changed_files_untracked(git_repo):
     f = git_repo / "bar.py"
     f.write_text("print('bar')")
     # Not added to git
     files = run_modified_files.get_changed_files("*.py")
     assert "bar.py" in files or str(f) in files
+
 
 def test_get_changed_files_pattern(git_repo):
     (git_repo / "a.py").write_text("a")
@@ -54,10 +52,12 @@ def test_get_changed_files_pattern(git_repo):
     assert any(f.endswith("a.py") for f in files)
     assert not any(f.endswith("b.txt") for f in files)
 
+
 def test_get_changed_files_none(git_repo):
     # No changes
     files = run_modified_files.get_changed_files("*.md")
     assert files == []
+
 
 @pytest.mark.parametrize(
     "filenames,pattern,expected",
@@ -87,6 +87,7 @@ def test_get_changed_files_parametrize(git_repo, filenames, pattern, expected):
     # Only compare basenames for assertion
     found = {Path(f).name for f in files}
     assert set(expected) == found
+
 
 @pytest.mark.parametrize(
     "untracked,pattern,expected",

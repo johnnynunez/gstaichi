@@ -5,6 +5,11 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
+      # looks like we need to first build the dll...
+      # easiest way to do that is to build the wheel
+      # at some point, we should probably have a separate wheel building thing
+      # that will upload to somewhere
+      # and other runners can use that pre-built wheel?
       - name: Python check
         uses: actions/setup-python@v4
         with:
@@ -12,20 +17,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Get changed Python files
-        id: changed-files
+      - name: 1_prerequisites
         run: |
-            # Get list of modified/added Python files compared to main branch
-            # Exclude deleted files (--diff-filter=AM)
-            FILES=$(git diff --name-only --diff-filter=AM origin/main...HEAD -- '*.py')
-            # Convert newlines to spaces for pyright command
-            FILES="${FILES//$'\n'/ }"
-            # Store as GitHub Actions output
-            echo "files=${FILES}" >> $GITHUB_OUTPUT
-      - name: Run pyright linter, against modified files
+            bash .github/workflows/scripts_new/pyright_linter/1_prerequisites.sh
+      - name: 2_build
         run: |
-            if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
-              bash .github/workflows/scripts_new/pyright_linter.sh ${{ steps.changed-files.outputs.files }}
-            else
-              echo "No Python files modified - skipping pyright"
-            fi
+            bash .github/workflows/scripts_new/pyright_linter/2_build.sh
+      - name: 3_install
+        run: |
+            bash .github/workflows/scripts_new/pyright_linter/3_install.sh
+      - name: 4_build_stubs
+        run: |
+            bash .github/workflows/scripts_new/pyright_linter/4_build_stubs.sh
+      - name: 5_pyright
+        run: |
+            bash .github/workflows/scripts_new/pyright_linter/5_pyright.sh

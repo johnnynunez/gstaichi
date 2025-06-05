@@ -10,23 +10,13 @@ from typing import List
 from pathlib import Path
 import fnmatch
 
-def get_main_branch() -> str:
-    """Detect the main branch name (main/master)"""
-    result = subprocess.run(
-        ["git", "remote", "show", "origin"],
-        capture_output=True,
-        text=True
-    )
-    match = re.search(r"HEAD branch: (\w+)", result.stdout)
-    return match.group(1) if match else "main"
 
 def get_changed_files(include_pattern: str) -> List[str]:
     """Get all changed files matching glob pattern"""
-    main_branch = get_main_branch()
     include_pattern = include_pattern
     
     commands = [
-        ["git", "diff", "--name-only", "--diff-filter=AM", f"origin/{main_branch}...HEAD"],
+        ["git", "diff", "--name-only", "--diff-filter=AM", f"origin/main...HEAD"],
         ["git", "diff", "--name-only", "--diff-filter=AM", "--cached"],
         ["git", "diff", "--name-only", "--diff-filter=AM", "--"],
         ["git", "ls-files", "--others", "--exclude-standard"]

@@ -2,14 +2,6 @@
 
 set -ex
 
-# note: will split this up at some point
-
-# looks like we need to first build the dll...
-# easiest way to do that is to build the wheel
-# at some point, we should probably have a separate wheel building thing
-# that will upload to somewhere
-# and other runners can use that pre-built wheel?
-
 git submodule update --init --recursive
 sudo apt update
 sudo apt install -y \
@@ -41,13 +33,4 @@ sudo apt install -y \
 
 pip3 install scikit-build
 
-./build.py wheel
-
-pip3 install dist/*.whl
-python -c "import taichi as ti; ti.init(arch=ti.cpu)"
-
 pip install pyright pybind11-stubgen
-
-pybind11-stubgen taichi._lib.core.taichi_python --ignore-all-errors
-
-python python/tools/run_modified_files.py --include '*.py' -- pyright 
