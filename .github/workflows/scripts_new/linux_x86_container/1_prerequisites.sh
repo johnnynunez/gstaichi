@@ -2,7 +2,6 @@
 
 set -ex
 
-echo hello from linux_x86_container.sh
 pwd
 dpkg -l '*cuda*' | grep 'ii'
 uname -a
@@ -51,6 +50,7 @@ pip3 install scikit-build
 
 apt-get install libjpeg-dev liblz4-dev libpng-dev libssl-dev libzstd-dev -y
 
+# create fake 'sudo' script
 mkdir -p ~/bin
 cat >~/bin/sudo <<EOF
 #!/bin/sh
@@ -58,13 +58,3 @@ exec "\$@"
 exit 0
 EOF
 chmod +x ~/bin/sudo
-export PATH=~/bin:$PATH
-
-./build.py wheel
-
-pip3 install dist/*.whl
-python -c "import taichi as ti; ti.init(arch=ti.cpu)"
-
-pip3 install -r requirements_test.txt
-python -c 'import tests.test_utils; print("Available architectures", tests.test_utils.expected_archs())'
-python3.10 tests/run_tests.py -v
