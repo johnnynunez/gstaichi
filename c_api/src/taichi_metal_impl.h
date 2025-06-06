@@ -1,6 +1,5 @@
 #pragma once
 #ifdef TI_WITH_METAL
-#include "taichi/rhi/metal/sincospi.h"
 #include "taichi_core_impl.h"
 #include "taichi_gfx_impl.h"
 #include "taichi/rhi/metal/metal_device.h"
