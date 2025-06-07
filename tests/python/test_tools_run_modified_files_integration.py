@@ -3,8 +3,12 @@ import os
 from pathlib import Path
 
 import pytest
+import importlib.util
 
-from tools import run_modified_files
+tools_path = Path(__file__).parent.parent.parent / "python" / "tools" / "run_modified_files.py"
+spec = importlib.util.spec_from_file_location("run_modified_files", tools_path)
+run_modified_files = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(run_modified_files)
 
 
 @pytest.fixture
