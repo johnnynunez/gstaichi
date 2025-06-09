@@ -1,3 +1,4 @@
+print('lang.__init__ >>>')
 from taichi.lang import impl, simt
 from taichi.lang._ndarray import *
 from taichi.lang._ndrange import ndrange
@@ -16,6 +17,7 @@ from taichi.lang.snode import *
 from taichi.lang.source_builder import *
 from taichi.lang.struct import *
 from taichi.lang.argpack import *
+print('lang.__init__ <<<')
 
 __all__ = [
     s

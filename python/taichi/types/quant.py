@@ -3,9 +3,11 @@ This module defines generators of quantized types.
 For more details, read https://yuanming.taichi.graphics/publication/2021-quantaichi/quantaichi.pdf.
 """
 
+print('quant start >>>')
 from taichi._lib.utils import ti_python_core as _ti_python_core
 from taichi.lang import impl
 from taichi.types.primitive_types import i32
+print('quant done <<<')
 
 _type_factory = _ti_python_core.get_type_factory_instance()
 

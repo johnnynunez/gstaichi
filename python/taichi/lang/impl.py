@@ -1,10 +1,14 @@
+print('impl module')
 import numbers
 from types import FunctionType, MethodType
 from typing import Any, Iterable, Sequence
 
 import numpy as np
+print('impl _lib')
 from taichi._lib import core as _ti_core
+print('impl _snode')
 from taichi._snode.fields_builder import FieldsBuilder
+print('impl lang')
 from taichi.lang._ndarray import ScalarNdarray
 from taichi.lang._ndrange import GroupedNDRange, _Ndrange
 from taichi.lang._texture import RWTextureAccessor
@@ -48,6 +52,7 @@ from taichi.lang.util import (
     taichi_scope,
     warning,
 )
+print('impl types.primitive_types')
 from taichi.types.primitive_types import (
     all_types,
     f16,
@@ -59,6 +64,7 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
+print('finished impl <<<')
 
 
 @taichi_scope
