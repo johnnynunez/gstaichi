@@ -517,7 +517,7 @@ class TaichiCallableTemplateMapper:
             count = len(self.mapping)
             self.mapping[key] = count
         res = self.mapping[key], key
-        needs_grad = [isinstance(arg, tuple) and len(arg) >= 3 and arg[2] for arg in args]
+        needs_grad = any([isinstance(arg, tuple) and len(arg) >= 3 and arg[2] for arg in args])
         if not needs_grad:
             self._fast_weak_map[fast_key] = res
         return res
