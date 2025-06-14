@@ -50,6 +50,7 @@ from taichi.types.utils import is_signed
 
 from taichi import _logging
 
+launch_context_by_args_hash = {}
 
 def func(fn, is_real_function=False):
     """Marks a function as callable in Taichi-scope.
@@ -689,16 +690,23 @@ class Kernel:
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
-    def launch_kernel(self, t_kernel, *args):
-        assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
+
+    def create_launch_context(self, t_kernel, *args):
+        args_hash = hash(tuple([id(arg) for arg in args]))
+        # print('args_hash', args_hash)
+
+        if args_hash in launch_context_by_args_hash:
+            # print('found context in cache')
+            return launch_context_by_args_hash[args_hash], []  # return empty callbacks list
+
+        max_arg_num = 64
+        exceed_max_arg_num = False
+        launch_ctx = t_kernel.make_launch_context()
 
         tmps = []
         callbacks = []
 
         actual_argument_slot = 0
-        launch_ctx = t_kernel.make_launch_context()
-        max_arg_num = 64
-        exceed_max_arg_num = False
 
         def set_arg_ndarray(indices, v):
             v_primal = v.arr
@@ -969,6 +977,16 @@ class Kernel:
             raise TaichiRuntimeError(
                 f"The number of elements in kernel arguments is too big! Do not exceed {max_arg_num} on {_ti_core.arch_name(impl.current_cfg().arch)} backend."
             )
+        
+        if len(callbacks) == 0:
+            print('callbacks len 0 => caching launch context')
+            launch_context_by_args_hash[args_hash] = launch_ctx
+        return launch_ctx, callbacks
+
+    def launch_kernel(self, t_kernel, *args):
+        assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
+
+        launch_ctx, callbacks = self.create_launch_context(t_kernel, *args)
 
         try:
             prog = impl.get_runtime().prog
