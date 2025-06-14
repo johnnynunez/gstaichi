@@ -23,7 +23,6 @@ class KernelLauncher : public LLVM::KernelLauncher {
       const LLVM::CompiledKernelData &compiled) override;
 
  private:
-  // bool on_cuda_device(void *ptr);
   std::vector<KernelLauncherContext> contexts_;
 };
 
