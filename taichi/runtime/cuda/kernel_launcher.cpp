@@ -26,7 +26,6 @@ public:
       char *device_arg_buffer = device_arg_buffer_it->second;
       ctx.arg_buffer_size = arg_buffer_size_by_hash[parameters_hash];
       ctx.get_context().arg_buffer = device_arg_buffer;
-      dump_device_arg_buffer(device_arg_buffer, ctx.arg_buffer_size);
       return;
     }
 
@@ -128,7 +127,6 @@ public:
           device_arg_buffer, ctx.get_context().arg_buffer, ctx.arg_buffer_size,
           nullptr);
       ctx.get_context().arg_buffer = device_arg_buffer;
-      dump_device_arg_buffer(device_arg_buffer, ctx.arg_buffer_size);
     }
     if(transfers.size() == 0) {
       device_arg_buffer_by_hash[parameters_hash] = device_arg_buffer;
@@ -199,12 +197,6 @@ private:
         seed ^= std::hash<uintptr_t>{}(addr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
     return seed;
-  }
-
-  void dump_device_arg_buffer(char *buffer, size_t size) {
-    char *host_arg_buffer = static_cast<char *>(malloc(size));
-    CUDADriver::get_instance().memcpy_device_to_host(host_arg_buffer, buffer, size);
-    free(host_arg_buffer);
   }
 };
 
