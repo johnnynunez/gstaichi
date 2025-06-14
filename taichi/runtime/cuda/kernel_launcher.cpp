@@ -20,13 +20,13 @@ public:
         char const *const device_result_buffer
   ) {
     size_t parameters_hash = hash_parameters_by_address(parameters);
-    std::cout << "parameters hash: " << parameters_hash << std::endl;
+    // std::cout << "parameters hash: " << parameters_hash << std::endl;
     auto device_arg_buffer_it =
         device_arg_buffer_by_hash.find(parameters_hash);
     if (device_arg_buffer_it != device_arg_buffer_by_hash.end()) {
-      std::cout << "using cached device arg buffer" << std::endl;
+      // std::cout << "using cached device arg buffer" << std::endl;
       char *device_arg_buffer = device_arg_buffer_it->second;
-      std::cout << "  using cached device arg buffer: " << (void *)device_arg_buffer << std::endl;
+      // std::cout << "  using cached device arg buffer: " << (void *)device_arg_buffer << std::endl;
       ctx.arg_buffer_size = arg_buffer_size_by_hash[parameters_hash];
       ctx.get_context().arg_buffer = device_arg_buffer;
       dump_device_arg_buffer(device_arg_buffer, ctx.arg_buffer_size);
@@ -131,12 +131,12 @@ public:
           device_arg_buffer, ctx.get_context().arg_buffer, ctx.arg_buffer_size,
           nullptr);
       ctx.get_context().arg_buffer = device_arg_buffer;
-      std::cout << "using device arg buffer " << (void *)device_arg_buffer << std::endl;
+      // std::cout << "using device arg buffer " << (void *)device_arg_buffer << std::endl;
       dump_device_arg_buffer(device_arg_buffer, ctx.arg_buffer_size);
     }
     if(transfers.size() == 0) {
-      std::cout << "no transfers, caching device arg buffer" << std::endl;
-      std::cout << "  caching device arg buffer " << (void *)device_arg_buffer << std::endl;
+      // std::cout << "no transfers, caching device arg buffer" << std::endl;
+      // std::cout << "  caching device arg buffer " << (void *)device_arg_buffer << std::endl;
       device_arg_buffer_by_hash[parameters_hash] = device_arg_buffer;
       arg_buffer_size_by_hash[parameters_hash] = ctx.arg_buffer_size;
       caching_arg_buffer = true;
@@ -145,7 +145,7 @@ public:
 
   void after_call(LaunchContextBuilder &ctx, LlvmRuntimeExecutor *executor) {
     if(caching_arg_buffer) {
-      std::cout << "not freeing device arg buffer, caching is enabled" << std::endl;
+      // std::cout << "not freeing device arg buffer, caching is enabled" << std::endl;
       return;
       // shouldnt free
       // and transfers is zero because we made caching conditional on it being so
@@ -211,11 +211,11 @@ private:
   void dump_device_arg_buffer(char *buffer, size_t size) {
     char *host_arg_buffer = static_cast<char *>(malloc(size));
     CUDADriver::get_instance().memcpy_device_to_host(host_arg_buffer, buffer, size);
-    std::cout << "Device arg buffer content: ";
-    for (size_t i = 0; i < size; ++i) {
-      std::cout << std::hex << static_cast<int>(host_arg_buffer[i]) << " ";
-    }
-    std::cout << std::dec << std::endl;
+    // std::cout << "Device arg buffer content: ";
+    // for (size_t i = 0; i < size; ++i) {
+    //   std::cout << std::hex << static_cast<int>(host_arg_buffer[i]) << " ";
+    // }
+    // std::cout << std::dec << std::endl;
     free(host_arg_buffer);
   }
 };
@@ -268,10 +268,10 @@ void KernelLauncher::launch_llvm_kernel(Handle handle,
   args_manager.prepare_args(ctx, launcher_ctx, executor, parameters, result_buffer_manager.get_device_result_buffer());
 
   for (auto task : offloaded_tasks) {
-    std::cout << "Launching kernel: " << task.name << std::endl;
+    // std::cout << "Launching kernel: " << task.name << std::endl;
     TI_TRACE("Launching kernel {}<<<{}, {}>>>", task.name, task.grid_dim,
              task.block_dim);
-    std::cout << " ctx.get_context().arg_buffer: " << (void *)ctx.get_context().arg_buffer << std::endl;
+    // std::cout << " ctx.get_context().arg_buffer: " << (void *)ctx.get_context().arg_buffer << std::endl;
     // auto arg_pointers1 = {&ctx.get_context()};
     // auto arg_pointers2 = {ctx.get_context().arg_buffer};
     // std::cout << " arg_pointers1: " << (void *)arg_pointers1[0] << std::endl;

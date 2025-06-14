@@ -157,18 +157,18 @@ void CUDAContext::launch(void *func,
           func, CU_FUNC_ATTRIBUTE_MAX_DYNAMIC_SHARED_SIZE_BYTES,
           dynamic_shared_mem_bytes);
     }
-    std::cout << "arg pointers[" << arg_pointers.size() << "]:";
-    for(size_t i = 0; i < arg_pointers.size(); ++i) {
-      std::cout << " " << arg_pointers[i];
-    }
-    std::cout << std::endl;
-    std::cout << "cuda_context.cpp CUDAContext::launch: "
-              << "grid_dim: " << grid_dim
-              << ", block_dim: " << block_dim
-              << ", dynamic_shared_mem_bytes: " << dynamic_shared_mem_bytes
-              << ", stream_: " << stream_
-              << ", arg pointers data: " << arg_pointers.data()
-              << std::endl;
+    // std::cout << "arg pointers[" << arg_pointers.size() << "]:";
+    // for(size_t i = 0; i < arg_pointers.size(); ++i) {
+    //   std::cout << " " << arg_pointers[i];
+    // }
+    // std::cout << std::endl;
+    // std::cout << "cuda_context.cpp CUDAContext::launch: "
+    //           << "grid_dim: " << grid_dim
+    //           << ", block_dim: " << block_dim
+    //           << ", dynamic_shared_mem_bytes: " << dynamic_shared_mem_bytes
+    //           << ", stream_: " << stream_
+    //           << ", arg pointers data: " << arg_pointers.data()
+    //           << std::endl;
     driver_.launch_kernel(func, grid_dim, 1, 1, block_dim, 1, 1,
                           dynamic_shared_mem_bytes, stream_,
                           arg_pointers.data(), nullptr);
