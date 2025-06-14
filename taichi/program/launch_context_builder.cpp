@@ -27,14 +27,6 @@ LaunchContextBuilder::LaunchContextBuilder(CallableBase *kernel)
       arg_buffer_size(kernel->args_size),
       args_type(kernel->args_type),
       result_buffer_size(kernel->ret_size) {
-  // std::cout << "constructing LaunchContextBuilder for kernel: "
-  //           << kernel->name << std::endl;
-  // std::cout << "arg_buffer_size: " << arg_buffer_size
-  //   << " result_buffer_size: " << result_buffer_size
-  //   << " arg_buffer_: " << (void *)arg_buffer_.get()
-  //   << " ret_type_: " << ret_type_->to_string()
-  //   << std::endl;
-  // std::cout << " kernel->args_type: " << kernel->args_type->to_string() << std::endl;
   ctx_->result_buffer = (uint64 *)result_buffer_.get();
   ctx_->arg_buffer = arg_buffer_.get();
 }
