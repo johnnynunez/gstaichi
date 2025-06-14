@@ -4,6 +4,9 @@
 namespace taichi::lang {
 namespace cuda {
 
+static std::unordered_map<size_t, char *> device_arg_buffer_by_hash;
+static std::unordered_map<size_t, size_t> arg_buffer_size_by_hash;
+
 class ArgsManager {
 public:
   ArgsManager() {
@@ -15,8 +18,22 @@ public:
         LlvmRuntimeExecutor *executor,
         const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>> &parameters,
         char const *const device_result_buffer
-    ) {
-      for (int i = 0; i < (int)parameters.size(); i++) {
+  ) {
+    size_t parameters_hash = hash_parameters_by_address(parameters);
+    std::cout << "parameters hash: " << parameters_hash << std::endl;
+    auto device_arg_buffer_it =
+        device_arg_buffer_by_hash.find(parameters_hash);
+    if (device_arg_buffer_it != device_arg_buffer_by_hash.end()) {
+      std::cout << "using cached device arg buffer" << std::endl;
+      char *device_arg_buffer = device_arg_buffer_it->second;
+      std::cout << "  using cached device arg buffer: " << (void *)device_arg_buffer << std::endl;
+      ctx.arg_buffer_size = arg_buffer_size_by_hash[parameters_hash];
+      ctx.get_context().arg_buffer = device_arg_buffer;
+      dump_device_arg_buffer(device_arg_buffer, ctx.arg_buffer_size);
+      return;
+    }
+
+    for (int i = 0; i < (int)parameters.size(); i++) {
       const auto &kv = parameters[i];
       const auto &key = kv.first;
       const auto &parameter = kv.second;
@@ -114,10 +131,25 @@ public:
           device_arg_buffer, ctx.get_context().arg_buffer, ctx.arg_buffer_size,
           nullptr);
       ctx.get_context().arg_buffer = device_arg_buffer;
+      std::cout << "using device arg buffer " << (void *)device_arg_buffer << std::endl;
+      dump_device_arg_buffer(device_arg_buffer, ctx.arg_buffer_size);
+    }
+    if(transfers.size() == 0) {
+      std::cout << "no transfers, caching device arg buffer" << std::endl;
+      std::cout << "  caching device arg buffer " << (void *)device_arg_buffer << std::endl;
+      device_arg_buffer_by_hash[parameters_hash] = device_arg_buffer;
+      arg_buffer_size_by_hash[parameters_hash] = ctx.arg_buffer_size;
+      caching_arg_buffer = true;
     }
   }
 
   void after_call(LaunchContextBuilder &ctx, LlvmRuntimeExecutor *executor) {
+    if(caching_arg_buffer) {
+      std::cout << "not freeing device arg buffer, caching is enabled" << std::endl;
+      return;
+      // shouldnt free
+      // and transfers is zero because we made caching conditional on it being so
+    }
     if (ctx.arg_buffer_size > 0) {
       CUDADriver::get_instance().mem_free_async(device_arg_buffer, nullptr);
     }
@@ -154,10 +186,9 @@ private:
   // device or host.
   // This is the source of truth for us to look for device pointers used in CUDA
   // kernels.
-  std::unordered_map<std::vector<int>, void *,
-                     hashing::Hasher<std::vector<int>>>
-      device_ptrs;
+  std::unordered_map<std::vector<int>, void *, hashing::Hasher<std::vector<int>>> device_ptrs;
   char *device_arg_buffer = nullptr;
+  bool caching_arg_buffer = false;
 
   bool on_cuda_device(void *ptr) {
     unsigned int attr_val = 0;
@@ -165,6 +196,27 @@ private:
         &attr_val, CU_POINTER_ATTRIBUTE_MEMORY_TYPE, (void *)ptr);
 
     return ret_code == CUDA_SUCCESS && attr_val == CU_MEMORYTYPE_DEVICE;
+  }
+
+  size_t hash_parameters_by_address(const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>> &parameters) {
+    size_t seed = 0;
+    for (const auto &kv : parameters) {
+        // Hash the address of kv.second
+        auto addr = reinterpret_cast<uintptr_t>(&kv.second);
+        seed ^= std::hash<uintptr_t>{}(addr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+  }
+
+  void dump_device_arg_buffer(char *buffer, size_t size) {
+    char *host_arg_buffer = static_cast<char *>(malloc(size));
+    CUDADriver::get_instance().memcpy_device_to_host(host_arg_buffer, buffer, size);
+    std::cout << "Device arg buffer content: ";
+    for (size_t i = 0; i < size; ++i) {
+      std::cout << std::hex << static_cast<int>(host_arg_buffer[i]) << " ";
+    }
+    std::cout << std::dec << std::endl;
+    free(host_arg_buffer);
   }
 };
 
@@ -197,15 +249,6 @@ private:
   char *device_result_buffer{nullptr};
 };
 
-size_t hash_parameters_by_address(const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>> &parameters) {
-    size_t seed = 0;
-    for (const auto &kv : parameters) {
-        // Hash the address of kv.second
-        auto addr = reinterpret_cast<uintptr_t>(&kv.second);
-        seed ^= std::hash<uintptr_t>{}(addr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-    return seed;
-}
 
 void KernelLauncher::launch_llvm_kernel(Handle handle,
                                         LaunchContextBuilder &ctx) {
@@ -224,16 +267,15 @@ void KernelLauncher::launch_llvm_kernel(Handle handle,
   ArgsManager args_manager;
   args_manager.prepare_args(ctx, launcher_ctx, executor, parameters, result_buffer_manager.get_device_result_buffer());
 
-  size_t parameters_hash = hash_parameters_by_address(parameters);
-  std::cout << "parameters hash: " << parameters_hash << std::endl;
-  auto device_arg_buffer_it =
-      device_arg_buffer_by_hash.find(parameters_hash);
-  if (device_arg_buffer_it != device_arg_buffer_by_hash.end()) {
-  }
-
   for (auto task : offloaded_tasks) {
+    std::cout << "Launching kernel: " << task.name << std::endl;
     TI_TRACE("Launching kernel {}<<<{}, {}>>>", task.name, task.grid_dim,
              task.block_dim);
+    std::cout << " ctx.get_context().arg_buffer: " << (void *)ctx.get_context().arg_buffer << std::endl;
+    // auto arg_pointers1 = {&ctx.get_context()};
+    // auto arg_pointers2 = {ctx.get_context().arg_buffer};
+    // std::cout << " arg_pointers1: " << (void *)arg_pointers1[0] << std::endl;
+    // std::cout << " arg_pointers2: " << (void *)arg_pointers2[0] << std::endl;
     cuda_module->launch(task.name, task.grid_dim, task.block_dim, 0,
                         {&ctx.get_context()}, {});
   }

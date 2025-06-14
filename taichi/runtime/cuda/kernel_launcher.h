@@ -25,7 +25,6 @@ class KernelLauncher : public LLVM::KernelLauncher {
  private:
   // bool on_cuda_device(void *ptr);
   std::vector<KernelLauncherContext> contexts_;
-  std::unordered_map<size_t, char *> device_arg_buffer_by_hash;
 };
 
 }  // namespace cuda
