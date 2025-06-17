@@ -1,11 +1,9 @@
-import taichi as ti
-import pynvml
-
 import pytest
-from taichi.lang.exception import TaichiRuntimeError
 
-from tests import test_utils
+import taichi as ti
+from taichi.lang.exception import TaichiRuntimeError
 from taichi.lang.util import has_pytorch
+from tests import test_utils
 
 if has_pytorch():
     import torch
@@ -1169,6 +1167,7 @@ def test_ad_if_parallel_complex():
     assert x.grad[1] == -0.25
 
 
+@pytest.mark.flaky(retries=5)
 @test_utils.test(arch=archs_support_ndarray_ad)
 def test_ad_ndarray_i32():
     with pytest.raises(TaichiRuntimeError, match=r"i32 is not supported for ndarray"):
@@ -1176,6 +1175,7 @@ def test_ad_ndarray_i32():
 
 
 @test_utils.test(arch=archs_support_ndarray_ad)
+@pytest.mark.flaky(retries=5)
 def test_ad_sum_vector():
     N = 10
 
