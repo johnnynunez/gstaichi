@@ -8,20 +8,18 @@ static std::unordered_map<size_t, char *> device_arg_buffer_by_hash;
 static std::unordered_map<size_t, size_t> arg_buffer_size_by_hash;
 
 class ArgsManager {
-public:
+ public:
   ArgsManager() {
-    
   }
   void prepare_args(
       LaunchContextBuilder &ctx,
-        taichi::lang::cuda::KernelLauncherContext &launcher_ctx,
-        LlvmRuntimeExecutor *executor,
-        const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>> &parameters,
-        char const *const device_result_buffer
-  ) {
+      taichi::lang::cuda::KernelLauncherContext &launcher_ctx,
+      LlvmRuntimeExecutor *executor,
+      const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>>
+          &parameters,
+      char const *const device_result_buffer) {
     size_t parameters_hash = hash_parameters_by_address(parameters);
-    auto device_arg_buffer_it =
-        device_arg_buffer_by_hash.find(parameters_hash);
+    auto device_arg_buffer_it = device_arg_buffer_by_hash.find(parameters_hash);
     if (device_arg_buffer_it != device_arg_buffer_by_hash.end()) {
       char *device_arg_buffer = device_arg_buffer_it->second;
       ctx.arg_buffer_size = arg_buffer_size_by_hash[parameters_hash];
@@ -82,7 +80,7 @@ public:
           }
 
           ctx.set_ndarray_ptrs(key, (uint64)device_ptrs[data_ptr_idx],
-                              (uint64)device_ptrs[grad_ptr_idx]);
+                               (uint64)device_ptrs[grad_ptr_idx]);
         } else if (arr_sz > 0) {
           // Ndarray
           DeviceAllocation *ptr = static_cast<DeviceAllocation *>(data_ptr);
@@ -91,13 +89,14 @@ public:
 
           if (grad_ptr != nullptr) {
             ptr = static_cast<DeviceAllocation *>(grad_ptr);
-            device_ptrs[grad_ptr_idx] = executor->get_device_alloc_info_ptr(*ptr);
+            device_ptrs[grad_ptr_idx] =
+                executor->get_device_alloc_info_ptr(*ptr);
           } else {
             device_ptrs[grad_ptr_idx] = nullptr;
           }
 
           ctx.set_ndarray_ptrs(key, (uint64)device_ptrs[data_ptr_idx],
-                              (uint64)device_ptrs[grad_ptr_idx]);
+                               (uint64)device_ptrs[grad_ptr_idx]);
         }
       } else if (parameter.is_argpack) {
         std::vector<int> data_ptr_idx = key;
@@ -128,7 +127,7 @@ public:
           nullptr);
       ctx.get_context().arg_buffer = device_arg_buffer;
     }
-    if(transfers.size() == 0) {
+    if (transfers.size() == 0) {
       device_arg_buffer_by_hash[parameters_hash] = device_arg_buffer;
       arg_buffer_size_by_hash[parameters_hash] = ctx.arg_buffer_size;
       caching_arg_buffer = true;
@@ -136,10 +135,11 @@ public:
   }
 
   void after_call(LaunchContextBuilder &ctx, LlvmRuntimeExecutor *executor) {
-    if(caching_arg_buffer) {
+    if (caching_arg_buffer) {
       return;
       // shouldnt free
-      // and transfers is zero because we made caching conditional on it being so
+      // and transfers is zero because we made caching conditional on it being
+      // so
     }
     if (ctx.arg_buffer_size > 0) {
       CUDADriver::get_instance().mem_free_async(device_arg_buffer, nullptr);
@@ -158,7 +158,8 @@ public:
       }
     }
   }
-private:
+
+ private:
   // |transfers| is only used for external arrays whose data is originally on
   // host. They are first transferred onto device and that device pointer is
   // stored in |device_ptrs| below. |transfers| saves its original pointer so
@@ -168,7 +169,8 @@ private:
   // for data_ptr and TypeFactory::GRAD_PTR_POS_IN_NDARRAY for grad_ptr. Value
   // is [host_ptr, temporary_device_alloc]. Invariant: temp_devallocs.size() !=
   // 0 <==> transfer happened.
-  std::unordered_map<std::vector<int>, std::pair<void *, DeviceAllocation>,
+  std::unordered_map<std::vector<int>,
+                     std::pair<void *, DeviceAllocation>,
                      hashing::Hasher<std::vector<int>>>
       transfers;
 
@@ -177,7 +179,9 @@ private:
   // device or host.
   // This is the source of truth for us to look for device pointers used in CUDA
   // kernels.
-  std::unordered_map<std::vector<int>, void *, hashing::Hasher<std::vector<int>>> device_ptrs;
+  std::
+      unordered_map<std::vector<int>, void *, hashing::Hasher<std::vector<int>>>
+          device_ptrs;
   char *device_arg_buffer = nullptr;
   bool caching_arg_buffer = false;
 
@@ -189,29 +193,33 @@ private:
     return ret_code == CUDA_SUCCESS && attr_val == CU_MEMORYTYPE_DEVICE;
   }
 
-  size_t hash_parameters_by_address(const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>> &parameters) {
+  size_t hash_parameters_by_address(
+      const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>>
+          &parameters) {
     size_t seed = 0;
     for (const auto &kv : parameters) {
-        // Hash the address of kv.second
-        auto addr = reinterpret_cast<uintptr_t>(&kv.second);
-        seed ^= std::hash<uintptr_t>{}(addr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      // Hash the address of kv.second
+      auto addr = reinterpret_cast<uintptr_t>(&kv.second);
+      seed ^=
+          std::hash<uintptr_t>{}(addr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
     return seed;
   }
 };
 
 class ResultBufferManager {
-public:
-  void prepare_result_buffer(LaunchContextBuilder &ctx, LlvmRuntimeExecutor *executor) {
-      CUDADriver::get_instance().malloc_async(
-          (void **)&device_result_buffer,
-          std::max(ctx.result_buffer_size, sizeof(uint64)), nullptr);
-      ctx.get_context().runtime = executor->get_llvm_runtime();
+ public:
+  void prepare_result_buffer(LaunchContextBuilder &ctx,
+                             LlvmRuntimeExecutor *executor) {
+    CUDADriver::get_instance().malloc_async(
+        (void **)&device_result_buffer,
+        std::max(ctx.result_buffer_size, sizeof(uint64)), nullptr);
+    ctx.get_context().runtime = executor->get_llvm_runtime();
 
-      host_result_buffer = (char *)ctx.get_context().result_buffer;
-      if (ctx.result_buffer_size > 0) {
-        ctx.get_context().result_buffer = (uint64 *)device_result_buffer;
-      }
+    host_result_buffer = (char *)ctx.get_context().result_buffer;
+    if (ctx.result_buffer_size > 0) {
+      ctx.get_context().result_buffer = (uint64 *)device_result_buffer;
+    }
   }
   char const *const get_device_result_buffer() const {
     return device_result_buffer;
@@ -224,11 +232,11 @@ public:
     }
     CUDADriver::get_instance().mem_free_async(device_result_buffer, nullptr);
   }
-private:
+
+ private:
   char *host_result_buffer{nullptr};
   char *device_result_buffer{nullptr};
 };
-
 
 void KernelLauncher::launch_llvm_kernel(Handle handle,
                                         LaunchContextBuilder &ctx) {
@@ -236,16 +244,19 @@ void KernelLauncher::launch_llvm_kernel(Handle handle,
   KernelLauncherContext launcher_ctx = contexts_[handle.get_launch_id()];
   LlvmRuntimeExecutor *executor = get_runtime_executor();
   JITModule *cuda_module = launcher_ctx.jit_module;
-  const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>>  &parameters = launcher_ctx.parameters;
-  const std::vector<OffloadedTask> &offloaded_tasks = launcher_ctx.offloaded_tasks;
+  const std::vector<std::pair<std::vector<int>, CallableBase::Parameter>>
+      &parameters = launcher_ctx.parameters;
+  const std::vector<OffloadedTask> &offloaded_tasks =
+      launcher_ctx.offloaded_tasks;
 
   CUDAContext::get_instance().make_current();
 
   ResultBufferManager result_buffer_manager;
   result_buffer_manager.prepare_result_buffer(ctx, executor);
-  
+
   ArgsManager args_manager;
-  args_manager.prepare_args(ctx, launcher_ctx, executor, parameters, result_buffer_manager.get_device_result_buffer());
+  args_manager.prepare_args(ctx, launcher_ctx, executor, parameters,
+                            result_buffer_manager.get_device_result_buffer());
 
   for (auto task : offloaded_tasks) {
     TI_TRACE("Launching kernel {}<<<{}, {}>>>", task.name, task.grid_dim,
