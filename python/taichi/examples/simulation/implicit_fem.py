@@ -1,9 +1,11 @@
+# type: ignore
+
 import argparse
 
 import numpy as np
-from taichi._lib import core as _ti_core
 
 import taichi as ti
+from taichi._lib import core as _ti_core
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp", choices=["implicit", "explicit"], default="implicit")

@@ -15,8 +15,9 @@
 #include "taichi/codegen/llvm/struct_llvm.h"
 #include "taichi/util/file_sequence_writer.h"
 #include "taichi/codegen/codegen_utils.h"
-#include "llvm/Support/SourceMgr.h"  // Add this line for SMDiagnostic
-#include "llvm/AsmParser/Parser.h"   // Add this line for parseIRFile
+#include "llvm/Support/SourceMgr.h"
+#include "llvm/AsmParser/Parser.h"
+#include "taichi/codegen/ir_dump.h"
 
 namespace taichi::lang {
 
@@ -2748,40 +2749,29 @@ LLVMCompiledTask TaskCodeGenLLVM::run_compilation() {
       tlctx->mark_function_as_amdgpu_kernel(func);
     }
   }
-  const char *dump_ir_env = std::getenv("TAICHI_DUMP_IR");
-  const std::string dumpOutDir = "/tmp/ir/";
+  const char *dump_ir_env = std::getenv(DUMP_IR_ENV.data());
   if (dump_ir_env != nullptr) {
-    std::filesystem::create_directories(dumpOutDir);
+    std::filesystem::create_directories(IR_DUMP_DIR);
 
-    std::string filename = dumpOutDir + "/" + kernel->name + "_llvm.ll";
-    // std::ofstream out_file(filename);
+    std::filesystem::path filename = IR_DUMP_DIR / (kernel->name + "_llvm.ll");
     std::error_code EC;
-    llvm::raw_fd_ostream dest_file(filename, EC);
-    // if (out_file.is_open()) {
+    llvm::raw_fd_ostream dest_file(filename.string(), EC);
     if (!EC) {
-      // std::string outString;
       module->print(dest_file, nullptr);
-      // irpass::print(ir, &outString);
-      // out_file << outString;
-      // out_file.close();
     }
   }
 
-  const char *load_ir_env = std::getenv("TAICHI_LOAD_IR");
-  // if (const char *load_ir_path = std::getenv("TAICHI_LOAD_IR_FILE")) {
+  const char *load_ir_env = std::getenv(LOAD_IR_ENV.data());
   if (load_ir_env != nullptr) {
-    std::string filename = dumpOutDir + "/" + kernel->name + "_llvm.ll";
+    std::filesystem::path filename = IR_DUMP_DIR / (kernel->name + "_llvm.ll");
     llvm::SMDiagnostic err;
-    // auto loaded_module = llvm::parseIRFile(load_ir_path, err, *llvm_context);
-    auto loaded_module = llvm::parseAssemblyFile(filename, err, *llvm_context);
+    auto loaded_module =
+        llvm::parseAssemblyFile(filename.string(), err, *llvm_context);
     if (!loaded_module) {
       err.print("TAICHI_LOAD_IR_FILE error", llvm::errs());
-      TI_ERROR("Failed to load LLVM IR from {}", filename);
+      TI_ERROR("Failed to load LLVM IR from {}", filename.string());
     } else {
-      // Replace the current module with the loaded one
       module = std::move(loaded_module);
-      // You might need to update offloaded_tasks and other data based on the
-      // loaded module
     }
   }
 

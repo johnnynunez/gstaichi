@@ -1,10 +1,11 @@
+# type: ignore
+
 """
 This module defines generators of quantized types.
 For more details, read https://yuanming.taichi.graphics/publication/2021-quantaichi/quantaichi.pdf.
 """
 
 from taichi._lib.utils import ti_python_core as _ti_python_core
-from taichi.lang import impl
 from taichi.types.primitive_types import i32
 
 _type_factory = _ti_python_core.get_type_factory_instance()
@@ -22,6 +23,8 @@ def int(bits, signed=True, compute=None):  # pylint: disable=W0622
         DataType: The specified type.
     """
     if compute is None:
+        from taichi.lang import impl  # pylint: disable=C0415
+
         compute = impl.get_runtime().default_ip if signed else impl.get_runtime().default_up
     if isinstance(compute, _ti_python_core.DataType):
         compute = compute.get_ptr()
@@ -42,6 +45,8 @@ def fixed(bits, signed=True, max_value=1.0, compute=None, scale=None):
         DataType: The specified type.
     """
     if compute is None:
+        from taichi.lang import impl  # pylint: disable=C0415
+
         compute = impl.get_runtime().default_fp
     if isinstance(compute, _ti_python_core.DataType):
         compute = compute.get_ptr()
@@ -68,6 +73,8 @@ def float(exp, frac, signed=True, compute=None):  # pylint: disable=W0622
         DataType: The specified type.
     """
     if compute is None:
+        from taichi.lang import impl  # pylint: disable=C0415
+
         compute = impl.get_runtime().default_fp
     if isinstance(compute, _ti_python_core.DataType):
         compute = compute.get_ptr()

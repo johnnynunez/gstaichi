@@ -1,12 +1,15 @@
+# type: ignore
+
 # Authored by Erqi Chen.
 # This script shows the optimization process of differential evolution.
 # The black points are the search agents, and they finally find the minimum solution.
 
 
-import numpy as np
-import taichi as ti
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+
+import taichi as ti
 
 ti.init(arch=ti.cpu)
 

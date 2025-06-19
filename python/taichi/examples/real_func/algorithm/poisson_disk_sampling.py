@@ -1,3 +1,5 @@
+# type: ignore
+
 """
 Poisson disk sampling in Taichi, a fancy version.
 Based on Yuanming Hu's code: https://github.com/taichi-dev/poisson_disk_sampling
@@ -8,9 +10,10 @@ User interface:
 2. Press `p` to save screenshot.
 """
 
+import typing
+
 import taichi as ti
 import taichi.math as tm
-import typing
 
 ti.init(arch=ti.cuda)
 

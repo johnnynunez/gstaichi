@@ -1,3 +1,5 @@
+# type: ignore
+
 import functools
 import os
 import traceback
@@ -5,6 +7,7 @@ import warnings
 
 import numpy as np
 from colorama import Fore, Style
+
 from taichi._lib import core as _ti_core
 from taichi._logging import is_logging_effective
 from taichi.lang import impl

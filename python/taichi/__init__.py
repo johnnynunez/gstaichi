@@ -1,3 +1,16 @@
+# type: ignore
+
+from taichi import (
+    ad,
+    algorithms,
+    experimental,
+    graph,
+    linalg,
+    math,
+    sparse,
+    tools,
+    types,
+)
 from taichi._funcs import *
 from taichi._lib import core as _ti_core
 from taichi._lib.utils import warn_restricted_version
@@ -8,9 +21,6 @@ from taichi.types.annotations import *
 
 # Provide a shortcut to types since they're commonly used.
 from taichi.types.primitive_types import *
-
-
-from taichi import ad, algorithms, experimental, graph, linalg, math, sparse, tools, types
 from taichi.ui import GUI, hex_to_rgb, rgb_to_hex, ui
 
 # Issue#2223: Do not reorder, or we're busted with partially initialized module

@@ -1,12 +1,13 @@
 #include "taichi/runtime/cuda/jit_cuda.h"
 #include "taichi/runtime/llvm/llvm_context.h"
+#include "taichi/codegen/ir_dump.h"
 
 namespace taichi::lang {
 
 #if defined(TI_WITH_CUDA)
 
 bool module_has_runtime_initialize(
-    llvm::Module::FunctionListType &function_list) {
+    const llvm::Module::FunctionListType &function_list) {
   for (auto &func : function_list) {
     if (func.getName() == "runtime_initialize") {
       return true;
@@ -15,34 +16,78 @@ bool module_has_runtime_initialize(
   return false;
 }
 
-std::string moduleToDumpName(llvm::Module *M) {
-  std::string dumpName(M->getName().begin(), M->getName().end());
-  std::cout << "module get function list len:" << M->getFunctionList().size()
-            << std::endl;
-  auto func0 = M->getFunctionList().begin();
-  std::cout << "function 0 name: " << func0->getName().str() << std::endl;
-  if (!module_has_runtime_initialize(M->getFunctionList())) {
-    dumpName = std::string(func0->getName().begin(), func0->getName().end());
+std::string moduleToDumpName(llvm::Module *const M) {
+  const auto &function_list = M->getFunctionList();
+  if (!function_list.empty() && !module_has_runtime_initialize(function_list)) {
+    return function_list.front().getName().str();
   }
-  return dumpName;
+  return M->getName().str();
 }
 
-JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
-                                       int max_reg) {
-  const char *dump_ir_env = std::getenv("TAICHI_DUMP_IR");
+JITModuleCUDA::JITModuleCUDA(void *module) : module_(module) {
+}
+
+void *JITModuleCUDA::lookup_function(const std::string &name) {
+  // TODO: figure out why using the guard leads to wrong tests results
+  // auto context_guard = CUDAContext::get_instance().get_guard();
+  CUDAContext::get_instance().make_current();
+  void *func = nullptr;
+  auto t = Time::get_time();
+  auto err = CUDADriver::get_instance().module_get_function.call_with_warning(
+      &func, module_, name.c_str());
+  if (err) {
+    TI_ERROR("Cannot look up function {}", name);
+  }
+  t = Time::get_time() - t;
+  TI_TRACE("CUDA module_get_function {} costs {} ms", name, t * 1000);
+  TI_ASSERT(func != nullptr);
+  return func;
+}
+
+void JITModuleCUDA::call(const std::string &name,
+                         const std::vector<void *> &arg_pointers,
+                         const std::vector<int> &arg_sizes) {
+  launch(name, 1, 1, 0, arg_pointers, arg_sizes);
+}
+
+void JITModuleCUDA::launch(const std::string &name,
+                           std::size_t grid_dim,
+                           std::size_t block_dim,
+                           std::size_t dynamic_shared_mem_bytes,
+                           const std::vector<void *> &arg_pointers,
+                           const std::vector<int> &arg_sizes) {
+  auto func = lookup_function(name);
+  CUDAContext::get_instance().launch(func, name, arg_pointers, arg_sizes,
+                                     grid_dim, block_dim,
+                                     dynamic_shared_mem_bytes);
+}
+
+bool JITModuleCUDA::direct_dispatch() const {
+  return false;
+}
+
+JITSessionCUDA::JITSessionCUDA(TaichiLLVMContext *tlctx,
+                               const CompileConfig &config,
+                               llvm::DataLayout data_layout)
+    : JITSession(tlctx, config), data_layout(data_layout) {
+}
+
+JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,
+                                      int max_reg) {
+  const char *dump_ir_env = std::getenv(DUMP_IR_ENV.data());
   if (dump_ir_env != nullptr) {
-    const std::string dumpOutDir = "/tmp/ir/";
-    std::filesystem::create_directories(dumpOutDir);
+    std::filesystem::create_directories(IR_DUMP_DIR);
     std::string dumpName = moduleToDumpName(M.get());
-    std::string filename = dumpOutDir + "/" + dumpName + "_before_ptx.ll";
+    std::filesystem::path filename =
+        IR_DUMP_DIR / (dumpName + "_before_ptx.ll");
     std::error_code EC;
-    llvm::raw_fd_ostream dest_file(filename, EC);
+    llvm::raw_fd_ostream dest_file(filename.string(), EC);
     if (!EC) {
       M->print(dest_file, nullptr);
     } else {
-      std::cout << "problem dumping file " << filename << ": " << EC.message()
-                << std::endl;
-      TI_ERROR("Failed to dump LLVM IR to file: {}", filename);
+      std::cout << "problem dumping file " << filename.string() << ": "
+                << EC.message() << std::endl;
+      TI_ERROR("Failed to dump LLVM IR to file: {}", filename.string());
     }
   }
 
@@ -63,8 +108,7 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
       out_file << ptx << std::endl;
       out_file.close();
     }
-    std::cout << "########################## PTX dumped to: " << filename
-              << std::endl;
+    std::cout << "PTX dumped to: " << filename << std::endl;
   }
 
   const char *load_ptx_env = std::getenv("TAICHI_LOAD_PTX");
@@ -74,7 +118,7 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
     std::string filename = dumpOutDir + "/" + dumpName + ".ptx";
     std::ifstream in_file(filename);
     if (in_file.is_open()) {
-      TI_INFO("########################## Loading PTX from file: {}", filename);
+      TI_INFO("Loading PTX from file: {}", filename);
       std::ostringstream ptx_stream;
       std::string line;
       while (std::getline(in_file, line)) {
@@ -119,6 +163,10 @@ JITModule *JITSessionCUDA ::add_module(std::unique_ptr<llvm::Module> M,
   // cudaModules.push_back(cudaModule);
   modules.push_back(std::make_unique<JITModuleCUDA>(cuda_module));
   return modules.back().get();
+}
+
+llvm::DataLayout JITSessionCUDA::get_data_layout() {
+  return data_layout;
 }
 
 std::string cuda_mattrs() {

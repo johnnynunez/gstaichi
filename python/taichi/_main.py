@@ -1,3 +1,5 @@
+# type: ignore
+
 import argparse
 import glob
 import math
@@ -16,12 +18,12 @@ import rich
 from colorama import Fore
 from rich.console import Console
 from rich.syntax import Syntax
+
+import taichi as ti
 from taichi._lib import core as _ti_core
 from taichi._lib import utils
 from taichi.lang import impl
 from taichi.tools import diagnose, video
-
-import taichi as ti
 
 
 def timer(func):

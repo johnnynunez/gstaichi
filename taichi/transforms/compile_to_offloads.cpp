@@ -8,6 +8,7 @@
 #include "taichi/program/function.h"
 #include "taichi/program/kernel.h"
 #include "taichi/util/lang_util.h"
+#include "taichi/codegen/ir_dump.h"
 
 namespace taichi::lang {
 
@@ -36,18 +37,16 @@ void compile_to_offloads(IRNode *ir,
     print("Segment reversed (for autodiff)");
   }
 
-  const char *dump_ir_env = std::getenv("TAICHI_DUMP_IR");
-  const std::string dumpOutDir = "/tmp/ir/";
+  const char *dump_ir_env = std::getenv(DUMP_IR_ENV.data());
   if (dump_ir_env != nullptr) {
-    std::filesystem::create_directories(dumpOutDir);
+    std::filesystem::create_directories(IR_DUMP_DIR);
 
-    std::string filename = dumpOutDir + "/" + kernel->name + "_from_ast.ll";
-    std::ofstream out_file(filename);
-    if (out_file.is_open()) {
+    std::filesystem::path filename =
+        IR_DUMP_DIR / (kernel->name + "_from_ast.ll");
+    if (std::ofstream out_file(filename.string()); out_file) {
       std::string outString;
       irpass::print(ir, &outString);
       out_file << outString;
-      out_file.close();
     }
   }
 
@@ -58,13 +57,12 @@ void compile_to_offloads(IRNode *ir,
   }
 
   if (dump_ir_env != nullptr) {
-    std::string filename = dumpOutDir + "/" + kernel->name + "_taichi1.ll";
-    std::ofstream out_file(filename);
-    if (out_file.is_open()) {
+    std::filesystem::path filename =
+        IR_DUMP_DIR / (kernel->name + "_taichi1.ll");
+    if (std::ofstream out_file(filename.string()); out_file) {
       std::string outString;
       irpass::print(ir, &outString);
       out_file << outString;
-      out_file.close();
     }
   }
   irpass::compile_taichi_functions(ir, config,

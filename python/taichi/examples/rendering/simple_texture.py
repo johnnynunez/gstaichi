@@ -1,6 +1,7 @@
-from taichi.examples.patterns import taichi_logo
+# type: ignore
 
 import taichi as ti
+from taichi.examples.patterns import taichi_logo
 
 ti.init(arch=ti.vulkan)
 

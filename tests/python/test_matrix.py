@@ -1,15 +1,15 @@
 import math
 import operator
-import platform
+import sys
 
 import numpy as np
 import pytest
 from pytest import approx
+
+import taichi as ti
 from taichi.lang import impl
 from taichi.lang.exception import TaichiCompilationError, TaichiTypeError
 from taichi.lang.misc import get_host_arch_list
-
-import taichi as ti
 from tests import test_utils
 
 matrix_operation_types = [operator.add, operator.sub, operator.matmul]
@@ -1135,11 +1135,17 @@ def test_cross_scope_matrix_ternary_ops():
     assert (x[1, 1] == [100, 10, 1]).all()
 
 
-@pytest.mark.skipif(
-    platform.system() == "Darwin",
-    reason="CFG seg fault on macOS (added to Linear https://linear.app/genesis-ai-company/issue/CMP-10/fix-cfg-crash-bug)",
-)
 @test_utils.test(debug=True)
+@pytest.mark.skipif(
+    sys.platform == "darwin",
+    reason=(
+        "segfaults on Mac with multiprocess. Runs ok with -t 1 "
+        "SHOULD PASS. Created "
+        "https://linear.app/genesis-ai-company/issue/CMP-31/"
+        "fix-failing-test-cross-scope-matrix-atomic-ops-on-mac-in-multiprocess"
+        " to track"
+    ),
+)
 def test_cross_scope_matrix_atomic_ops():
     n = 128
     x = ti.Vector.field(3, dtype=int, shape=(n, n))

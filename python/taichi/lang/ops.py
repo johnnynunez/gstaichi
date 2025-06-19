@@ -1,9 +1,12 @@
+# type: ignore
+
 import builtins
 import functools
 import operator as _bt_ops_mod  # bt for builtin
 from typing import Union
 
 import numpy as np
+
 from taichi._lib import core as _ti_core
 from taichi.lang import expr, impl
 from taichi.lang.exception import TaichiSyntaxError

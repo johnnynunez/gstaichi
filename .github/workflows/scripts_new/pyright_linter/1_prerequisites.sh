@@ -33,4 +33,5 @@ sudo apt install -y \
 
 pip3 install scikit-build
 
-pip install pyright pybind11-stubgen
+pip3 install -r requirements_dev.txt
+python3 -c 'import pybind11_stubgen'
