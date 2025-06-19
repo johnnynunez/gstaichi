@@ -379,6 +379,7 @@ class TaichiCallableTemplateMapper:
         self.num_args = len(arguments)
         self.template_slot_locations = template_slot_locations
         self.mapping = {}
+        self._fast_weak_map: dict = {}
 
     @staticmethod
     def extract_arg(arg, anno, arg_name):
@@ -508,12 +509,18 @@ class TaichiCallableTemplateMapper:
     def lookup(self, args):
         if len(args) != self.num_args:
             raise TypeError(f"{self.num_args} argument(s) needed but {len(args)} provided.")
-
+        fast_key = tuple([id(arg) for arg in args])
+        if fast_key in self._fast_weak_map:
+            return self._fast_weak_map[fast_key]
         key = self.extract(args)
         if key not in self.mapping:
             count = len(self.mapping)
             self.mapping[key] = count
-        return self.mapping[key], key
+        res = self.mapping[key], key
+        needs_grad = any([isinstance(arg, tuple) and len(arg) >= 3 and arg[2] for arg in args])
+        if not needs_grad:
+            self._fast_weak_map[fast_key] = res
+        return res
 
 
 def _get_global_vars(_func):
