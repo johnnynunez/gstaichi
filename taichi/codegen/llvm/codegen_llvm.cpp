@@ -2753,12 +2753,9 @@ LLVMCompiledTask TaskCodeGenLLVM::run_compilation() {
   if (dump_ir_env != nullptr) {
     std::filesystem::create_directories(IR_DUMP_DIR);
 
-    std::filesystem::path filename = IR_DUMP_DIR / (kernel->name + "_llvm.ll");
-    std::error_code EC;
-    llvm::raw_fd_ostream dest_file(filename.string(), EC);
-    if (!EC) {
-      module->print(dest_file, nullptr);
-    }
+    std::filesystem::path filename = IR_DUMP_DIR / (kernel->name + "_{:04d}_llvm.ll");
+    static FileSequenceWriter writer(filename.string(), "Kernel LLVM IR");
+    writer.write(module.get());
   }
 
   const char *load_ir_env = std::getenv(LOAD_IR_ENV.data());
