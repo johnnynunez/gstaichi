@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "taichi/runtime/cuda/jit_cuda.h"
 #include "taichi/runtime/llvm/llvm_context.h"
 #include "taichi/codegen/ir_dump.h"
@@ -91,7 +93,14 @@ JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,
     }
   }
 
+  auto start = std::chrono::high_resolution_clock::now();
   auto ptx = compile_module_to_ptx(M);
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = end - start;
+  std::cout << "PTX compilation took "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                   .count()
+            << " us" << std::endl;
   if (this->config_.print_kernel_asm) {
     static FileSequenceWriter writer("taichi_kernel_nvptx_{:04d}.ptx",
                                      "module NVPTX");
