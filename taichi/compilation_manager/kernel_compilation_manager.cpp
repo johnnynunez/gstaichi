@@ -170,6 +170,9 @@ std::unique_ptr<CompiledKernelData> KernelCompilationManager::compile_kernel(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     const Kernel &kernel_def) const {
+  std::cout << "KernelCompilationManager::compile_kernel() called for kernel "
+            << kernel_def.get_name() << " with arch "
+            << arch_name(compile_config.arch) << std::endl;
   auto &compiler = *config_.kernel_compiler;
   auto ir = compiler.compile(compile_config, kernel_def);
   auto ckd = compiler.compile(compile_config, caps, kernel_def, *ir);

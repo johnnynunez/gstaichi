@@ -179,6 +179,9 @@ const CompiledKernelData &Program::compile_kernel(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     const Kernel &kernel_def) {
+  std::cout << "Program::compile_kernel() called for kernel "
+            << kernel_def.name << " with arch " << arch_name(compile_config.arch)
+            << std::endl;
   auto start_t = Time::get_time();
   TI_AUTO_PROF;
   auto &mgr = program_impl_->get_kernel_compilation_manager();

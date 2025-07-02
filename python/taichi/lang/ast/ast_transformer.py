@@ -124,6 +124,7 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_Assign(ctx, node):
+        print("ASTTransformer.build_assign node", node, 'node.value', node.value)
         build_stmt(ctx, node.value)
         is_static_assign = isinstance(node.value, ast.Call) and node.value.func.ptr is impl.static
 
@@ -193,6 +194,7 @@ class ASTTransformer(Builder):
            value: A node representing the value.
            is_static_assign: A boolean value indicating whether this is a static assignment
         """
+        print("ASTTransformer.build_assign_basic target", target, "value", value, "is static assign", is_static_assign)
         is_local = isinstance(target, ast.Name)
         if is_local and target.id in ctx.kernel_args:
             raise TaichiSyntaxError(
@@ -549,6 +551,7 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_Call(ctx, node):
+        print("ASTTransformer.build_Call node.func", node.func)
         if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
@@ -622,6 +625,7 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_FunctionDef(ctx, node):
+        print("ASTTransformer.build_FunctionDef")
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(
                 f"Function definition is not allowed in 'ti.{'kernel' if ctx.is_kernel else 'func'}'."
@@ -937,11 +941,13 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_Module(ctx, node):
+        print("ASTTransformer.build_module >>>")
         with ctx.variable_scope_guard():
             # Do NOT use |build_stmts| which inserts 'del' statements to the
             # end and deletes parameters passed into the module
             for stmt in node.body:
                 build_stmt(ctx, stmt)
+        print("<<< ASTTransformer.build_module")
         return None
 
     @staticmethod

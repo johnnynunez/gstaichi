@@ -33,6 +33,8 @@ FrontendSNodeOpStmt::FrontendSNodeOpStmt(SNodeOpType op_type,
       snode(snode),
       indices(indices),
       val(val) {
+  std::cout << "FrontendSNodeOpStmt: snode name" << snode->name
+            << " indices: " << indices.size() << " val " << val << std::endl;
   if (val.expr != nullptr) {
     TI_ASSERT(op_type == SNodeOpType::append);
   } else {
@@ -49,6 +51,7 @@ FrontendAssignStmt::FrontendAssignStmt(const Expr &lhs,
                                        const Expr &rhs,
                                        const DebugInfo &dbg_info)
     : Stmt(dbg_info), lhs(lhs), rhs(rhs) {
+  std::cout << "FrontendAssignStmt: lhs " << lhs << " rhs " << rhs << std::endl;
   TI_ASSERT(lhs->is_lvalue());
   if (lhs.is<IdExpression>() && lhs->ret_type == PrimitiveType::unknown) {
     lhs.expr->ret_type =

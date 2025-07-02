@@ -638,14 +638,20 @@ class Kernel:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
     def materialize(self, key=None, args=None, arg_features=None):
+        print("materialize >>> key", key, 'args', args, 'arg_features', arg_features)
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
+            print('  set key', key)
+        print('call self.runtime.materialize() >>>')
         self.runtime.materialize()
+        print(' <<< call self.runtime.materialize()')
 
         if key in self.compiled_kernels:
+            print('.   key in self.compiled_kernels')
             return
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
+        print('   kernel_name', kernel_name)
         _logging.trace(f"Compiling kernel {kernel_name} in {self.autodiff_mode}...")
 
         tree, ctx = _get_tree_and_ctx(
@@ -674,8 +680,11 @@ class Kernel:
             assert self.runtime.compiling_callable is None
             self.runtime.compiling_callable = kernel_cxx
             try:
+                print('constructing kernel_cxx.ast_builder')
                 ctx.ast_builder = kernel_cxx.ast_builder()
+                print('calling transform_tree')
                 transform_tree(tree, ctx)
+                print('after transform_tree')
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                         raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
@@ -684,8 +693,10 @@ class Kernel:
                 self.runtime.current_kernel = None
                 self.runtime.compiling_callable = None
 
+        print('   calling impl.get_runtime().prog.create_kernel')
         taichi_kernel = impl.get_runtime().prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
+        print('.   storing tiachi kernel in compiled kernels with key', key)
         self.compiled_kernels[key] = taichi_kernel
 
     def launch_kernel(self, t_kernel, *args):

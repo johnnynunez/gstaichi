@@ -19,6 +19,7 @@ from taichi.lang.exception import (
 
 class Builder:
     def __call__(self, ctx, node):
+        print("Builder.__call__ node.__class__.__name__", node.__class__.__name__)
         method = getattr(self, "build_" + node.__class__.__name__, None)
         try:
             if method is None:
@@ -159,6 +160,7 @@ class ASTTransformerContext:
         ast_builder=None,
         is_real_function=False,
     ):
+        print("ASTTransformerContext.__init__ is_kernel", is_kernel, "func", func, 'file', file, 'src', src, 'ast_builder', ast_builder)
         self.func = func
         self.local_scopes = []
         self.loop_scopes: List[LoopScopeAttribute] = []
@@ -253,11 +255,14 @@ class ASTTransformerContext:
             )
 
     def get_var_by_name(self, name):
+        print('get_var_by_name', name)
         for s in reversed(self.local_scopes):
             if name in s:
+                print('name in local scope', s, 'returning', s[name])
                 return s[name]
         if name in self.global_vars:
             var = self.global_vars[name]
+            print('var in global vars returning', var)
             from taichi.lang.matrix import (  # pylint: disable-msg=C0415
                 Matrix,
                 make_matrix,
@@ -267,6 +272,7 @@ class ASTTransformerContext:
                 return make_matrix(var.to_list())
             return var
         try:
+            print('try builtins')
             return getattr(builtins, name)
         except AttributeError:
             raise TaichiNameError(f'Name "{name}" is not defined')
