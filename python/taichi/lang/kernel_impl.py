@@ -3,10 +3,13 @@
 import ast
 import functools
 import inspect
+import json
 import operator
+import os
 import re
 import sys
 import textwrap
+import time
 import types
 import typing
 import warnings
@@ -683,6 +686,38 @@ class Kernel:
                 print('constructing kernel_cxx.ast_builder')
                 ctx.ast_builder = kernel_cxx.ast_builder()
                 print('calling transform_tree')
+
+                def ast_to_dict(node):
+                    if isinstance(node, ast.AST):
+                        fields = {k: ast_to_dict(v) for k, v in ast.iter_fields(node)}
+                        return {
+                            "type": node.__class__.__name__,
+                            "fields": fields,
+                            "lineno": getattr(node, "lineno", None),
+                            "col_offset": getattr(node, "col_offset", None),
+                        }
+                    if isinstance(node, list):
+                        return [ast_to_dict(x) for x in node]
+                    return node  # Basic types (str, int, None, etc.)
+
+                if "TAICHI_DUMP_AST" in os.environ:
+                    target_dir = "/tmp/ast"
+                    os.makedirs(target_dir, exist_ok=True)
+
+                    start = time.time()
+                    ast_str = ast.dump(tree, indent=2)
+                    with open(os.path.join(target_dir, f"{kernel_name}_ast.txt"), "w") as f:
+                        f.write(ast_str)
+                    elapsed_txt = time.time() - start
+
+                    start = time.time()
+                    json_str = json.dumps(ast_to_dict(tree), indent=2)
+                    with open(os.path.join(target_dir, f"{kernel_name}_ast.json"), "w") as f:
+                        f.write(json_str)
+                    elapsed_json = time.time() - start
+
+                    with open(os.path.join(target_dir, f"{kernel_name}_gen_time.json"), "w") as f:
+                        f.write(json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2))
                 transform_tree(tree, ctx)
                 print('after transform_tree')
                 if not ctx.is_real_function:
