@@ -10,6 +10,7 @@ import re
 import warnings
 from collections import ChainMap
 from sys import version_info
+from typing import cast
 
 import numpy as np
 
@@ -629,6 +630,7 @@ class ASTTransformer(Builder):
         ctx.visited_funcdef = True
 
         args = node.args
+        print("args", args)
         assert args.vararg is None
         assert args.kwonlyargs == []
         assert args.kw_defaults == []
@@ -636,6 +638,7 @@ class ASTTransformer(Builder):
 
         def decl_and_create_variable(annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth):
             full_name = prefix_name + "_" + name
+            print("decl_and_create_variable fullname", full_name, "prefix_name", prefix_name, "annotation", annotation)
             if not isinstance(annotation, primitive_types.RefType):
                 ctx.kernel_args.append(name)
             if isinstance(annotation, ArgPackType):
@@ -698,7 +701,9 @@ class ASTTransformer(Builder):
 
             invoke_later_dict = dict()
             create_variable_later = dict()
+            print("transform_as_kernel iterate args")
             for i, arg in enumerate(args.args):
+                print(" arg i", i, "arg", arg)
                 if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
                     kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
                     d = {}
@@ -974,7 +979,7 @@ class ASTTransformer(Builder):
         return True
 
     @staticmethod
-    def build_Attribute(ctx, node):
+    def build_Attribute(ctx, node: ast.Attribute):
         # There are two valid cases for the methods of Dynamic SNode:
         #
         # 1. x[i, j].append (where the dimension of the field (3 in this case) is equal to one plus the number of the
@@ -995,6 +1000,10 @@ class ASTTransformer(Builder):
         # whether it is a method of Dynamic SNode and build the expression if it is by calling
         # build_attribute_if_is_dynamic_snode_method. If we find that it is not a method of Dynamic SNode,
         # we continue to process it as a normal attribute node.
+        print("build_attribute node", node, type(node), 'node.value', node.value)
+        # ast.At
+        node_value = cast(ast.Name, node.value)
+        print('node_value fields', node_value._fields)
         try:
             build_stmt(ctx, node.value)
         except Exception as e:
@@ -1073,6 +1082,7 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_AugAssign(ctx, node):
+        print("build_AugAssign target", node.target, "value", node.value)
         build_stmt(ctx, node.target)
         build_stmt(ctx, node.value)
         if isinstance(node.target, ast.Name) and node.target.id in ctx.kernel_args:
@@ -1719,6 +1729,7 @@ build_stmt = ASTTransformer()
 def build_stmts(ctx, stmts):
     with ctx.variable_scope_guard():
         for stmt in stmts:
+            print("stmt", stmt)
             if ctx.returned != ReturnStatus.NoReturn or ctx.loop_status() != LoopStatus.Normal:
                 break
             else:

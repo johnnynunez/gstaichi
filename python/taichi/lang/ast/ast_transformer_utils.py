@@ -43,10 +43,14 @@ class Builder:
 
 class VariableScopeGuard:
     def __init__(self, scopes):
+        print('init scopes', scopes)
         self.scopes = scopes
 
     def __enter__(self):
+        print("()", ())
+        print("self.scopes before", self.scopes)
         self.scopes.append({})
+        print('self.scopes after', self.scopes)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.scopes.pop()
@@ -242,6 +246,19 @@ class ASTTransformerContext:
         return False
 
     def create_variable(self, name, var):
+        print("create_variable name", name, "var", var)
+        # asdf
+        if hasattr(var, "__dataclass_fields__"):
+            print('is dataclass')
+            for field in dataclasses.fields(var):
+                field_name = "__ti_" + name + "_" + field.name
+                print("field_name", field_name)
+                field_value = getattr(var, field.name)
+                print("field_value", field.value)
+                self.current_scope()[field_name] = field_value
+                if field_name in self.current_scope():
+                    raise TaichiSyntaxError(f"Recreating variables is not allowed {field_name}")
+            return
         if name in self.current_scope():
             raise TaichiSyntaxError("Recreating variables is not allowed")
         self.current_scope()[name] = var
@@ -254,6 +271,7 @@ class ASTTransformerContext:
 
     def get_var_by_name(self, name):
         for s in reversed(self.local_scopes):
+            print("local scope", s)
             if name in s:
                 return s[name]
         if name in self.global_vars:
