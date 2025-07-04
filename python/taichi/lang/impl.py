@@ -341,6 +341,7 @@ class PyTaichi:
         self.default_fp = f32
         self.default_ip = i32
         self.default_up = u32
+        self.print_full_traceback = False
         self.target_tape = None
         self.fwd_mode_manager = None
         self.grad_replaced = False

@@ -21,7 +21,6 @@ import dataclasses
 
 import numpy as np
 
-import taichi._lib.core.taichi_python
 import taichi.lang
 from taichi import _logging
 from taichi._lib import core as _ti_core
@@ -297,7 +296,9 @@ class Func:
             return self.func(*args)
 
         if self.is_real_function:
-            if impl.get_runtime().current_kernel.autodiff_mode != AutodiffMode.NONE:
+            current_kernel = impl.get_runtime().current_kernel
+            assert current_kernel is not None
+            if current_kernel.autodiff_mode != AutodiffMode.NONE:
                 raise TaichiSyntaxError("Real function in gradient kernels unsupported.")
             instance_id, arg_features = self.mapper.lookup(args)
             key = _ti_core.FunctionKey(self.func.__name__, self.func_id, instance_id)
@@ -375,7 +376,9 @@ class Func:
         tree, ctx = _get_tree_and_ctx(
             self, is_kernel=False, args=args, arg_features=arg_features, is_real_function=self.is_real_function
         )
-        fn = impl.get_runtime().prog.create_function(key)
+        prog = impl.get_runtime().prog
+        assert prog is not None
+        fn = prog.create_function(key)
 
         def func_body():
             old_callable = impl.get_runtime().compiling_callable
@@ -773,7 +776,7 @@ class Kernel:
             f.write(ast.dump(tree, indent=2))
         return new_tree
 
-    def materialize(self, key, args: list[Any], arg_features):
+    def materialize(self, key, args: tuple[Any, ...], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
@@ -856,7 +859,9 @@ class Kernel:
                 self.runtime.current_kernel = None
                 self.runtime.compiling_callable = None
 
-        taichi_kernel = impl.get_runtime().prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
+        prog = impl.get_runtime().prog
+        assert prog is not None
+        taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
@@ -929,7 +934,9 @@ class Kernel:
                             "Non contiguous tensors are not supported, please call tensor.contiguous() before "
                             "passing it into taichi kernel."
                         )
-                    taichi_arch = self.runtime.prog.config().arch
+                    prog = self.runtime.prog
+                    assert prog is not None
+                    taichi_arch = prog.config().arch
 
                     def get_call_back(u, v):
                         def call_back():
@@ -985,7 +992,9 @@ class Kernel:
                         return call_back
 
                     tmp = v.value().get_tensor()
-                    taichi_arch = self.runtime.prog.config().arch
+                    prog = self.runtime.prog
+                    assert prog is not None
+                    taichi_arch = prog.config().arch
                     if v.place.is_gpu_place():
                         if taichi_arch != _ti_core.Arch.cuda:
                             # Paddle cuda tensor on Taichi non-cuda arch
@@ -1014,24 +1023,24 @@ class Kernel:
                 )
 
         def set_arg_matrix(indices, v, needed):
+            def cast_float(x):
+                if not isinstance(x, (int, float, np.integer, np.floating)):
+                    raise TaichiRuntimeTypeError(
+                        f"Argument {needed.dtype.to_string()} cannot be converted into required type {type(x)}"
+                    )
+                return float(x)
+            def cast_int(x):
+                if not isinstance(x, (int, np.integer)):
+                    raise TaichiRuntimeTypeError(
+                        f"Argument {needed.dtype.to_string()} cannot be converted into required type {type(x)}"
+                    )
+                return int(x)
+
+            cast_func = None
             if needed.dtype in primitive_types.real_types:
-
-                def cast_func(x):
-                    if not isinstance(x, (int, float, np.integer, np.floating)):
-                        raise TaichiRuntimeTypeError(
-                            f"Argument {needed.dtype.to_string()} cannot be converted into required type {type(x)}"
-                        )
-                    return float(x)
-
+                cast_func = cast_float
             elif needed.dtype in primitive_types.integer_types:
-
-                def cast_func(x):
-                    if not isinstance(x, (int, np.integer)):
-                        raise TaichiRuntimeTypeError(
-                            f"Argument {needed.dtype.to_string()} cannot be converted into required type {type(x)}"
-                        )
-                    return int(x)
-
+                cast_func = cast_int
             else:
                 raise ValueError(f"Matrix dtype {needed.dtype} is not integer type or real type.")
 
@@ -1143,6 +1152,7 @@ class Kernel:
 
         try:
             prog = impl.get_runtime().prog
+            assert prog is not None
             # Compile kernel (& Online Cache & Offline Cache)
             compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
             # Launch kernel
