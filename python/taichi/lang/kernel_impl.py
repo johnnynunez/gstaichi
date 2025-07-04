@@ -5,6 +5,8 @@ import functools
 import inspect
 import json
 import operator
+import os
+import pathlib
 import re
 import os
 import sys
@@ -693,27 +695,26 @@ class Kernel:
                         return [ast_to_dict(x) for x in node]
                     return node  # Basic types (str, int, None, etc.)
 
-                if "TAICHI_DUMP_AST" in os.environ:
-                    target_dir = "/tmp/ast"
-                    os.makedirs(target_dir, exist_ok=True)
+                if os.environ.get("TI_DUMP_AST", "") == "1":
+                    target_dir = pathlib.Path("/tmp/ast")
+                    target_dir.mkdir(parents=True, exist_ok=True)
 
                     start = time.time()
                     ast_str = ast.dump(tree, indent=2)
-                    with open(os.path.join(target_dir, f"{kernel_name}_ast.txt"), "w") as f:
-                        f.write(ast_str)
+                    output_file = target_dir / f"{kernel_name}_ast.txt"
+                    output_file.write_text(ast_str)
                     elapsed_txt = time.time() - start
 
                     start = time.time()
                     json_str = json.dumps(ast_to_dict(tree), indent=2)
-                    with open(os.path.join(target_dir, f"{kernel_name}_ast.json"), "w") as f:
-                        f.write(json_str)
+                    output_file = target_dir / f"{kernel_name}_ast.json"
+                    output_file.write_text(json_str)
                     elapsed_json = time.time() - start
 
-                    with open(os.path.join(target_dir, f"{kernel_name}_gen_time.json"), "w") as f:
-                        f.write(json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2))
-                    # print("elapsed", elapsed)
-
-                start = time.time()
+                    output_file = target_dir / f"{kernel_name}_gen_time.json"
+                    output_file.write_text(
+                        json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
+                    )
                 transform_tree(tree, ctx)
                 elapsed = time.time() - start
                 if "TAICHI_DUMP_TRANSFORM_TREE_TIMES" in os.environ:
