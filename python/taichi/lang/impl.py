@@ -5,7 +5,10 @@ from typing import Any, Iterable, Sequence
 import numpy as np
 
 from taichi._lib import core as _ti_core
-from taichi._lib.core.taichi_python import Program
+from taichi._lib.core.taichi_python import (
+    Program,
+    DataType,
+)
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
 from taichi.lang._ndrange import GroupedNDRange, _Ndrange
@@ -607,16 +610,19 @@ class _Root:
     @staticmethod
     def parent(n=1):
         """Same as :func:`taichi.SNode.parent`"""
+        assert isinstance(_root_fb, FieldsBuilder)
         return _root_fb.root.parent(n)
 
     @staticmethod
     def _loop_range():
         """Same as :func:`taichi.SNode.loop_range`"""
+        assert isinstance(_root_fb, FieldsBuilder)
         return _root_fb.root._loop_range()
 
     @staticmethod
     def _get_children():
         """Same as :func:`taichi.SNode.get_children`"""
+        assert isinstance(_root_fb, FieldsBuilder)
         return _root_fb.root._get_children()
 
     # TODO: Record all of the SNodeTrees that finalized under 'ti.root'
@@ -628,10 +634,12 @@ class _Root:
     @property
     def shape(self):
         """Same as :func:`taichi.SNode.shape`"""
+        assert isinstance(_root_fb, FieldsBuilder)
         return _root_fb.root.shape
 
     @property
     def _id(self):
+        assert isinstance(_root_fb, FieldsBuilder)
         return _root_fb.root._id
 
     def __getattr__(self, item):
@@ -687,7 +695,7 @@ def create_field_member(dtype, name, needs_grad, needs_dual):
     x_grad_checkbit = None
     if _ti_core.is_real(dtype):
         # adjoint
-        x_grad = Expr(get_runtime().prog.make_id_expr(""))
+        x_grad = Expr(prog.make_id_expr(""))
         x_grad.declaration_tb = get_traceback(stacklevel=4)
         x_grad.ptr = _ti_core.expr_field(x_grad.ptr, dtype)
         x_grad.ptr.set_name(name + ".grad")
@@ -698,7 +706,7 @@ def create_field_member(dtype, name, needs_grad, needs_dual):
 
         if prog.config().debug:
             # adjoint checkbit
-            x_grad_checkbit = Expr(get_runtime().prog.make_id_expr(""))
+            x_grad_checkbit = Expr(prog.make_id_expr(""))
             dtype = u8
             if prog.config().arch in (_ti_core.opengl, _ti_core.vulkan, _ti_core.gles):
                 dtype = i32
@@ -708,7 +716,7 @@ def create_field_member(dtype, name, needs_grad, needs_dual):
             x.ptr.set_adjoint_checkbit(x_grad_checkbit.ptr)
 
         # dual
-        x_dual = Expr(get_runtime().prog.make_id_expr(""))
+        x_dual = Expr(prog.make_id_expr(""))
         x_dual.ptr = _ti_core.expr_field(x_dual.ptr, dtype)
         x_dual.ptr.set_name(name + ".dual")
         x_dual.ptr.set_grad_type(SNodeGradType.DUAL)
@@ -864,6 +872,7 @@ def ndarray(dtype, shape, needs_grad=False):
     else:
         raise TaichiRuntimeError(f"{dtype} is not supported as ndarray element type")
     if needs_grad:
+        assert isinstance(dt, DataType)
         if not _ti_core.is_real(dt):
             raise TaichiRuntimeError(f"{dt} is not supported for ndarray with `needs_grad=True` or `needs_dual=True`.")
         x_grad = ndarray(dtype, shape, needs_grad=False)
@@ -1179,7 +1188,9 @@ def stop_grad(x):
 
 
 def current_cfg():
-    return get_runtime().prog.config()
+    prog = get_runtime().prog
+    assert prog is not None
+    return prog.config()
 
 
 def default_cfg():
