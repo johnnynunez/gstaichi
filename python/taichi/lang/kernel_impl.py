@@ -340,9 +340,10 @@ class Func:
                     non_template_args.append(args[i])
         non_template_args = impl.make_expr_group(non_template_args)
         # runtime = impl.get_runtime()
+        compiling_callable = impl.get_runtime().compiling_callable
+        assert compiling_callable is not None
         func_call = (
-            impl.get_runtime()
-            .compiling_callable.ast_builder()
+            compiling_callable.ast_builder()
             .insert_func_call(self.taichi_functions[key.instance_id], non_template_args, dbg_info)
         )
         if self.return_type is None:

@@ -412,6 +412,7 @@ void export_lang(py::module &m) {
             return &program->kernel(body, name, autodiff_mode);
           },
           py::return_value_policy::reference)
+      // Function *create_function(const FunctionKey &func_key);
       .def("create_function", &Program::create_function,
            py::return_value_policy::reference)
       .def("create_sparse_matrix",

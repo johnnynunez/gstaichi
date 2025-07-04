@@ -8,6 +8,7 @@ from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
     DataType,
     Program,
+    Function,
 )
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
@@ -69,19 +70,21 @@ from taichi.types.primitive_types import (
 
 @taichi_scope
 def expr_init_shared_array(shape, element_type):
+    compiling_callable = get_runtime().compiling_callable
+    assert compiling_callable is not None
     return (
-        get_runtime()
-        .compiling_callable.ast_builder()
+        compiling_callable.ast_builder()
         .expr_alloca_shared_array(shape, element_type, _ti_core.DebugInfo(get_runtime().get_current_src_info()))
     )
 
 
 @taichi_scope
 def expr_init(rhs):
+    compiling_callable = get_runtime().compiling_callable
+    assert compiling_callable is not None
     if rhs is None:
         return Expr(
-            get_runtime()
-            .compiling_callable.ast_builder()
+            compiling_callable.ast_builder()
             .expr_alloca(_ti_core.DebugInfo(get_runtime().get_current_src_info()))
         )
     # if isinstance(rhs, Matrix) and (hasattr(rhs, "_DIM")):
@@ -111,8 +114,7 @@ def expr_init(rhs):
     if hasattr(rhs, "_data_oriented"):
         return rhs
     return Expr(
-        get_runtime()
-        .compiling_callable.ast_builder()
+        compiling_callable.ast_builder()
         .expr_var(Expr(rhs).ptr, _ti_core.DebugInfo(get_runtime().get_current_src_info()))
     )
 
@@ -193,7 +195,9 @@ def validate_subscript_index(value, index):
 @taichi_scope
 def subscript(ast_builder, value, *_indices, skip_reordered=False):
     dbg_info = _ti_core.DebugInfo(get_runtime().get_current_src_info())
-    ast_builder = get_runtime().compiling_callable.ast_builder()
+    compiling_callable = get_runtime().compiling_callable
+    assert compiling_callable is not None
+    ast_builder = compiling_callable.ast_builder()
     # Directly evaluate in Python for non-Taichi types
     if not isinstance(
         value,
@@ -334,7 +338,7 @@ class PyTaichi:
         self.prog: Program | None = None
         self.src_info_stack = []
         self.inside_kernel = False
-        self.compiling_callable = None  # pointer to instance of lang::Kernel/Function
+        self.compiling_callable: Function | None = None  # pointer to instance of lang::Kernel/Function
         self.current_kernel: Kernel | None = None
         self.global_vars = []
         self.grad_vars = []
@@ -956,7 +960,9 @@ def ti_print(*_vars, sep=" ", end="\n"):
 
     _vars = add_separators(_vars)
     contents, formats = ti_format_list_to_content_entries(_vars)
-    get_runtime().compiling_callable.ast_builder().create_print(
+    compiling_callable = get_runtime().compiling_callable
+    assert compiling_callable is not None
+    compiling_callable.ast_builder().create_print(
         contents, formats, _ti_core.DebugInfo(get_runtime().get_current_src_info())
     )
 
@@ -988,7 +994,9 @@ def ti_format(*args):
 def ti_assert(cond, msg, extra_args, dbg_info):
     # Mostly a wrapper to help us convert from Expr (defined in Python) to
     # _ti_core.Expr (defined in C++)
-    get_runtime().compiling_callable.ast_builder().create_assert_stmt(Expr(cond).ptr, msg, extra_args, dbg_info)
+    compiling_callable = get_runtime().compiling_callable
+    assert compiling_callable is not None
+    compiling_callable.ast_builder().create_assert_stmt(Expr(cond).ptr, msg, extra_args, dbg_info)
 
 
 @taichi_scope
@@ -1184,7 +1192,9 @@ def stop_grad(x):
     Args:
         x (:class:`~taichi.Field`): A field.
     """
-    get_runtime().compiling_callable.ast_builder().stop_grad(x.snode.ptr)
+    compiling_callable = get_runtime().compiling_callable
+    assert compiling_callable is not None
+    compiling_callable.ast_builder().stop_grad(x.snode.ptr)
 
 
 def current_cfg():
