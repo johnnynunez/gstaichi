@@ -332,7 +332,7 @@ class Func:
         if sig.return_annotation not in (inspect.Signature.empty, None):
             self.return_type = sig.return_annotation
             if (
-                isinstance(self.return_type, (types.GenericAlias, types.GenericAlias))
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
                 and self.return_type.__origin__ is tuple
             ):
                 self.return_type = self.return_type.__args__
