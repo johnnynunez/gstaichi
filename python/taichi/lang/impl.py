@@ -6,8 +6,8 @@ import numpy as np
 
 from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
-    Program,
     DataType,
+    Program,
 )
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
