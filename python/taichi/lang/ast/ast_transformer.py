@@ -11,7 +11,7 @@ import re
 import warnings
 from collections import ChainMap
 from sys import version_info
-from typing import cast, Iterable, Type
+from typing import cast, Any, Iterable, Type
 
 import numpy as np
 
