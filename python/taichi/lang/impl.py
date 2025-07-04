@@ -7,8 +7,8 @@ import numpy as np
 from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
     DataType,
-    Program,
     Function,
+    Program,
 )
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
@@ -72,9 +72,8 @@ from taichi.types.primitive_types import (
 def expr_init_shared_array(shape, element_type):
     compiling_callable = get_runtime().compiling_callable
     assert compiling_callable is not None
-    return (
-        compiling_callable.ast_builder()
-        .expr_alloca_shared_array(shape, element_type, _ti_core.DebugInfo(get_runtime().get_current_src_info()))
+    return compiling_callable.ast_builder().expr_alloca_shared_array(
+        shape, element_type, _ti_core.DebugInfo(get_runtime().get_current_src_info())
     )
 
 
@@ -84,8 +83,7 @@ def expr_init(rhs):
     assert compiling_callable is not None
     if rhs is None:
         return Expr(
-            compiling_callable.ast_builder()
-            .expr_alloca(_ti_core.DebugInfo(get_runtime().get_current_src_info()))
+            compiling_callable.ast_builder().expr_alloca(_ti_core.DebugInfo(get_runtime().get_current_src_info()))
         )
     # if isinstance(rhs, Matrix) and (hasattr(rhs, "_DIM")):
     #     return Matrix(*rhs.to_list(), ndim=rhs.ndim)  # is this broken? unused?
@@ -114,8 +112,9 @@ def expr_init(rhs):
     if hasattr(rhs, "_data_oriented"):
         return rhs
     return Expr(
-        compiling_callable.ast_builder()
-        .expr_var(Expr(rhs).ptr, _ti_core.DebugInfo(get_runtime().get_current_src_info()))
+        compiling_callable.ast_builder().expr_var(
+            Expr(rhs).ptr, _ti_core.DebugInfo(get_runtime().get_current_src_info())
+        )
     )
 
 

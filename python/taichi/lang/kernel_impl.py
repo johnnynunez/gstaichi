@@ -342,9 +342,8 @@ class Func:
         # runtime = impl.get_runtime()
         compiling_callable = impl.get_runtime().compiling_callable
         assert compiling_callable is not None
-        func_call = (
-            compiling_callable.ast_builder()
-            .insert_func_call(self.taichi_functions[key.instance_id], non_template_args, dbg_info)
+        func_call = compiling_callable.ast_builder().insert_func_call(
+            self.taichi_functions[key.instance_id], non_template_args, dbg_info
         )
         if self.return_type is None:
             return None
