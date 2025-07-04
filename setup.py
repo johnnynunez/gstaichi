@@ -290,7 +290,6 @@ setup(
         "rich",
         "setuptools>=68.0.0",  # Required for Python 3.12+ compatibility
         "cffi>=1.16.0",
-        "ruamel.yaml",
     ],
     data_files=[
         (os.path.join("_lib", "runtime"), data_files),
