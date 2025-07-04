@@ -516,6 +516,7 @@ class TaichiCallableTemplateMapper:
             if isinstance(arg, taichi.lang._ndarray.Ndarray):
                 anno.check_matched(arg.get_type(), arg_name)
                 needs_grad = (arg.grad is not None) if anno.needs_grad is None else anno.needs_grad
+                assert arg.shape is not None
                 return arg.element_type, len(arg.shape), needs_grad, anno.boundary
             if isinstance(arg, AnyArray):
                 ty = arg.get_type()
@@ -526,7 +527,7 @@ class TaichiCallableTemplateMapper:
             if shape is None:
                 raise TaichiRuntimeTypeError(f"Invalid type for argument {arg_name}, got {arg}")
             shape = tuple(shape)
-            element_shape = ()
+            element_shape: tuple[int, ...] = ()
             dtype = to_taichi_type(arg.dtype)
             if isinstance(anno.dtype, MatrixType):
                 if anno.ndim is not None:

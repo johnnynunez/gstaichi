@@ -486,7 +486,7 @@ class ASTTransformer(Builder):
         return True
 
     @staticmethod
-    def warn_if_is_external_func(ctx: ASTTransformerContext, node: ast.Call) -> None:
+    def warn_if_is_external_func(ctx: ASTTransformerContext, node):
         func = node.func.ptr
         if not ASTTransformer.is_external_func(ctx, func):
             return
