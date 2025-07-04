@@ -20,7 +20,7 @@ def gen_cpp_kernel(kernel_fn, args):
     kernel = kernel_fn._primal
     assert isinstance(kernel, kernel_impl.Kernel)
     injected_args = produce_injected_args(kernel, symbolic_args=args)
-    key = kernel.ensure_compiled(*injected_args)
+    key = kernel.ensure_compiled(injected_args)
     return kernel.compiled_kernels[key]
 
 

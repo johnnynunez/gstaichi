@@ -138,7 +138,7 @@ def pyfunc(fn: Callable):
 
 def _get_tree_and_ctx(
     self: "Func | Kernel",
-    args: tuple[Any, ...],
+    args: list[Any],
     excluded_parameters=(),
     is_kernel: bool = True,
     arg_features=None,
@@ -763,7 +763,7 @@ class Kernel:
             f.write(ast.dump(tree, indent=2))
         return new_tree
 
-    def materialize(self, key, args: tuple[Any, ...], arg_features):
+    def materialize(self, key, args: list[Any], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
@@ -1181,7 +1181,7 @@ class Kernel:
             return launch_ctx.get_struct_ret_float(index)
         raise TaichiRuntimeTypeError(f"Invalid return type on index={index}")
 
-    def ensure_compiled(self, *args):
+    def ensure_compiled(self, args: list[Any]):
         instance_id, arg_features = self.mapper.lookup(args)
         key = (self.func, instance_id, self.autodiff_mode)
         self.materialize(key=key, args=args, arg_features=arg_features)
@@ -1217,7 +1217,7 @@ class Kernel:
         if self.autodiff_mode != AutodiffMode.NONE and impl.current_cfg().opt_level == 0:
             _logging.warn("""opt_level = 1 is enforced to enable gradient computation.""")
             impl.current_cfg().opt_level = 1
-        key = self.ensure_compiled(*args)
+        key = self.ensure_compiled(args)
         kernel_cpp = self.compiled_kernels[key]
         return self.launch_kernel(kernel_cpp, *args)
 
