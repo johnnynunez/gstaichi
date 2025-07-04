@@ -5,12 +5,12 @@ import collections.abc
 import inspect
 import itertools
 import math
-from typing import Type, Iterable
 import operator
 import re
 import warnings
 from collections import ChainMap
 from sys import version_info
+from typing import Iterable, Type
 
 import numpy as np
 
@@ -19,7 +19,12 @@ from taichi.lang import _ndarray, any_array, expr, impl, kernel_arguments, matri
 from taichi.lang import ops as ti_ops
 from taichi.lang._ndrange import _Ndrange, ndrange
 from taichi.lang.argpack import ArgPackType
-from taichi.lang.ast.ast_transformer_utils import Builder, LoopStatus, ReturnStatus
+from taichi.lang.ast.ast_transformer_utils import (
+    ASTTransformerContext,
+    Builder,
+    LoopStatus,
+    ReturnStatus,
+)
 from taichi.lang.ast.symbol_resolver import ASTResolver
 from taichi.lang.exception import (
     TaichiIndexError,
@@ -28,7 +33,6 @@ from taichi.lang.exception import (
     TaichiTypeError,
     handle_exception_from_cpp,
 )
-from taichi.lang.ast.ast_transformer_utils import ASTTransformerContext
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field
 from taichi.lang.matrix import Matrix, MatrixType, Vector
@@ -93,7 +97,9 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_assign_annotated(ctx: ASTTransformerContext, target: ast.Name, value, is_static_assign: bool, annotation: Type):
+    def build_assign_annotated(
+        ctx: ASTTransformerContext, target: ast.Name, value, is_static_assign: bool, annotation: Type
+    ):
         """Build an annotated assignment like this: target: annotation = value.
 
         Args:
@@ -1003,11 +1009,11 @@ class ASTTransformer(Builder):
             e = handle_exception_from_cpp(e)
             if isinstance(e, TaichiIndexError):
                 node.value.ptr = None
-                if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx: ASTTransformerContext, node):
+                if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx, node):
                     return node.ptr
             raise e
 
-        if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx: ASTTransformerContext, node):
+        if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx, node):
             return node.ptr
 
         if isinstance(node.value.ptr, Expr) and not hasattr(node.value.ptr, node.attr):
@@ -1245,7 +1251,7 @@ class ASTTransformer(Builder):
                     elif status == LoopStatus.Continue:
                         ctx.set_loop_status(LoopStatus.Normal)
         else:
-            build_stmt(ctx: ast.ASTTransformerContext, node.iter)
+            build_stmt(ctx, node.iter)
             targets = ASTTransformer.get_for_loop_targets(node)
 
             iter_time = 0
