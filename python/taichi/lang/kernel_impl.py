@@ -62,7 +62,19 @@ from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
 
 
-def func(fn: Callable, is_real_function: bool = False):
+class TaichiCallable:
+    def __init__(self, fn: Callable, fun: "Func", is_taichi_function: bool, is_real_function: bool):
+        self._is_taichi_function = is_taichi_function
+        self._is_real_function = is_real_function
+        self.func = fun
+        functools.update_wrapper(self, fn)
+
+    def __call__(self, *args, **kwargs):
+        print("TaichiCallable.__call__ self", self, "args", args, "kwargs", kwargs)
+        return self.func.__call__(*args, **kwargs)
+
+
+def func(fn: Callable, is_real_function=False) -> TaichiCallable:
     """Marks a function as callable in Taichi-scope.
 
     This decorator transforms a Python function into a Taichi one. Taichi
@@ -88,22 +100,19 @@ def func(fn: Callable, is_real_function: bool = False):
     is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
 
     fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-
-    @functools.wraps(fn)
-    def decorated(*args, **kwargs):
-        return fun.__call__(*args, **kwargs)
-
-    decorated._is_taichi_function = True
-    decorated._is_real_function = is_real_function
-    decorated.func = fun
-    return decorated
+    return TaichiCallable(
+        fn,
+        fun,
+        is_taichi_function=True,
+        is_real_function=is_real_function,
+    )
 
 
 def real_func(fn: Callable):
     return func(fn, is_real_function=True)
 
 
-def pyfunc(fn: Callable):
+def pyfunc(fn: Callable) -> TaichiCallable:
     """Marks a function as callable in both Taichi and Python scopes.
 
     When called inside the Taichi scope, Taichi will JIT compile it into
@@ -120,15 +129,12 @@ def pyfunc(fn: Callable):
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3)
     fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
-
-    @functools.wraps(fn)
-    def decorated(*args, **kwargs):
-        return fun.__call__(*args, **kwargs)
-
-    decorated._is_taichi_function = True
-    decorated._is_real_function = False
-    decorated.func = fun
-    return decorated
+    return TaichiCallable(
+        fn,
+        fun,
+        is_taichi_function=True,
+        is_real_function=False,
+    )
 
 
 def _get_tree_and_ctx(
@@ -586,15 +592,11 @@ class Kernel:
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
-            if sys.version_info >= (3, 9):
-                if (
-                    isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
-                    and self.return_type.__origin__ is tuple
-                ):
-                    self.return_type = self.return_type.__args__
-            else:
-                if isinstance(self.return_type, typing._GenericAlias) and self.return_type.__origin__ is tuple:
-                    self.return_type = self.return_type.__args__
+            if (
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                and self.return_type.__origin__ is tuple
+            ):
+                self.return_type = self.return_type.__args__
             if not isinstance(self.return_type, (list, tuple)):
                 self.return_type = (self.return_type,)
             for return_type in self.return_type:
@@ -850,7 +852,7 @@ class Kernel:
                         f"Argument {needed.to_string()} cannot be converted into required type {v}"
                     )
             elif has_paddle():
-                import paddle  # pylint: disable=C0415
+                import paddle  # pylint: disable=C0415  # type: ignore
 
                 if isinstance(v, paddle.Tensor):
                     # For now, paddle.fluid.core.Tensor._ptr() is only available on develop branch
@@ -1228,14 +1230,17 @@ class _BoundedDifferentiableMethod:
         self.__name__ = None
 
     def __call__(self, *args, **kwargs):
-        try:
+        # try:
+            print("self", self, "args", args, "kwargs", kwargs)
+            print("self.isstaticmdethod", self._is_staticmethod)
+            print("primal", self._primal)
             if self._is_staticmethod:
                 return self._primal(*args, **kwargs)
             return self._primal(self._kernel_owner, *args, **kwargs)
-        except (TaichiCompilationError, TaichiRuntimeError) as e:
-            if impl.get_runtime().print_full_traceback:
-                raise e
-            raise type(e)("\n" + str(e)) from None
+        # except (TaichiCompilationError, TaichiRuntimeError) as e:
+        #     if impl.get_runtime().print_full_traceback:
+        #         raise e
+        #     raise type(e)("\n" + str(e)) from None
 
     def grad(self, *args, **kwargs):
         return self._adjoint(self._kernel_owner, *args, **kwargs)
