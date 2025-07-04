@@ -1116,7 +1116,7 @@ class Kernel:
             if isinstance(needed, StructType):
                 if in_argpack:
                     return 1
-                if not isinstance(v, needed):
+                if not needed.__instancecheck__(v):
                     raise TaichiRuntimeTypeError(f"Argument {provided} cannot be converted into required type {needed}")
                 needed.set_kernel_struct_args(v, launch_ctx, indices)
                 return 1
