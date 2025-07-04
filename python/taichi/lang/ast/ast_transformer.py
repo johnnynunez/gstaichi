@@ -5,7 +5,7 @@ import collections.abc
 import inspect
 import itertools
 import math
-from typing import Type, Iterable
+from typing import Type, Iterable, Any
 import operator
 import re
 import warnings
@@ -50,7 +50,7 @@ else:
     from ast import unparse
 
 
-def reshape_list(flat_list: list[any], target_shape: Iterable[int]) -> list[any]:
+def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
     if len(target_shape) < 2:
         return flat_list
 
@@ -486,7 +486,7 @@ class ASTTransformer(Builder):
         return True
 
     @staticmethod
-    def warn_if_is_external_func(ctx: ASTTransformerContext, node):
+    def warn_if_is_external_func(ctx: ASTTransformerContext, node: ast.Call) -> None:
         func = node.func.ptr
         if not ASTTransformer.is_external_func(ctx, func):
             return
@@ -708,7 +708,7 @@ class ASTTransformer(Builder):
                         kernel_arguments.decl_ret(return_type)
             impl.get_runtime().compiling_callable.finalize_rets()
 
-            invoke_later_dict: dict[str, tuple[any, str, any]] = dict()
+            invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
             create_variable_later = dict()
             print("transform_as_kernel iterate args")
             for i, arg in enumerate(args.args):
@@ -716,7 +716,7 @@ class ASTTransformer(Builder):
                 if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
                     kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
                     d = {}
-                    items_to_put_in_dict: list[tuple[str, str, any]] = []
+                    items_to_put_in_dict: list[tuple[str, str, Any]] = []
                     for j, (name, anno) in enumerate(ctx.func.arguments[i].annotation.members.items()):
                         result, obj = decl_and_create_variable(
                             anno, name, ctx.arg_features[i][j], invoke_later_dict, "__argpack_" + name, 1
@@ -1019,11 +1019,11 @@ class ASTTransformer(Builder):
             e = handle_exception_from_cpp(e)
             if isinstance(e, TaichiIndexError):
                 node.value.ptr = None
-                if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx: ASTTransformerContext, node):
+                if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx, node):
                     return node.ptr
             raise e
 
-        if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx: ASTTransformerContext, node):
+        if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx, node):
             return node.ptr
 
         if isinstance(node.value.ptr, Expr) and not hasattr(node.value.ptr, node.attr):
@@ -1199,7 +1199,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def get_decorator(ctx: ASTTransformerContext, node: ast.Call | expr) -> str:
+    def get_decorator(ctx: ASTTransformerContext, node) -> str:
         if not isinstance(node, ast.Call):
             return ""
         for wanted, name in [
@@ -1213,7 +1213,7 @@ class ASTTransformer(Builder):
         return ""
 
     @staticmethod
-    def get_for_loop_targets(node: ast.Name | ast.Tuple | any) -> list:
+    def get_for_loop_targets(node: ast.Name | ast.Tuple | Any) -> list:
         """
         Returns the list of indices of the for loop |node|.
         See also: https://docs.python.org/3/library/ast.html#ast.For
@@ -1262,7 +1262,7 @@ class ASTTransformer(Builder):
                     elif status == LoopStatus.Continue:
                         ctx.set_loop_status(LoopStatus.Normal)
         else:
-            build_stmt(ctx: ast.ASTTransformerContext, node.iter)
+            build_stmt(ctx, node.iter)
             targets = ASTTransformer.get_for_loop_targets(node)
 
             iter_time = 0
