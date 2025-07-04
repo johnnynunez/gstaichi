@@ -10,7 +10,7 @@ import re
 import warnings
 from collections import ChainMap
 from sys import version_info
-from typing import Iterable, Type
+from typing import Any, Iterable, Type
 
 import numpy as np
 
@@ -48,7 +48,7 @@ else:
     from ast import unparse
 
 
-def reshape_list(flat_list: list[any], target_shape: Iterable[int]) -> list[any]:
+def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
     if len(target_shape) < 2:
         return flat_list
 
@@ -1188,7 +1188,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def get_decorator(ctx: ASTTransformerContext, node: ast.Call | expr) -> str:
+    def get_decorator(ctx: ASTTransformerContext, node) -> str:
         if not isinstance(node, ast.Call):
             return ""
         for wanted, name in [
@@ -1202,7 +1202,7 @@ class ASTTransformer(Builder):
         return ""
 
     @staticmethod
-    def get_for_loop_targets(node: ast.Name | ast.Tuple | any) -> list:
+    def get_for_loop_targets(node: ast.Name | ast.Tuple | Any) -> list:
         """
         Returns the list of indices of the for loop |node|.
         See also: https://docs.python.org/3/library/ast.html#ast.For
