@@ -12,6 +12,7 @@ import sys
 import textwrap
 import time
 import types
+from typing import Callable, Type, Any
 import os
 import time
 import json
@@ -57,11 +58,28 @@ from taichi.types import (
     texture_type,
 )
 from taichi.types.compound_types import CompoundType
+import taichi.types.annotations
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
+import taichi.lang.snode
+import taichi.lang.expr
+import taichi.lang._ndarray
+import taichi.lang._texture
+import taichi._lib.core.taichi_python
 
 
-def func(fn, is_real_function=False):
+class TaichiDecoratedFuncClass:
+    def __init__(self, fn: Callable, fun: "Func", is_taichi_function: bool, is_real_function: bool):
+        self._is_taichi_function = is_taichi_function
+        self._is_real_function = is_real_function
+        self.func = fun
+        functools.update_wrapper(self, fn)
+
+    def __call__(self, *args, **kwargs):
+        return self.func.__call__(*args, **kwargs)
+
+
+def func(fn: Callable, is_real_function=False) -> TaichiDecoratedFuncClass:
     """Marks a function as callable in Taichi-scope.
 
     This decorator transforms a Python function into a Taichi one. Taichi
@@ -85,24 +103,20 @@ def func(fn, is_real_function=False):
         >>>     print(foo(40))  # 42
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
-
     fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-
-    @functools.wraps(fn)
-    def decorated(*args, **kwargs):
-        return fun.__call__(*args, **kwargs)
-
-    decorated._is_taichi_function = True
-    decorated._is_real_function = is_real_function
-    decorated.func = fun
-    return decorated
+    return TaichiDecoratedFuncClass(
+        fn,
+        fun,
+        is_taichi_function=True,
+        is_real_function=is_real_function,
+    )
 
 
-def real_func(fn):
+def real_func(fn: Callable):
     return func(fn, is_real_function=True)
 
 
-def pyfunc(fn):
+def pyfunc(fn: Callable):
     """Marks a function as callable in both Taichi and Python scopes.
 
     When called inside the Taichi scope, Taichi will JIT compile it into
@@ -119,25 +133,22 @@ def pyfunc(fn):
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3)
     fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
-
-    @functools.wraps(fn)
-    def decorated(*args, **kwargs):
-        return fun.__call__(*args, **kwargs)
-
-    decorated._is_taichi_function = True
-    decorated._is_real_function = False
-    decorated.func = fun
-    return decorated
+    return TaichiDecoratedFuncClass(
+        fn,
+        fun,
+        is_taichi_function=True,
+        is_real_function=False,
+    )
 
 
 def _get_tree_and_ctx(
-    self,
+    self: "Func | Kernel",
+    args: list[typing.Any],
     excluded_parameters=(),
-    is_kernel=True,
+    is_kernel: bool = True,
     arg_features=None,
-    args=None,
     ast_builder=None,
-    is_real_function=False,
+    is_real_function: bool = False,
 ):
     file = getsourcefile(self.func)
     src, start_lineno = getsourcelines(self.func)
@@ -171,7 +182,7 @@ def _get_tree_and_ctx(
     )
 
 
-def expand_args_dataclasses(args: list[any]) -> list[any]:
+def expand_args_dataclasses(args: list[Any]) -> list[Any]:
     # print('params', params)
     new_args = []
     # arg_names = params.keys()
@@ -204,7 +215,7 @@ def expand_args_dataclasses(args: list[any]) -> list[any]:
     return new_args
 
 
-def _process_args(self, args, kwargs):
+def _process_args(self: "Func | Kernel", args, kwargs):
     print('self.arguments', self.arguments)
     ret = [argument.default for argument in self.arguments]
     print('ret', ret)
@@ -251,16 +262,16 @@ def _process_args(self, args, kwargs):
 class Func:
     function_counter = 0
 
-    def __init__(self, _func, _classfunc=False, _pyfunc=False, is_real_function=False):
+    def __init__(self, _func: Callable, _classfunc=False, _pyfunc=False, is_real_function=False):
         self.func = _func
         self.func_id = Func.function_counter
         Func.function_counter += 1
-        self.compiled = None
+        self.compiled = {}
         self.classfunc = _classfunc
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
-        self.arguments = []
-        self.return_type = None
+        self.arguments: list[KernelArgument] = []
+        self.return_type: tuple[Type] or None = None
         self.extract_arguments()
         self.template_slot_locations = []
         for i, arg in enumerate(self.arguments):
@@ -289,8 +300,8 @@ class Func:
                 raise TaichiSyntaxError("Real function in gradient kernels unsupported.")
             instance_id, arg_features = self.mapper.lookup(args)
             key = _ti_core.FunctionKey(self.func.__name__, self.func_id, instance_id)
-            if self.compiled is None:
-                self.compiled = {}
+            # if self.compiled is None:
+            #     self.compiled = {}
             if key.instance_id not in self.compiled:
                 self.do_compile(key=key, args=args, arg_features=arg_features)
             return self.func_call_rvalue(key=key, args=args)
@@ -373,19 +384,15 @@ class Func:
         self.compiled[key.instance_id] = func_body
         self.taichi_functions[key.instance_id].set_function_body(func_body)
 
-    def extract_arguments(self):
+    def extract_arguments(self) -> None:
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect.Signature.empty, None):
             self.return_type = sig.return_annotation
-            if sys.version_info >= (3, 9):
-                if (
-                    isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
-                    and self.return_type.__origin__ is tuple
-                ):
-                    self.return_type = self.return_type.__args__
-            else:
-                if isinstance(self.return_type, typing._GenericAlias) and self.return_type.__origin__ is tuple:
-                    self.return_type = self.return_type.__args__
+            if (
+                isinstance(self.return_type, (types.GenericAlias, types.GenericAlias))
+                and self.return_type.__origin__ is tuple
+            ):
+                self.return_type = self.return_type.__args__
             if not isinstance(self.return_type, (list, tuple)):
                 self.return_type = (self.return_type,)
             for i, return_type in enumerate(self.return_type):
@@ -604,7 +611,7 @@ class Kernel:
             AutodiffMode.REVERSE,
         )
         self.autodiff_mode = autodiff_mode
-        self.grad = None
+        self.grad : Kernel | None = None
         self.arguments = []
         self.return_type = None
         self.classkernel = _classkernel
@@ -628,7 +635,7 @@ class Kernel:
         self.runtime = impl.get_runtime()
         self.compiled_kernels = {}
 
-    def expand_dataclasses(self, params: dict[str, any]) -> dict[str, any]:
+    def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
         print('params', params)
         new_params = {}
         arg_names = params.keys()
@@ -663,7 +670,7 @@ class Kernel:
             self.return_type = sig.return_annotation
             if sys.version_info >= (3, 9):
                 if (
-                    isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                    isinstance(self.return_type, (types.GenericAlias, types.GenericAlias))
                     and self.return_type.__origin__ is tuple
                 ):
                     self.return_type = self.return_type.__args__
@@ -1235,6 +1242,8 @@ def _inside_class(level_of_class_stackframe):
     try:
         maybe_class_frame = sys._getframe(level_of_class_stackframe)
         statement_list = inspect.getframeinfo(maybe_class_frame)[3]
+        if statement_list is None:
+            return False
         first_statment = statement_list[0].strip()
         for pat in _KERNEL_CLASS_STACKFRAME_STMT_RES:
             if pat.match(first_statment):
@@ -1292,7 +1301,7 @@ def _kernel_impl(_func, level_of_class_stackframe, verbose=False):
     return wrapped
 
 
-def kernel(fn):
+def kernel(fn: Callable):
     """Marks a function as a Taichi kernel.
 
     A Taichi kernel is a function written in Python, and gets JIT compiled by
