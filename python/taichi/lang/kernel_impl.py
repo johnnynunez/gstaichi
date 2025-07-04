@@ -143,7 +143,7 @@ def pyfunc(fn: Callable):
 
 def _get_tree_and_ctx(
     self: "Func | Kernel",
-    args: list[typing.Any],
+    args: tuple[Any, ...],
     excluded_parameters=(),
     is_kernel: bool = True,
     arg_features=None,
