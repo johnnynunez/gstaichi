@@ -278,11 +278,11 @@ class Func:
 
     def unpack_dataclasses(self, tree) -> Any:
         print("type(tree)", type(tree))
-        asdfadf
+        # asdfadf
 
     def __call__(self, *args, **kwargs):
         print("__call__")
-        asdafdf
+        # asdafdf
         args = _process_args(self, args, kwargs)
 
         if not impl.inside_kernel():
@@ -730,7 +730,7 @@ class Kernel:
                     pass
                 elif isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
                     print("is dataclass")
-                    asasdf
+                    # asasdf
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             # if is_dataclass:
