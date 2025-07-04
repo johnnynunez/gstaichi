@@ -1,5 +1,3 @@
-# type: ignore
-
 import numbers
 from types import FunctionType, MethodType
 from typing import Any, Iterable, Sequence
@@ -62,6 +60,7 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
+from taichi.lang.kernel_impl import Kernel
 
 
 @taichi_scope
@@ -328,7 +327,7 @@ class PyTaichi:
         self.src_info_stack = []
         self.inside_kernel = False
         self.compiling_callable = None  # pointer to instance of lang::Kernel/Function
-        self.current_kernel = None
+        self.current_kernel: Kernel | None = None
         self.global_vars = []
         self.grad_vars = []
         self.dual_vars = []

@@ -1,5 +1,3 @@
-# type: ignore
-
 import ast
 import functools
 import inspect
@@ -23,6 +21,7 @@ import dataclasses
 
 import numpy as np
 
+import taichi._lib.core.taichi_python
 import taichi.lang
 from taichi import _logging
 from taichi._lib import core as _ti_core
@@ -65,7 +64,9 @@ import taichi.lang.snode
 import taichi.lang.expr
 import taichi.lang._ndarray
 import taichi.lang._texture
-import taichi._lib.core.taichi_python
+from taichi._lib.core.taichi_python import (
+    ASTBuilder,
+)
 
 
 class TaichiDecoratedFuncClass:
@@ -147,7 +148,7 @@ def _get_tree_and_ctx(
     excluded_parameters=(),
     is_kernel: bool = True,
     arg_features=None,
-    ast_builder=None,
+    ast_builder: ASTBuilder | None = None,
     is_real_function: bool = False,
 ):
     file = getsourcefile(self.func)
@@ -281,7 +282,7 @@ class Func:
         self.taichi_functions = {}  # The |Function| class in C++
         self.has_print = False
 
-    def unpack_dataclasses(self, tree) -> any:
+    def unpack_dataclasses(self, tree) -> Any:
         print('type(tree)', type(tree))
         asdfadf
 
@@ -305,11 +306,13 @@ class Func:
             if key.instance_id not in self.compiled:
                 self.do_compile(key=key, args=args, arg_features=arg_features)
             return self.func_call_rvalue(key=key, args=args)
+        current_kernel = impl.get_runtime().current_kernel
+        assert current_kernel is not None
         tree, ctx = _get_tree_and_ctx(
             self,
             is_kernel=False,
             args=args,
-            ast_builder=impl.get_runtime().current_kernel.ast_builder(),
+            ast_builder=current_kernel.ast_builder(),
             is_real_function=self.is_real_function,
         )
         tree = self.unpack_dataclasses(tree)
@@ -340,6 +343,7 @@ class Func:
                 else:
                     non_template_args.append(args[i])
         non_template_args = impl.make_expr_group(non_template_args)
+        # runtime = impl.get_runtime()
         func_call = (
             impl.get_runtime()
             .compiling_callable.ast_builder()
@@ -600,7 +604,7 @@ def _get_global_vars(_func):
 class Kernel:
     counter = 0
 
-    def __init__(self, _func, autodiff_mode, _classkernel=False):
+    def __init__(self, _func: Callable, autodiff_mode, _classkernel=False):
         self.func = _func
         self.kernel_counter = Kernel.counter
         Kernel.counter += 1
@@ -627,7 +631,7 @@ class Kernel:
         self.compiled_kernels = {}
         self.has_print = False
 
-    def ast_builder(self):
+    def ast_builder(self) -> ASTBuilder:
         assert self.kernel_cpp is not None
         return self.kernel_cpp.ast_builder()
 
@@ -1253,7 +1257,7 @@ def _inside_class(level_of_class_stackframe):
     return False
 
 
-def _kernel_impl(_func, level_of_class_stackframe, verbose=False):
+def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool = False):
     # Can decorators determine if a function is being defined inside a class?
     # https://stackoverflow.com/a/8793684/12003165
     is_classkernel = _inside_class(level_of_class_stackframe + 1)
