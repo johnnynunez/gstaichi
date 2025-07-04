@@ -968,7 +968,7 @@ class Kernel:
                         f"Argument {needed.to_string()} cannot be converted into required type {v}"
                     )
             elif has_paddle():
-                import paddle  # pylint: disable=C0415
+                import paddle  # pylint: disable=C0415  # type: ignore
 
                 if isinstance(v, paddle.Tensor):
                     # For now, paddle.fluid.core.Tensor._ptr() is only available on develop branch
@@ -1058,7 +1058,7 @@ class Kernel:
                 idx_new = 0
                 for j, (name, anno) in enumerate(needed.members.items()):
                     idx_new += recursive_set_args(anno, type(v[name]), v[name], indices + (idx_new,))
-                launch_ctx.set_arg_argpack(indices, v._ArgPack__argpack)
+                launch_ctx.set_arg_argpack(indices, v._ArgPack__argpack)  # type: ignore
                 return 1
             # Note: do not use sth like "needed == f32". That would be slow.
             if id(needed) in primitive_types.real_type_ids:

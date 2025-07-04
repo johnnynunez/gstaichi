@@ -911,7 +911,7 @@ def ti_format_list_to_content_entries(raw):
                 yield _var[1:]
                 continue
             elif hasattr(_var, "__ti_repr__"):
-                res = _var.__ti_repr__()
+                res = _var.__ti_repr__()  # type: ignore
             elif isinstance(_var, (list, tuple)):
                 # If the first element is '__ti_format__', this list is the result of ti_format.
                 if len(_var) > 0 and isinstance(_var[0], str) and _var[0] == "__ti_format__":
