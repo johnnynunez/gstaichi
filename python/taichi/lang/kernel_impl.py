@@ -150,8 +150,8 @@ def _get_tree_and_ctx(
     src = [textwrap.fill(line, tabsize=4, width=9999) for line in src]
     tree = ast.parse(textwrap.dedent("\n".join(src)))
 
-    func_body = tree.body[0]
-    func_body.decorator_list = []
+    # func_body = tree.body[0]
+    # func_body.decorator_list = []
 
     global_vars = _get_global_vars(self.func)
 
