@@ -8,6 +8,7 @@ import math
 import operator
 import re
 import warnings
+from ast import unparse
 from collections import ChainMap
 from sys import version_info
 from typing import Any, Iterable, Type
@@ -41,8 +42,6 @@ from taichi.lang.struct import Struct, StructType
 from taichi.lang.util import is_taichi_class, to_taichi_type
 from taichi.types import annotations, ndarray_type, primitive_types, texture_type
 from taichi.types.utils import is_integral
-
-from ast import unparse
 
 
 def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
