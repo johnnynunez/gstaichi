@@ -112,6 +112,24 @@ class Clean(clean):
                     os.remove(f)
 
 
+def postprocess_stubs(stub_path: str) -> None:
+    from ruamel.yaml import YAML
+    stub_lines = stub_path.read_text().split("\n")
+    yaml = YAML()
+    with open("stub_replacements.yaml") as f:
+        replacements = yaml.load(f)
+    new_stub_lines = []
+    for line in stub_lines:
+        func_name = line.lstrip().partition("(")[0]
+        if func_name in replacements:
+            print("func_name", func_name)
+            print("found func_name replacing with ", replacements[func_name])
+            line = replacements[func_name]
+        new_stub_lines.append(line)
+    stub_path.write_text("\n".join(new_stub_lines))
+    print("stub_path", stub_path)
+
+
 def generate_pybind11_stubs(build_lib: str):
     build_lib_path = pathlib.Path(build_lib).resolve()
     taichi_path = build_lib_path.parent.parent / "cmake-install" / "python"
@@ -125,6 +143,7 @@ def generate_pybind11_stubs(build_lib: str):
     print(" ".join(cmd_line))
     subprocess.check_call(cmd_line, env=env)
     stub_filepath = pathlib.Path("stubs/taichi/_lib/core/taichi_python.pyi")
+    postprocess_stubs(stub_filepath)
 
     target_filepath = build_lib_path / "taichi" / "_lib" / "core" / "taichi_python.pyi"
     py_typed_dst = build_lib_path / "taichi" / "_lib" / "core" / "py.typed"
@@ -271,6 +290,7 @@ setup(
         "rich",
         "setuptools>=68.0.0",  # Required for Python 3.12+ compatibility
         "cffi>=1.16.0",
+        "ruamel.yaml",
     ],
     data_files=[
         (os.path.join("_lib", "runtime"), data_files),
