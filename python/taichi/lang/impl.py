@@ -1068,7 +1068,7 @@ def one(x):
     return zero(x) + 1
 
 
-def axes(*x: Iterable[int]):
+def axes(*x: int):
     """Defines a list of axes to be used by a field.
 
     Args:

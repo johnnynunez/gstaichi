@@ -1,5 +1,3 @@
-# type: ignore
-
 import ast
 import functools
 import inspect
@@ -15,11 +13,16 @@ import types
 import typing
 import warnings
 import weakref
-from typing import Callable, Type
+from typing import Any, Callable, Type
 
 import numpy as np
 
 import taichi.lang
+import taichi.lang._ndarray
+import taichi.lang._texture
+import taichi.lang.expr
+import taichi.lang.snode
+import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import ASTBuilder
@@ -59,7 +62,7 @@ from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
 
 
-def func(fn, is_real_function=False):
+def func(fn: Callable, is_real_function: bool = False):
     """Marks a function as callable in Taichi-scope.
 
     This decorator transforms a Python function into a Taichi one. Taichi
@@ -644,7 +647,7 @@ class Kernel:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
-    def materialize(self, key=None, args=None, arg_features=None):
+    def materialize(self, key, args: list[Any], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
