@@ -61,6 +61,9 @@ from taichi.types.primitive_types import (
     u64,
 )
 from taichi.lang.kernel_impl import Kernel
+from taichi._lib.core.taichi_python import (
+    Program
+)
 
 
 @taichi_scope
@@ -225,6 +228,7 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
     if len(indices) == 1 and indices[0] is None:
         indices = ()
 
+    indices_expr_group = None
     if has_slice:
         if not (isinstance(value, Expr) and value.is_tensor()):
             raise TaichiSyntaxError(f"The type {type(value)} do not support index of slice type")
@@ -261,6 +265,7 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
                     f"Gradient {_var.get_expr_name()} has not been placed, check whether `needs_grad=True`"
                 )
 
+        assert indices_expr_group is not None
         if isinstance(value, MatrixField):
             return Expr(ast_builder.expr_subscript(value.ptr, indices_expr_group, dbg_info))
         if isinstance(value, StructField):
@@ -269,6 +274,7 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
             return _IntermediateStruct(entries)
         return Expr(ast_builder.expr_subscript(_var, indices_expr_group, dbg_info))
     if isinstance(value, AnyArray):
+        assert indices_expr_group is not None
         return Expr(ast_builder.expr_subscript(value.ptr, indices_expr_group, dbg_info))
     assert isinstance(value, Expr)
     # Index into TensorType
@@ -301,7 +307,7 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
             _ti_core.subscript_with_multiple_indices(
                 value.ptr,
                 multiple_indices,
-                return_shape,
+                list(return_shape),
                 dbg_info,
             )
         )
@@ -323,7 +329,7 @@ class SrcInfoGuard:
 class PyTaichi:
     def __init__(self, kernels=None):
         self.materialized = False
-        self.prog = None
+        self.prog: Program | None = None
         self.src_info_stack = []
         self.inside_kernel = False
         self.compiling_callable = None  # pointer to instance of lang::Kernel/Function
@@ -401,7 +407,9 @@ class PyTaichi:
             # https://github.com/taichi-dev/taichi/blob/27bb1dc3227d9273a79fcb318fdb06fd053068f5/tests/python/test_ad_basics.py#L260-L266
             return
 
-        if get_runtime().prog.config().debug:
+        prog = get_runtime().prog
+        assert prog is not None
+        if prog.config().debug:
             if not root.finalized:
                 root._allocate_adjoint_checkbit()
 
@@ -498,6 +506,7 @@ class PyTaichi:
 
     def sync(self):
         self.materialize()
+        assert self.prog is not None
         self.prog.synchronize()
 
 

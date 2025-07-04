@@ -65,7 +65,7 @@ import taichi.lang.expr
 import taichi.lang._ndarray
 import taichi.lang._texture
 from taichi._lib.core.taichi_python import (
-    ASTBuilder,
+    ASTBuilder
 )
 
 
@@ -755,6 +755,7 @@ class Kernel:
                     return node
                 # print('node.')
                 # print("node.value", node.value, type(node.value), dir(node.value))
+                assert isinstance(node.value, ast.Name)
                 base_id = node.value.id
                 if base_id == "ti":
                     return node
@@ -772,7 +773,7 @@ class Kernel:
             f.write(ast.dump(tree, indent=2))
         return new_tree
 
-    def materialize(self, key=None, args=None, arg_features=None):
+    def materialize(self, key, args: list[Any], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
