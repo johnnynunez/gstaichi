@@ -11,7 +11,7 @@ import re
 import warnings
 from collections import ChainMap
 from sys import version_info
-from typing import cast
+from typing import cast, Iterable, Type
 
 import numpy as np
 
@@ -20,7 +20,12 @@ from taichi.lang import _ndarray, any_array, expr, impl, kernel_arguments, matri
 from taichi.lang import ops as ti_ops
 from taichi.lang._ndrange import _Ndrange, ndrange
 from taichi.lang.argpack import ArgPackType
-from taichi.lang.ast.ast_transformer_utils import Builder, LoopStatus, ReturnStatus
+from taichi.lang.ast.ast_transformer_utils import (
+    ASTTransformerContext,
+    Builder,
+    LoopStatus,
+    ReturnStatus,
+)
 from taichi.lang.ast.symbol_resolver import ASTResolver
 from taichi.lang.exception import (
     TaichiIndexError,
@@ -94,7 +99,9 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_assign_annotated(ctx: ASTTransformerContext, target: ast.Name, value, is_static_assign: bool, annotation: Type):
+    def build_assign_annotated(
+        ctx: ASTTransformerContext, target: ast.Name, value, is_static_assign: bool, annotation: Type
+    ):
         """Build an annotated assignment like this: target: annotation = value.
 
         Args:
