@@ -161,7 +161,7 @@ def _get_tree_and_ctx(
             template_var_name = self.arguments[i].name
             global_vars[template_var_name] = args[i]
 
-    print("calling ASTTransformerContext args", args)
+    # print("calling ASTTransformerContext args", args)
     return tree, ASTTransformerContext(
         excluded_parameters=excluded_parameters,
         is_kernel=is_kernel,
@@ -185,7 +185,7 @@ def expand_args_dataclasses(args: list[Any]) -> list[Any]:
     for i, arg in enumerate(args):
         # param = params[arg_name]
         # annotation = arg.annotation
-        print("arg", arg)
+        # print("arg", arg)
         if (
             # isinstance(arg, type(dataclasses.dataclass))
             hasattr(arg, "__dataclass_fields__")
@@ -206,17 +206,17 @@ def expand_args_dataclasses(args: list[Any]) -> list[Any]:
                 new_args.append(field_value)
         else:
             new_args.append(arg)
-    print("new_args", new_args)
+    # print("new_args", new_args)
     return new_args
 
 
 def _process_args(self: "Func | Kernel", args, kwargs):
-    print("self.arguments", self.arguments)
+    # print("self.arguments", self.arguments)
     ret = [argument.default for argument in self.arguments]
-    print("ret", ret)
-    print("args", args)
+    # print("ret", ret)
+    # print("args", args)
     args = expand_args_dataclasses(args)
-    print("args", args)
+    # print("args", args)
     len_args = len(args)
 
     if len_args > len(ret):
@@ -242,7 +242,7 @@ def _process_args(self: "Func | Kernel", args, kwargs):
 
     print("enumerate ret")
     for i, arg in enumerate(ret):
-        print("i", i, "arg", arg)
+        # print("i", i, "arg", arg)
         if arg is inspect.Parameter.empty:
             if self.arguments[i].annotation is inspect._empty:
                 raise TaichiSyntaxError(f"Parameter `{self.arguments[i].name}` missing.")
@@ -277,8 +277,9 @@ class Func:
         self.has_print = False
 
     def unpack_dataclasses(self, tree) -> Any:
-        print("type(tree)", type(tree))
+        # print("type(tree)", type(tree))
         # asdfadf
+        pass
 
     def __call__(self, *args, **kwargs):
         print("__call__")
@@ -639,13 +640,13 @@ class Kernel:
         self.compiled_kernels = {}
 
     def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
-        print("params", params)
+        # print("params", params)
         new_params = {}
         arg_names = params.keys()
         for i, arg_name in enumerate(arg_names):
             param = params[arg_name]
             annotation = param.annotation
-            print("annotation", annotation)
+            # print("annotation", annotation)
             if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
                 print("is dataclass")
                 for field in dataclasses.fields(annotation):
@@ -660,7 +661,7 @@ class Kernel:
                     new_params[field_name] = new_param
             else:
                 new_params[arg_name] = param
-        print("new_params", new_params)
+        # print("new_params", new_params)
         return new_params
 
     def extract_arguments(self):
@@ -699,7 +700,7 @@ class Kernel:
             if param.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 raise TaichiSyntaxError('Taichi kernels only support "positional or keyword" parameters')
             annotation = param.annotation
-            print("annotation", annotation)
+            # print("annotation", annotation)
             if param.annotation is inspect.Parameter.empty:
                 if i == 0 and self.classkernel:  # The |self| parameter
                     annotation = template()
@@ -1191,7 +1192,7 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs):
-        print("__call__ args", args, "kwargs", kwargs)
+        # print("__call__ args", args, "kwargs", kwargs)
         args = _process_args(self, args, kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
