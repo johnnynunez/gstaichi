@@ -10,7 +10,6 @@ import re
 import warnings
 from ast import unparse
 from collections import ChainMap
-from sys import version_info
 from typing import Any, Iterable, Type
 
 import numpy as np

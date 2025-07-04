@@ -15,7 +15,7 @@ import types
 import typing
 import warnings
 import weakref
-from typing import Any, Callable, Type
+from typing import Callable, Type
 
 import numpy as np
 
