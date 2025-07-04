@@ -83,8 +83,8 @@ def expr_init(rhs):
             .compiling_callable.ast_builder()
             .expr_alloca(_ti_core.DebugInfo(get_runtime().get_current_src_info()))
         )
-    if isinstance(rhs, Matrix) and (hasattr(rhs, "_DIM")):
-        return Matrix(*rhs.to_list(), ndim=rhs.ndim)
+    # if isinstance(rhs, Matrix) and (hasattr(rhs, "_DIM")):
+    #     return Matrix(*rhs.to_list(), ndim=rhs.ndim)  # is this broken? unused?
     if isinstance(rhs, Matrix):
         return make_matrix(rhs.to_list())
     if isinstance(rhs, SharedArray):
@@ -237,8 +237,8 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
 
     if isinstance(value, SharedArray):
         return value.subscript(*indices)
-    if isinstance(value, MeshElementFieldProxy):
-        return value.subscript(*indices)
+    # if isinstance(value, MeshElementFieldProxy):
+    #     return value.subscript(*indices)  # is this broken? unused?
     if isinstance(value, MeshRelationAccessProxy):
         return value.subscript(*indices)
     if isinstance(value, (MeshReorderedScalarFieldProxy, MeshReorderedMatrixFieldProxy)) and not skip_reordered:
