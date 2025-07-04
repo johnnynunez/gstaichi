@@ -5,13 +5,12 @@ import collections.abc
 import inspect
 import itertools
 import math
-from typing import Type, Iterable, Any
 import operator
 import re
 import warnings
 from collections import ChainMap
 from sys import version_info
-from typing import cast, Any, Iterable, Type
+from typing import Any, Iterable, Type, cast
 
 import numpy as np
 
@@ -34,7 +33,6 @@ from taichi.lang.exception import (
     TaichiTypeError,
     handle_exception_from_cpp,
 )
-from taichi.lang.ast.ast_transformer_utils import ASTTransformerContext
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field
 from taichi.lang.matrix import Matrix, MatrixType, Vector
@@ -1009,10 +1007,10 @@ class ASTTransformer(Builder):
         # whether it is a method of Dynamic SNode and build the expression if it is by calling
         # build_attribute_if_is_dynamic_snode_method. If we find that it is not a method of Dynamic SNode,
         # we continue to process it as a normal attribute node.
-        print("build_attribute node", node, type(node), 'node.value', node.value)
+        print("build_attribute node", node, type(node), "node.value", node.value)
         # ast.At
         node_value = cast(ast.Name, node.value)
-        print('node_value fields', node_value._fields)
+        print("node_value fields", node_value._fields)
         try:
             build_stmt(ctx, node.value)
         except Exception as e:

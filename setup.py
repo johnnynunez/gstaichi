@@ -8,16 +8,16 @@
 import glob
 import multiprocessing
 import os
+import pathlib
 import platform
 import shutil
 import subprocess
 import sys
-import pathlib
 from distutils.command.clean import clean
 from distutils.dir_util import remove_tree
-from setuptools.command.develop import develop
 
 from setuptools import find_packages
+from setuptools.command.develop import develop
 from skbuild import setup
 from skbuild.command.egg_info import egg_info
 from wheel.bdist_wheel import bdist_wheel
@@ -114,6 +114,7 @@ class Clean(clean):
 
 def postprocess_stubs(stub_path: str) -> None:
     from ruamel.yaml import YAML
+
     stub_lines = stub_path.read_text().split("\n")
     yaml = YAML()
     with open("stub_replacements.yaml") as f:
@@ -152,7 +153,6 @@ def generate_pybind11_stubs(build_lib: str):
     shutil.copy(stub_filepath, target_filepath)
     with open(py_typed_dst, "w"):
         pass  # creates an empty file
-
 
 
 class DevelopWithStubs(develop):

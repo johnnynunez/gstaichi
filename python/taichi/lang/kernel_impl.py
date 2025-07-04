@@ -1,4 +1,5 @@
 import ast
+import dataclasses
 import functools
 import inspect
 import json
@@ -10,20 +11,22 @@ import sys
 import textwrap
 import time
 import types
-from typing import Callable, Type, Any
-import os
-import time
-import json
 import typing
 import warnings
 import weakref
-import dataclasses
+from typing import Any, Callable, Type
 
 import numpy as np
 
 import taichi.lang
+import taichi.lang._ndarray
+import taichi.lang._texture
+import taichi.lang.expr
+import taichi.lang.snode
+import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
+from taichi._lib.core.taichi_python import ASTBuilder
 from taichi.lang import impl, ops, runtime_ops
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
 from taichi.lang.any_array import AnyArray
@@ -56,16 +59,8 @@ from taichi.types import (
     texture_type,
 )
 from taichi.types.compound_types import CompoundType
-import taichi.types.annotations
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
-import taichi.lang.snode
-import taichi.lang.expr
-import taichi.lang._ndarray
-import taichi.lang._texture
-from taichi._lib.core.taichi_python import (
-    ASTBuilder
-)
 
 
 class TaichiDecoratedFuncClass:
@@ -190,38 +185,38 @@ def expand_args_dataclasses(args: list[Any]) -> list[Any]:
     for i, arg in enumerate(args):
         # param = params[arg_name]
         # annotation = arg.annotation
-        print('arg', arg)
+        print("arg", arg)
         if (
-                # isinstance(arg, type(dataclasses.dataclass))
-                hasattr(arg, "__dataclass_fields__")
-            ):
-                print("is dataclass")
-                for field in dataclasses.fields(arg):
-                    # Create a new inspect.Parameter for each dataclass field
-                    # field_name = '__ti_' + field.name
-                    # field_type = field.type
-                    # field_value = field.
-                    # new_param = inspect.Parameter(
-                    #     name=field_name,
-                    #     kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    #     default=inspect.Parameter.empty,
-                    #     annotation=field.type,
-                    # )
-                    field_value = getattr(arg, field.name)
-                    new_args.append(field_value)
+            # isinstance(arg, type(dataclasses.dataclass))
+            hasattr(arg, "__dataclass_fields__")
+        ):
+            print("is dataclass")
+            for field in dataclasses.fields(arg):
+                # Create a new inspect.Parameter for each dataclass field
+                # field_name = '__ti_' + field.name
+                # field_type = field.type
+                # field_value = field.
+                # new_param = inspect.Parameter(
+                #     name=field_name,
+                #     kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                #     default=inspect.Parameter.empty,
+                #     annotation=field.type,
+                # )
+                field_value = getattr(arg, field.name)
+                new_args.append(field_value)
         else:
             new_args.append(arg)
-    print('new_args', new_args)
+    print("new_args", new_args)
     return new_args
 
 
 def _process_args(self: "Func | Kernel", args, kwargs):
-    print('self.arguments', self.arguments)
+    print("self.arguments", self.arguments)
     ret = [argument.default for argument in self.arguments]
-    print('ret', ret)
-    print('args', args)
+    print("ret", ret)
+    print("args", args)
     args = expand_args_dataclasses(args)
-    print('args', args)
+    print("args", args)
     len_args = len(args)
 
     if len_args > len(ret):
@@ -245,9 +240,9 @@ def _process_args(self: "Func | Kernel", args, kwargs):
         if not found:
             raise TaichiSyntaxError(f"Unexpected argument '{key}'.")
 
-    print('enumerate ret')
+    print("enumerate ret")
     for i, arg in enumerate(ret):
-        print('i', i, 'arg', arg)
+        print("i", i, "arg", arg)
         if arg is inspect.Parameter.empty:
             if self.arguments[i].annotation is inspect._empty:
                 raise TaichiSyntaxError(f"Parameter `{self.arguments[i].name}` missing.")
@@ -282,11 +277,11 @@ class Func:
         self.has_print = False
 
     def unpack_dataclasses(self, tree) -> Any:
-        print('type(tree)', type(tree))
+        print("type(tree)", type(tree))
         asdfadf
 
     def __call__(self, *args, **kwargs):
-        print('__call__')
+        print("__call__")
         asdafdf
         args = _process_args(self, args, kwargs)
 
@@ -619,7 +614,7 @@ class Kernel:
             AutodiffMode.REVERSE,
         )
         self.autodiff_mode = autodiff_mode
-        self.grad : Kernel | None = None
+        self.grad: Kernel | None = None
         self.arguments = []
         self.return_type = None
         self.classkernel = _classkernel
@@ -644,33 +639,29 @@ class Kernel:
         self.compiled_kernels = {}
 
     def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
-        print('params', params)
+        print("params", params)
         new_params = {}
         arg_names = params.keys()
         for i, arg_name in enumerate(arg_names):
             param = params[arg_name]
             annotation = param.annotation
-            print('annotation', annotation)
-            if (
-                    isinstance(annotation, type)
-                    and hasattr(annotation, "__dataclass_fields__")
-                ):
-                    print("is dataclass")
-                    for field in dataclasses.fields(annotation):
-                        # Create a new inspect.Parameter for each dataclass field
-                        field_name = '__ti_' + field.name
-                        new_param = inspect.Parameter(
-                            name=field_name,
-                            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                            default=inspect.Parameter.empty,
-                            annotation=field.type,
-                        )
-                        new_params[field_name] = new_param
+            print("annotation", annotation)
+            if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
+                print("is dataclass")
+                for field in dataclasses.fields(annotation):
+                    # Create a new inspect.Parameter for each dataclass field
+                    field_name = "__ti_" + field.name
+                    new_param = inspect.Parameter(
+                        name=field_name,
+                        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        default=inspect.Parameter.empty,
+                        annotation=field.type,
+                    )
+                    new_params[field_name] = new_param
             else:
                 new_params[arg_name] = param
-        print('new_params', new_params)
+        print("new_params", new_params)
         return new_params
-
 
     def extract_arguments(self):
         sig = inspect.signature(self.func)
@@ -708,7 +699,7 @@ class Kernel:
             if param.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 raise TaichiSyntaxError('Taichi kernels only support "positional or keyword" parameters')
             annotation = param.annotation
-            print('annotation', annotation)
+            print("annotation", annotation)
             if param.annotation is inspect.Parameter.empty:
                 if i == 0 and self.classkernel:  # The |self| parameter
                     annotation = template()
@@ -737,10 +728,7 @@ class Kernel:
                     pass
                 elif annotation == template:
                     pass
-                elif (
-                    isinstance(annotation, type)
-                    and hasattr(annotation, "__dataclass_fields__")
-                ):
+                elif isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
                     print("is dataclass")
                     asasdf
                 else:
@@ -766,10 +754,8 @@ class Kernel:
                 attr_name = node.attr
                 new_id = "__ti_" + base_id + "_" + attr_name
                 print("new name", new_id)
-                return ast.copy_location(
-                    ast.Name(id=new_id, ctx=node.ctx),
-                    node
-                )
+                return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+
         transformer = AttributeToNameTransformer()
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
@@ -816,7 +802,7 @@ class Kernel:
             self.runtime.compiling_callable = kernel_cxx
             try:
                 ctx.ast_builder = kernel_cxx.ast_builder()
-                print('calling transform_tree')
+                print("calling transform_tree")
 
                 def ast_to_dict(node):
                     if isinstance(node, ast.AST):
@@ -1030,6 +1016,7 @@ class Kernel:
                         f"Argument {needed.dtype.to_string()} cannot be converted into required type {type(x)}"
                     )
                 return float(x)
+
             def cast_int(x):
                 if not isinstance(x, (int, np.integer)):
                     raise TaichiRuntimeTypeError(
@@ -1302,11 +1289,12 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
         @functools.wraps(_func)
         def wrapped(*args, **kwargs):
             # try:
-                return primal(*args, **kwargs)
-            # except (TaichiCompilationError, TaichiRuntimeError) as e:
-            #     if impl.get_runtime().print_full_traceback:
-            #         raise e
-            #     raise type(e)("\n" + str(e)) from None
+            return primal(*args, **kwargs)
+
+        # except (TaichiCompilationError, TaichiRuntimeError) as e:
+        #     if impl.get_runtime().print_full_traceback:
+        #         raise e
+        #     raise type(e)("\n" + str(e)) from None
 
         wrapped.grad = adjoint
 

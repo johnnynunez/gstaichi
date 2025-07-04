@@ -43,14 +43,14 @@ class Builder:
 
 class VariableScopeGuard:
     def __init__(self, scopes):
-        print('init scopes', scopes)
+        print("init scopes", scopes)
         self.scopes = scopes
 
     def __enter__(self):
         print("()", ())
         print("self.scopes before", self.scopes)
         self.scopes.append({})
-        print('self.scopes after', self.scopes)
+        print("self.scopes after", self.scopes)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.scopes.pop()
@@ -249,7 +249,7 @@ class ASTTransformerContext:
         print("create_variable name", name, "var", var)
         # asdf
         if hasattr(var, "__dataclass_fields__"):
-            print('is dataclass')
+            print("is dataclass")
             for field in dataclasses.fields(var):
                 field_name = "__ti_" + name + "_" + field.name
                 print("field_name", field_name)

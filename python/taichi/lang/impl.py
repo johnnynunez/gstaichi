@@ -5,6 +5,7 @@ from typing import Any, Iterable, Sequence
 import numpy as np
 
 from taichi._lib import core as _ti_core
+from taichi._lib.core.taichi_python import Program
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
 from taichi.lang._ndrange import GroupedNDRange, _Ndrange
@@ -19,6 +20,7 @@ from taichi.lang.exception import (
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field, ScalarField
 from taichi.lang.kernel_arguments import SparseMatrixProxy
+from taichi.lang.kernel_impl import Kernel
 from taichi.lang.matrix import (
     Matrix,
     MatrixField,
@@ -59,10 +61,6 @@ from taichi.types.primitive_types import (
     u8,
     u32,
     u64,
-)
-from taichi.lang.kernel_impl import Kernel
-from taichi._lib.core.taichi_python import (
-    Program
 )
 
 
