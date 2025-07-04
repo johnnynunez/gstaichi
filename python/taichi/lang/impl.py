@@ -183,7 +183,7 @@ def validate_subscript_index(value, index):
         validate_subscript_index(value, index.start)
         validate_subscript_index(value, index.stop)
 
-    if isinstance(index, numbers.Number) and index < 0:
+    if isinstance(index, int) and index < 0:
         raise TaichiSyntaxError("Negative indices are not supported in Taichi kernels.")
 
 
@@ -240,6 +240,7 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
     if isinstance(value, MeshRelationAccessProxy):
         return value.subscript(*indices)
     if isinstance(value, (MeshReorderedScalarFieldProxy, MeshReorderedMatrixFieldProxy)) and not skip_reordered:
+        assert len(indices) > 0
         reordered_index = tuple(
             [
                 Expr(
@@ -420,6 +421,7 @@ class PyTaichi:
     def _finalize_root_fb_for_aot():
         if _root_fb.finalized:
             raise RuntimeError("AOT: can only finalize the root FieldsBuilder once")
+        assert isinstance(_root_fb, FieldsBuilder)
         _root_fb._finalize_for_aot()
 
     @staticmethod
