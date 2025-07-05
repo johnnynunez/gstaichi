@@ -27,6 +27,7 @@ from taichi import _logging
 from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
     ASTBuilder,
+    FunctionKey,
 )
 from taichi._lib.core.taichi_python import (
     Kernel as KernelCxx,
@@ -178,8 +179,8 @@ def _get_tree_and_ctx(
     )
 
 
-def _process_args(self: "Func | Kernel", args, kwargs):
-    ret = [argument.default for argument in self.arguments]
+def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs):
+    ret: list[Any] = [argument.default for argument in self.arguments]
     len_args = len(args)
 
     if len_args > len(ret):
@@ -227,7 +228,7 @@ class Func:
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
         self.arguments: list[KernelArgument] = []
-        self.return_type: tuple[Type] | None = None
+        self.return_type: tuple[Type, ...] | None = None
         self.extract_arguments()
         self.template_slot_locations: list[int] = []
         for i, arg in enumerate(self.arguments):
@@ -318,7 +319,7 @@ class Func:
             return ret[0]
         return tuple(ret)
 
-    def do_compile(self, key, args, arg_features):
+    def do_compile(self, key: FunctionKey, args, arg_features):
         tree, ctx = _get_tree_and_ctx(
             self, is_kernel=False, args=args, arg_features=arg_features, is_real_function=self.is_real_function
         )
@@ -346,6 +347,8 @@ class Func:
                 and self.return_type.__origin__ is tuple
             ):
                 self.return_type = self.return_type.__args__
+            if self.return_type is None:
+                return
             if not isinstance(self.return_type, (list, tuple)):
                 self.return_type = (self.return_type,)
             for i, return_type in enumerate(self.return_type):
