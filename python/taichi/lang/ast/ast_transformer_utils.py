@@ -6,7 +6,7 @@ import traceback
 from enum import Enum
 from sys import version_info
 from textwrap import TextWrapper
-from typing import List, Any
+from typing import Any, List
 
 from taichi.lang import impl
 from taichi.lang.exception import (
