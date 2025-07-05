@@ -1,4 +1,5 @@
 import pytest
+
 import taichi as ti
 from tests import test_utils
 
@@ -50,7 +51,7 @@ def test_quant_store_fusion() -> None:
     store()
     ti.sync()
 
-    print('z', z.to_numpy())
+    print("z", z.to_numpy())
 
     for i in range(10):
         assert z[i, 0] == i
@@ -88,7 +89,7 @@ def test_quant_store_no_fusion() -> None:
     store()
     ti.sync()
 
-    print('z', z.to_numpy())
+    print("z", z.to_numpy())
 
     for i in range(10):
         assert z[i, 0] == i
