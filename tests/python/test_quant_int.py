@@ -40,6 +40,10 @@ def test_quant_store_fusion() -> None:
 
     z = ti.field(dtype=ti.i32, shape=(10, 2))
 
+    @ti.real_func
+    def probe(x: ti.template(), z: ti.template(), i: int, j: int) -> None:
+        z[i, j] = x[i]
+
     # should fuse store
     # note: don't think this actually tests that store is fused?
     @ti.kernel
@@ -48,10 +52,13 @@ def test_quant_store_fusion() -> None:
         for i in range(10):
             x[i] = i
             y[i] = i + 1
-            z[i, 0], z[i, 1] = x[i], y[i]
+            probe(x, z, i, 0)
+            probe(y, z, i, 1)
 
     store()
     ti.sync()
+
+    print('z', z.to_numpy())
 
     for i in range(10):
         assert z[i, 0] == i
@@ -75,17 +82,23 @@ def test_quant_store_no_fusion() -> None:
 
     z = ti.field(dtype=ti.i32, shape=(10, 2))
 
+    @ti.real_func
+    def probe(x: ti.template(), z: ti.template(), i: int, j: int) -> None:
+        z[i, j] = x[i]
+
     @ti.kernel
     def store():
         ti.loop_config(serialize=True)
         for i in range(10):
             x[i] = i
-            z[i, 0] = x[i]
+            probe(x, z, i, 0)
             y[i] = i + 1
-            z[i, 1] = y[i]
+            probe(y, z, i, 1)
 
     store()
     ti.sync()
+
+    print('z', z.to_numpy())
 
     for i in range(10):
         assert z[i, 0] == i
