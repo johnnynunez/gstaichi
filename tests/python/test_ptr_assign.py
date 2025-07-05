@@ -73,7 +73,6 @@ def test_pythonish_tuple_assign():
 def test_ptr_func():
     a = ti.field(dtype=ti.f32, shape=())
 
-    @ti.func
     def add2numbers(x, y):
         return x + y
 
@@ -93,7 +92,6 @@ def test_ptr_class_func():
         def __init__(self):
             self.a = ti.field(dtype=ti.f32, shape=())
 
-        @ti.func
         def add2numbers(self, x, y):
             return x + y
 
