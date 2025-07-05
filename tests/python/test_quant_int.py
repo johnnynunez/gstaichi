@@ -56,6 +56,8 @@ def test_quant_store_fusion() -> None:
     for i in range(10):
         assert z[i, 0] == i
         assert z[i, 1] == i + 1
+        assert x[i] == i
+        assert y[i] == i + 1
 
 
 @test_utils.test(
@@ -88,3 +90,5 @@ def test_quant_store_no_fusion() -> None:
     for i in range(10):
         assert z[i, 0] == i
         assert z[i, 1] == i + 1
+        assert x[i] == i
+        assert y[i] == i + 1
