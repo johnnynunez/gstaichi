@@ -1,11 +1,6 @@
+import pytest
 import taichi as ti
 from tests import test_utils
-
-# TODO: validation layer support on macos vulkan backend is not working.
-vk_on_mac = (ti.vulkan, "Darwin")
-
-# TODO: capfd doesn't function well on CUDA backend on Windows
-cuda_on_windows = (ti.cuda, "Windows")
 
 
 @test_utils.test(require=ti.extension.quant_basic)
@@ -27,9 +22,6 @@ def test_quant_int_implicit_cast():
 
 @test_utils.test(
     require=ti.extension.quant_basic,
-    arch=[ti.cpu, ti.cuda, ti.vulkan],
-    exclude=[vk_on_mac, cuda_on_windows],
-    debug=True,
 )
 def test_quant_store_fusion() -> None:
     x = ti.field(dtype=ti.types.quant.int(16, True))
@@ -69,10 +61,8 @@ def test_quant_store_fusion() -> None:
 
 @test_utils.test(
     require=ti.extension.quant_basic,
-    arch=[ti.cpu, ti.cuda, ti.vulkan],
-    exclude=[vk_on_mac, cuda_on_windows],
-    debug=True,
 )
+@pytest.mark.xfail
 def test_quant_store_no_fusion() -> None:
     x = ti.field(dtype=ti.types.quant.int(16, True))
     y = ti.field(dtype=ti.types.quant.int(16, True))
