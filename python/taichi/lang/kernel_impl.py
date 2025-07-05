@@ -664,7 +664,7 @@ class Kernel:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
-    def materialize(self, key: CompiledKernelKeyType | None, args: list[Any], arg_features):
+    def materialize(self, key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
@@ -770,7 +770,7 @@ class Kernel:
             else:
                 launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)
 
-        def set_arg_texture(indices: tuple[int, ...], v):
+        def set_arg_texture(indices: tuple[int, ...], v: taichi.lang._texture.Texture):
             launch_ctx.set_arg_texture(indices, v.tex)
 
         def set_arg_rw_texture(indices: tuple[int, ...], v):

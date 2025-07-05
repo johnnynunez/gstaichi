@@ -1721,7 +1721,7 @@ class ASTTransformer(Builder):
 build_stmt = ASTTransformer()
 
 
-def build_stmts(ctx: ASTTransformerContext, stmts: list):
+def build_stmts(ctx: ASTTransformerContext, stmts: list[ast.stmt]):
     with ctx.variable_scope_guard():
         for stmt in stmts:
             if ctx.returned != ReturnStatus.NoReturn or ctx.loop_status() != LoopStatus.Normal:
