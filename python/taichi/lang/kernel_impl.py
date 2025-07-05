@@ -751,7 +751,7 @@ class Kernel:
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
-    def launch_kernel(self, t_kernel, *args):
+    def launch_kernel(self, t_kernel: KernelCxx, *args):
         print("kernel_impl.launch_kernel", t_kernel)
         assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
 
