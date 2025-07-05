@@ -1,3 +1,5 @@
+# type: ignore
+
 import ast
 import functools
 import inspect
@@ -1225,7 +1227,7 @@ class _BoundedDifferentiableMethod:
         self._primal = wrapped_kernel_func._primal
         self._adjoint = wrapped_kernel_func._adjoint
         self._is_staticmethod = wrapped_kernel_func._is_staticmethod
-        self.__name__ = None
+        self.__name__: str | None = None
 
     def __call__(self, *args, **kwargs):
         try:
