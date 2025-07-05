@@ -31,38 +31,31 @@ def test_quant_int_implicit_cast():
     exclude=[vk_on_mac, cuda_on_windows],
     debug=True,
 )
-def test_quant_store_fusion(capfd):
+def test_quant_store_fusion() -> None:
     x = ti.field(dtype=ti.types.quant.int(16, True))
     y = ti.field(dtype=ti.types.quant.int(16, True))
     v = ti.BitpackedFields(max_num_bits=32)
     v.place(x, y)
     ti.root.dense(ti.i, 10).place(v)
 
+    z = ti.field(dtype=ti.i32, shape=(10, 2))
+
     # should fuse store
+    # note: don't think this actually tests that store is fused?
     @ti.kernel
     def store():
         ti.loop_config(serialize=True)
         for i in range(10):
             x[i] = i
             y[i] = i + 1
-            print(x[i], y[i])
+            z[i, 0], z[i, 1] = x[i], y[i]
 
     store()
     ti.sync()
 
-    out, err = capfd.readouterr()
-    expected_out = """0 1
-1 2
-2 3
-3 4
-4 5
-5 6
-6 7
-7 8
-8 9
-9 10
-"""
-    assert out == expected_out and err == ""
+    for i in range(10):
+        assert z[i, 0] == i
+        assert z[i, 1] == i + 1
 
 
 @test_utils.test(
@@ -71,45 +64,27 @@ def test_quant_store_fusion(capfd):
     exclude=[vk_on_mac, cuda_on_windows],
     debug=True,
 )
-def test_quant_store_no_fusion(capfd):
+def test_quant_store_no_fusion() -> None:
     x = ti.field(dtype=ti.types.quant.int(16, True))
     y = ti.field(dtype=ti.types.quant.int(16, True))
     v = ti.BitpackedFields(max_num_bits=32)
     v.place(x, y)
     ti.root.dense(ti.i, 10).place(v)
 
+    z = ti.field(dtype=ti.i32, shape=(10, 2))
+
     @ti.kernel
     def store():
         ti.loop_config(serialize=True)
         for i in range(10):
             x[i] = i
-            print(x[i])
+            z[i, 0] = x[i]
             y[i] = i + 1
-            print(y[i])
+            z[i, 1] = y[i]
 
     store()
     ti.sync()
 
-    out, err = capfd.readouterr()
-    expected_out = """0
-1
-1
-2
-2
-3
-3
-4
-4
-5
-5
-6
-6
-7
-7
-8
-8
-9
-9
-10
-"""
-    assert out == expected_out and err == ""
+    for i in range(10):
+        assert z[i, 0] == i
+        assert z[i, 1] == i + 1
