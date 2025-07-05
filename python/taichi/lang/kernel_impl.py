@@ -551,7 +551,7 @@ class TaichiCallableTemplateMapper:
         return self.mapping[key], key
 
 
-def _get_global_vars(_func):
+def _get_global_vars(_func: Callable):
     # Discussions: https://github.com/taichi-dev/taichi/issues/282
     global_vars = _func.__globals__.copy()
 
@@ -763,7 +763,7 @@ class Kernel:
         max_arg_num = 64
         exceed_max_arg_num = False
 
-        def set_arg_ndarray(indices, v):
+        def set_arg_ndarray(indices: tuple[int, ...], v: taichi.lang._ndarray.Ndarray):
             v_primal = v.arr
             v_grad = v.grad.arr if v.grad else None
             if v_grad is None:
@@ -771,13 +771,13 @@ class Kernel:
             else:
                 launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)
 
-        def set_arg_texture(indices, v):
+        def set_arg_texture(indices: tuple[int, ...], v):
             launch_ctx.set_arg_texture(indices, v.tex)
 
-        def set_arg_rw_texture(indices, v):
+        def set_arg_rw_texture(indices: tuple[int, ...], v):
             launch_ctx.set_arg_rw_texture(indices, v.tex)
 
-        def set_arg_ext_array(indices, v, needed):
+        def set_arg_ext_array(indices: tuple[int, ...], v, needed):
             # Element shapes are already specialized in Taichi codegen.
             # The shape information for element dims are no longer needed.
             # Therefore we strip the element shapes from the shape vector,
@@ -909,7 +909,7 @@ class Kernel:
                     f"Argument {needed.to_string()} cannot be converted into required type {v}"
                 )
 
-        def set_arg_matrix(indices, v, needed):
+        def set_arg_matrix(indices: tuple[int, ...], v, needed):
             def cast_float(x):
                 if not isinstance(x, (int, float, np.integer, np.floating)):
                     raise TaichiRuntimeTypeError(
@@ -939,13 +939,13 @@ class Kernel:
             v = needed(*v)
             needed.set_kernel_struct_args(v, launch_ctx, indices)
 
-        def set_arg_sparse_matrix_builder(indices, v):
+        def set_arg_sparse_matrix_builder(indices: tuple[int, ...], v):
             # Pass only the base pointer of the ti.types.sparse_matrix_builder() argument
             launch_ctx.set_arg_uint(indices, v._get_ndarray_addr())
 
         set_later_list = []
 
-        def recursive_set_args(needed, provided, v, indices):
+        def recursive_set_args(needed, provided, v, indices: tuple[int, ...]):
             in_argpack = len(indices) > 1
             nonlocal actual_argument_slot, exceed_max_arg_num, set_later_list
             if actual_argument_slot >= max_arg_num:
