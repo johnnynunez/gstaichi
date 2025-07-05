@@ -27,7 +27,12 @@ import taichi.lang.snode
 import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
-from taichi._lib.core.taichi_python import ASTBuilder
+from taichi._lib.core.taichi_python import (
+    ASTBuilder,
+)
+from taichi._lib.core.taichi_python import (
+    Kernel as KernelCxx,
+)
 from taichi.lang import impl, ops, runtime_ops
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
 from taichi.lang.any_array import AnyArray
@@ -62,6 +67,8 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
+
+CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
 def func(fn: Callable, is_real_function: bool = False):
@@ -337,7 +344,7 @@ class Func:
         if sig.return_annotation not in (inspect.Signature.empty, None):
             self.return_type = sig.return_annotation
             if (
-                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))  # type: ignore
                 and self.return_type.__origin__ is tuple
             ):
                 self.return_type = self.return_type.__args__
@@ -560,7 +567,7 @@ def _get_global_vars(_func):
 class Kernel:
     counter = 0
 
-    def __init__(self, _func: Callable, autodiff_mode, _classkernel=False):
+    def __init__(self, _func: Callable, autodiff_mode: AutodiffMode, _classkernel=False):
         self.func = _func
         self.kernel_counter = Kernel.counter
         Kernel.counter += 1
@@ -584,7 +591,7 @@ class Kernel:
         impl.get_runtime().kernels.append(self)
         self.reset()
         self.kernel_cpp = None
-        self.compiled_kernels = {}
+        self.compiled_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
         self.has_print = False
 
     def ast_builder(self) -> ASTBuilder:
@@ -600,7 +607,7 @@ class Kernel:
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
             if (
-                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))  # type: ignore
                 and self.return_type.__origin__ is tuple
             ):
                 self.return_type = self.return_type.__args__
@@ -656,7 +663,7 @@ class Kernel:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
-    def materialize(self, key, args: list[Any], arg_features):
+    def materialize(self, key: CompiledKernelKeyType | None, args: list[Any], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
