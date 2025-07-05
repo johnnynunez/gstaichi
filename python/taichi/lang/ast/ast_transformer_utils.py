@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 class Builder:
-    def __call__(self, ctx: 'ASTTransformerContext', node: ast.AST):
+    def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
         method = getattr(self, "build_" + node.__class__.__name__, None)
         try:
             if method is None:
