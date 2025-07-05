@@ -1,5 +1,3 @@
-# type: ignore
-
 import ast
 import functools
 import inspect
@@ -15,7 +13,7 @@ import types
 import typing
 import warnings
 import weakref
-from typing import Any, Callable, Type
+from typing import Any, Callable, Type, Union
 
 import numpy as np
 
@@ -224,7 +222,7 @@ class Func:
         self.arguments: list[KernelArgument] = []
         self.return_type: tuple[Type] or None = None
         self.extract_arguments()
-        self.template_slot_locations = []
+        self.template_slot_locations: list[int] = []
         for i, arg in enumerate(self.arguments):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
@@ -388,15 +386,26 @@ class Func:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
 
+AnnotationType = Union[
+    template,
+    ArgPackType,
+    "texture_type.TextureType",
+    "texture_type.RWTextureType",
+    ndarray_type.NdarrayType,
+    sparse_matrix_builder,
+    Any,
+]
+
+
 class TaichiCallableTemplateMapper:
-    def __init__(self, arguments, template_slot_locations):
+    def __init__(self, arguments: list[KernelArgument], template_slot_locations: list[int]) -> None:
         self.arguments = arguments
         self.num_args = len(arguments)
         self.template_slot_locations = template_slot_locations
         self.mapping = {}
 
     @staticmethod
-    def extract_arg(arg, anno, arg_name):
+    def extract_arg(arg, anno: AnnotationType, arg_name: str):
         if anno == template or isinstance(anno, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -561,7 +570,7 @@ class Kernel:
         )
         self.autodiff_mode = autodiff_mode
         self.grad: Kernel | None = None
-        self.arguments = []
+        self.arguments: list[KernelArgument] = []
         self.return_type = None
         self.classkernel = _classkernel
         self.extract_arguments()
@@ -588,15 +597,11 @@ class Kernel:
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
-            if sys.version_info >= (3, 9):
-                if (
-                    isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
-                    and self.return_type.__origin__ is tuple
-                ):
-                    self.return_type = self.return_type.__args__
-            else:
-                if isinstance(self.return_type, typing._GenericAlias) and self.return_type.__origin__ is tuple:
-                    self.return_type = self.return_type.__args__
+            if (
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                and self.return_type.__origin__ is tuple
+            ):
+                self.return_type = self.return_type.__args__
             if not isinstance(self.return_type, (list, tuple)):
                 self.return_type = (self.return_type,)
             for return_type in self.return_type:
@@ -672,7 +677,7 @@ class Kernel:
 
         # Do not change the name of 'taichi_ast_generator'
         # The warning system needs this identifier to remove unnecessary messages
-        def taichi_ast_generator(kernel_cxx):
+        def taichi_ast_generator(kernel_cxx: Kernel):  # not sure if this type is correct, seems doubtful
             if self.runtime.inside_kernel:
                 raise TaichiSyntaxError(
                     "Kernels cannot call other kernels. I.e., nested kernels are not allowed. "
@@ -852,7 +857,7 @@ class Kernel:
                         f"Argument {needed.to_string()} cannot be converted into required type {v}"
                     )
             elif has_paddle():
-                import paddle  # pylint: disable=C0415
+                import paddle  # pylint: disable=C0415  # type: ignore
 
                 if isinstance(v, paddle.Tensor):
                     # For now, paddle.fluid.core.Tensor._ptr() is only available on develop branch

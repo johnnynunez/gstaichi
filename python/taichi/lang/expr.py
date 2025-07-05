@@ -1,4 +1,4 @@
-# type: ignore
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,6 +11,9 @@ from taichi.lang.util import is_matrix_class, is_taichi_class, to_numpy_type
 from taichi.types import primitive_types
 from taichi.types.primitive_types import integer_types, real_types
 
+if TYPE_CHECKING:
+    from taichi.lang.ast.ast_transformer_utils import ASTBuilder
+
 
 # Scalar, basic data type
 class Expr(TaichiOperations):
@@ -20,6 +23,7 @@ class Expr(TaichiOperations):
         self.dbg_info = dbg_info
         self.ptr_type_checked = False
         self.declaration_tb: str = ""
+        print("Expr.__init__ args", args)
         if len(args) == 1:
             if isinstance(args[0], _ti_core.Expr):
                 self.ptr = args[0]
@@ -46,7 +50,9 @@ class Expr(TaichiOperations):
         if self.dbg_info:
             self.ptr.set_dbg_info(self.dbg_info)
         if not self.ptr_type_checked:
-            self.ptr.type_check(impl.get_runtime().prog.config())
+            prog = impl.get_runtime().prog
+            assert prog is not None
+            self.ptr.type_check(prog.config())
             self.ptr_type_checked = True
 
     def is_tensor(self):
@@ -61,7 +67,9 @@ class Expr(TaichiOperations):
     def get_shape(self):
         if not self.is_tensor():
             raise TaichiCompilationError(f"Getting shape of non-tensor type: {self.ptr.get_rvalue_type()}")
-        return tuple(self.ptr.get_shape())
+        shape = self.ptr.get_shape()
+        assert shape is not None
+        return tuple(shape)
 
     @property
     def n(self):
@@ -92,7 +100,7 @@ def _check_in_range(npty, val):
     return iif.min <= val <= iif.max
 
 
-def _clamp_unsigned_to_range(npty, val):
+def _clamp_unsigned_to_range(npty, val: np.integer | int) -> np.integer | int:
     # npty: np.int32 or np.int64
     iif = np.iinfo(npty)
     if iif.min <= val <= iif.max:
@@ -134,11 +142,13 @@ def make_constant_expr(val, dtype):
     raise TaichiTypeError(f"Invalid constant scalar data type: {type(val)}")
 
 
-def make_var_list(size, ast_builder=None):
+def make_var_list(size: int, ast_builder: "ASTBuilder | None" = None):
     exprs = []
+    prog = impl.get_runtime().prog
+    assert prog is not None
     for _ in range(size):
         if ast_builder is None:
-            exprs.append(impl.get_runtime().prog.make_id_expr(""))
+            exprs.append(prog.make_id_expr(""))
         else:
             exprs.append(ast_builder.make_id_expr(""))
     return exprs
