@@ -23,7 +23,6 @@ class Expr(TaichiOperations):
         self.dbg_info = dbg_info
         self.ptr_type_checked = False
         self.declaration_tb: str = ""
-        print("Expr.__init__ args", args)
         if len(args) == 1:
             if isinstance(args[0], _ti_core.Expr):
                 self.ptr = args[0]
