@@ -6,7 +6,7 @@ import traceback
 from enum import Enum
 from sys import version_info
 from textwrap import TextWrapper
-from typing import List
+from typing import Any, List
 
 from taichi.lang import impl
 from taichi.lang.exception import (
@@ -18,7 +18,7 @@ from taichi.lang.exception import (
 
 
 class Builder:
-    def __call__(self, ctx, node):
+    def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
         method = getattr(self, "build_" + node.__class__.__name__, None)
         try:
             if method is None:
@@ -241,7 +241,7 @@ class ASTTransformerContext:
                 return True
         return False
 
-    def create_variable(self, name, var):
+    def create_variable(self, name: str, var: Any) -> None:
         if name in self.current_scope():
             raise TaichiSyntaxError("Recreating variables is not allowed")
         self.current_scope()[name] = var
