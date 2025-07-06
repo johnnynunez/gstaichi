@@ -614,7 +614,8 @@ class ASTTransformer(Builder):
         except TypeError as e:
             module = inspect.getmodule(func)
             error_msg = re.sub(r"\bExpr\b", "Taichi Expression", str(e))
-            msg = f"TypeError when calling `{func.__name__}`: {error_msg}."
+            func_name = getattr(func, "__name__", func.__class__.__name__)
+            msg = f"TypeError when calling `{func_name}`: {error_msg}."
             if ASTTransformer.is_external_func(ctx, node.func.ptr):
                 args_has_expr = any([isinstance(arg, Expr) for arg in args])
                 if args_has_expr and (module == math or module == np):
