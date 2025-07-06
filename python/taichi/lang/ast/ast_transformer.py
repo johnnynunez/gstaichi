@@ -10,7 +10,7 @@ import re
 import warnings
 from ast import unparse
 from collections import ChainMap
-from typing import Any, Iterable, Type
+from typing import Any, Type, cast
 
 import numpy as np
 
@@ -642,6 +642,7 @@ class ASTTransformer(Builder):
         ctx.visited_funcdef = True
 
         args = node.args
+        # print("args", args)
         assert args.vararg is None
         assert args.kwonlyargs == []
         assert args.kw_defaults == []
@@ -651,6 +652,7 @@ class ASTTransformer(Builder):
             annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth
         ) -> tuple[bool, Any]:
             full_name = prefix_name + "_" + name
+            # print("decl_and_create_variable fullname", full_name, "prefix_name", prefix_name, "annotation", annotation)
             if not isinstance(annotation, primitive_types.RefType):
                 ctx.kernel_args.append(name)
             if isinstance(annotation, ArgPackType):
@@ -713,7 +715,9 @@ class ASTTransformer(Builder):
 
             invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
             create_variable_later = dict()
+            print("transform_as_kernel iterate args")
             for i, arg in enumerate(args.args):
+                # print(" arg i", i, "arg", arg)
                 if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
                     kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
                     d = {}
@@ -1010,6 +1014,10 @@ class ASTTransformer(Builder):
         # whether it is a method of Dynamic SNode and build the expression if it is by calling
         # build_attribute_if_is_dynamic_snode_method. If we find that it is not a method of Dynamic SNode,
         # we continue to process it as a normal attribute node.
+        # print("build_attribute node", node, type(node), "node.value", node.value)
+        # ast.At
+        node_value = cast(ast.Name, node.value)
+        # print("node_value fields", node_value._fields)
         try:
             build_stmt(ctx, node.value)
         except Exception as e:
@@ -1088,6 +1096,7 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_AugAssign(ctx: ASTTransformerContext, node: ast.AugAssign):
+        # print("build_AugAssign target", node.target, "value", node.value)
         build_stmt(ctx, node.target)
         build_stmt(ctx, node.value)
         if isinstance(node.target, ast.Name) and node.target.id in ctx.kernel_args:
