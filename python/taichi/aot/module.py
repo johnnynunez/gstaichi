@@ -57,7 +57,7 @@ class KernelTemplate:
                 anno_index += 1
             else:
                 injected_args.append(0)
-        kernel.ensure_compiled(injected_args)
+        kernel.ensure_compiled(*injected_args)
         self._aot_module._aot_builder.add_kernel_template(name, key_p, kernel.kernel_cpp)
 
         # kernel AOT
@@ -168,7 +168,7 @@ class Module:
             injected_args = produce_injected_args_from_template(kernel, template_args)
         else:
             injected_args = produce_injected_args(kernel)
-        kernel.ensure_compiled(injected_args)
+        kernel.ensure_compiled(*injected_args)
         self._aot_builder.add(kernel_name, kernel.kernel_cpp)
 
         # kernel AOT
