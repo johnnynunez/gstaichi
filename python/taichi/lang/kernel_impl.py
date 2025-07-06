@@ -81,14 +81,12 @@ class BoundFunc:
 
     def __getattr__(self, k) -> Any:
         res = getattr(self.taichi_callable, k)
-        print("getattr", k, "=>", res)
         return res
 
     def __setattr__(self, k, v) -> None:
         if k in ("fn", "instance", "taichi_callable"):
             object.__setattr__(self, k, v)
         else:
-            print("setattr", k, "=", v)
             setattr(self.taichi_callable, k, v)
 
 
@@ -108,11 +106,9 @@ class TaichiCallable:
         functools.update_wrapper(self, fn)
 
     def __call__(self, *args, **kwargs):
-        print("TaichiCallable.__call__ self", self, "args", args, "kwargs", kwargs)
         return self.wrapper.__call__(*args, **kwargs)
 
     def __get__(self, instance, owner):
-        print("__get__ self", self, "instance", instance, "owner", owner)
         if instance is None:
             return self
         return BoundFunc(self.wrapper, instance, self)
