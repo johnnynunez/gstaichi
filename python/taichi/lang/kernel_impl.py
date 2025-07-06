@@ -1375,7 +1375,7 @@ def data_oriented(cls):
                 wrapped = x.__func__
             else:
                 wrapped = x
-            assert isinstance(wrapped, BoundFunc)
+            assert isinstance(wrapped, (BoundFunc, TaichiCallable))
             wrapped._is_staticmethod = is_staticmethod
             # assert inspect.isfunction(wrapped)
             if wrapped._is_classkernel:
