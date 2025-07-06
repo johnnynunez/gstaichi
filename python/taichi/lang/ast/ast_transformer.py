@@ -609,17 +609,6 @@ class ASTTransformer(Builder):
             node.ptr = func(node.func.caller, *args, **keywords)
             return node.ptr
 
-        if (
-            isinstance(func, kernel_impl.TaichiCallable)
-            and func.wrapper.classfunc
-            and len(args) == len(func.wrapper.arguments) - 1
-        ):
-            # This is a method call without the self parameter
-            # We need to get the self parameter from the current context
-            if "self" in ctx.global_vars:
-                self_param = ctx.global_vars["self"]
-                args = [self_param] + list(args)
-
         ASTTransformer.warn_if_is_external_func(ctx, node)
         try:
             node.ptr = func(*args, **keywords)
