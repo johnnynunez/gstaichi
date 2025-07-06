@@ -147,10 +147,10 @@ def pyfunc(fn: Callable) -> TaichiCallable:
 
 def _get_tree_and_ctx(
     self: "Func | Kernel",
+    args: tuple[Any, ...],
     excluded_parameters=(),
     is_kernel: bool = True,
     arg_features=None,
-    args=None,
     ast_builder: ASTBuilder | None = None,
     is_real_function: bool = False,
 ):
@@ -186,7 +186,7 @@ def _get_tree_and_ctx(
     )
 
 
-def expand_args_dataclasses(args: list[Any]) -> list[Any]:
+def expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
     # print('params', params)
     new_args = []
     # arg_names = params.keys()
@@ -216,7 +216,7 @@ def expand_args_dataclasses(args: list[Any]) -> list[Any]:
         else:
             new_args.append(arg)
     # print("new_args", new_args)
-    return new_args
+    return tuple(new_args)
 
 
 def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs):
@@ -260,7 +260,7 @@ def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs):
                     f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
                 )
 
-    return ret
+    return tuple(ret)
 
 
 class Func:
@@ -399,9 +399,9 @@ class Func:
             self.return_type = sig.return_annotation
             if (
                 isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))  # type: ignore
-                and self.return_type.__origin__ is tuple
+                and self.return_type.__origin__ is tuple  # type: ignore
             ):
-                self.return_type = self.return_type.__args__
+                self.return_type = self.return_type.__args__  # type: ignore
             if self.return_type is None:
                 return
             if not isinstance(self.return_type, (list, tuple)):
@@ -1197,7 +1197,7 @@ class Kernel:
             return launch_ctx.get_struct_ret_float(index)
         raise TaichiRuntimeTypeError(f"Invalid return type on index={index}")
 
-    def ensure_compiled(self, args: list[Any]):
+    def ensure_compiled(self, args: tuple[Any, ...]):
         instance_id, arg_features = self.mapper.lookup(args)
         key = (self.func, instance_id, self.autodiff_mode)
         self.materialize(key=key, args=args, arg_features=arg_features)
