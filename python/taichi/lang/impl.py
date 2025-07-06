@@ -24,7 +24,7 @@ from taichi.lang.exception import (
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field, ScalarField
 from taichi.lang.kernel_arguments import SparseMatrixProxy
-from taichi.lang.kernel_impl import Kernel, TaichiCallable
+from taichi.lang.kernel_impl import BoundFunc, Kernel, TaichiCallable
 from taichi.lang.matrix import (
     Matrix,
     MatrixField,
@@ -85,8 +85,8 @@ def expr_init(rhs):
         return Expr(
             compiling_callable.ast_builder().expr_alloca(_ti_core.DebugInfo(get_runtime().get_current_src_info()))
         )
-    # if isinstance(rhs, Matrix) and (hasattr(rhs, "_DIM")):
-    #     return Matrix(*rhs.to_list(), ndim=rhs.ndim)  # is this broken? unused?
+    if isinstance(rhs, Matrix) and (hasattr(rhs, "_DIM")):
+        return Matrix(*rhs.to_list(), ndim=rhs.ndim)  # type: ignore
     if isinstance(rhs, Matrix):
         return make_matrix(rhs.to_list())
     if isinstance(rhs, SharedArray):
@@ -241,8 +241,8 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
 
     if isinstance(value, SharedArray):
         return value.subscript(*indices)
-    # if isinstance(value, MeshElementFieldProxy):
-    #     return value.subscript(*indices)  # is this broken? unused?
+    if isinstance(value, MeshElementFieldProxy):
+        return value.subscript(*indices)  # type: ignore
     if isinstance(value, MeshRelationAccessProxy):
         return value.subscript(*indices)
     if isinstance(value, (MeshReorderedScalarFieldProxy, MeshReorderedMatrixFieldProxy)) and not skip_reordered:
@@ -1154,7 +1154,7 @@ def static(x, *xs) -> Any:
         return x
     if isinstance(x, Field):
         return x
-    if isinstance(x, (FunctionType, MethodType, TaichiCallable)):
+    if isinstance(x, (FunctionType, MethodType, BoundFunc, TaichiCallable)):
         print(" is instanace FunctionType or MethodType", x, type(x))
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")

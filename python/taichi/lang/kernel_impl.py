@@ -71,16 +71,52 @@ from taichi.types.utils import is_signed
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
+class BoundFunc:
+    def __init__(self, fn, instance, taichi_callable: "TaichiCallable"):
+        self.fn = fn
+        self.instance = instance
+        self.taichi_callable = taichi_callable
+
+    def __call__(self, *args):
+        return self.fn(self.instance, *args)
+
+    def __getattr__(self, k) -> Any:
+        res = getattr(self.taichi_callable, k)
+        print("getattr", k, "=>", res)
+        return res
+
+    def __setattr__(self, k, v) -> None:
+        if k in ("fn", "instance", "taichi_callable"):
+            object.__setattr__(self, k, v)
+        else:
+            print("setattr", k, "=", v)
+            setattr(self.taichi_callable, k, v)
+
+
 class TaichiCallable:
-    def __init__(self, fn: Callable, fun: "Func", is_taichi_function: bool, is_real_function: bool):
-        self._is_taichi_function = is_taichi_function
-        self._is_real_function = is_real_function
-        self.func = fun
+    def __init__(self, fn: Callable, wrapper: Callable) -> None:
+        # self.func: Func | None = None
+        self.fn = fn
+        self.wrapper = wrapper
+        self._is_real_function = False
+        self._is_taichi_function = False
+        self._is_wrapped_kernel = False
+        self._is_classkernel = False
+        self._primal: Kernel | None = None
+        self._adjoint: Kernel | None = None
+        self.grad: Kernel | None = None
+        self._is_staticmethod = False
         functools.update_wrapper(self, fn)
 
     def __call__(self, *args, **kwargs):
         print("TaichiCallable.__call__ self", self, "args", args, "kwargs", kwargs)
-        return self.func.__call__(*args, **kwargs)
+        return self.wrapper.__call__(*args, **kwargs)
+
+    def __get__(self, instance, owner):
+        print("__get__ self", self, "instance", instance, "owner", owner)
+        if instance is None:
+            return self
+        return BoundFunc(self.wrapper, instance, self)
 
 
 def func(fn: Callable, is_real_function=False) -> TaichiCallable:
@@ -108,12 +144,13 @@ def func(fn: Callable, is_real_function=False) -> TaichiCallable:
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
     fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-    return TaichiCallable(
+    taichi_callable = TaichiCallable(
         fn,
         fun,
-        is_taichi_function=True,
-        is_real_function=is_real_function,
     )
+    taichi_callable._is_taichi_function = True
+    taichi_callable._is_real_function = is_real_function
+    return taichi_callable
 
 
 def real_func(fn: Callable):
@@ -137,12 +174,13 @@ def pyfunc(fn: Callable) -> TaichiCallable:
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3)
     fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
-    return TaichiCallable(
+    taichi_callable = TaichiCallable(
         fn,
         fun,
-        is_taichi_function=True,
-        is_real_function=False,
     )
+    taichi_callable._is_taichi_function = True
+    taichi_callable._is_real_function = False
+    return taichi_callable
 
 
 def _get_tree_and_ctx(
@@ -159,8 +197,8 @@ def _get_tree_and_ctx(
     src = [textwrap.fill(line, tabsize=4, width=9999) for line in src]
     tree = ast.parse(textwrap.dedent("\n".join(src)))
 
-    # func_body = tree.body[0]
-    # func_body.decorator_list = []
+    func_body = tree.body[0]
+    func_body.decorator_list = []  # type: ignore , kick that can down the road...
 
     global_vars = _get_global_vars(self.func)
 
@@ -883,9 +921,9 @@ class Kernel:
             v_primal = v.arr
             v_grad = v.grad.arr if v.grad else None
             if v_grad is None:
-                launch_ctx.set_arg_ndarray(indices, v_primal)
+                launch_ctx.set_arg_ndarray(indices, v_primal)  # type: ignore , solvable probably, just not today
             else:
-                launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)
+                launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)  # type: ignore
 
         def set_arg_texture(indices: tuple[int, ...], v: taichi.lang._texture.Texture):
             launch_ctx.set_arg_texture(indices, v.tex)
@@ -1132,7 +1170,7 @@ class Kernel:
             if isinstance(needed, StructType):
                 if in_argpack:
                     return 1
-                if not needed.__instancecheck__(v):
+                if not isinstance(v, needed):  # type: ignore Might be invalid? Maybe should rewrite as: not needed.__instancecheck__(v) ?
                     raise TaichiRuntimeTypeError(f"Argument {provided} cannot be converted into required type {needed}")
                 needed.set_kernel_struct_args(v, launch_ctx, indices)
                 return 1
@@ -1272,7 +1310,7 @@ def _inside_class(level_of_class_stackframe):
     return False
 
 
-def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool = False):
+def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool = False) -> TaichiCallable:
     # Can decorators determine if a function is being defined inside a class?
     # https://stackoverflow.com/a/8793684/12003165
     is_classkernel = _inside_class(level_of_class_stackframe + 1)
@@ -1284,7 +1322,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
     # Having |primal| contains |grad| makes the tape work.
     primal.grad = adjoint
 
-    wrapped: Callable
+    wrapped: TaichiCallable
     if is_classkernel:
         # For class kernels, their primal/adjoint callables are constructed
         # when the kernel is accessed via the instance inside
@@ -1300,19 +1338,26 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
             clsobj = type(args[0])
             assert not hasattr(clsobj, "_data_oriented")
             raise TaichiSyntaxError(f"Please decorate class {clsobj.__name__} with @ti.data_oriented")
-        wrapped = wrapped_classkernel
+
+        wrapped = TaichiCallable(
+            _func,
+            wrapped_classkernel,
+        )
     else:
 
         @functools.wraps(_func)
         def wrapped_func(*args, **kwargs):
-            # try:
-            return primal(*args, **kwargs)
+            try:
+                return primal(*args, **kwargs)
+            except (TaichiCompilationError, TaichiRuntimeError) as e:
+                if impl.get_runtime().print_full_traceback:
+                    raise e
+                raise type(e)("\n" + str(e)) from None
 
-        # except (TaichiCompilationError, TaichiRuntimeError) as e:
-        #     if impl.get_runtime().print_full_traceback:
-        #         raise e
-        #     raise type(e)("\n" + str(e)) from None
-        wrapped = wrapped_func
+        wrapped = TaichiCallable(
+            _func,
+            wrapped_func,
+        )
         wrapped.grad = adjoint
 
     wrapped._is_wrapped_kernel = True
@@ -1366,12 +1411,10 @@ class _BoundedDifferentiableMethod:
 
     def __call__(self, *args, **kwargs):
         try:
-            print("self", self, "args", args, "kwargs", kwargs)
-            print("self.isstaticmdethod", self._is_staticmethod)
-            print("primal", self._primal)
             if self._is_staticmethod:
                 return self._primal(*args, **kwargs)
             return self._primal(self._kernel_owner, *args, **kwargs)
+
         except (TaichiCompilationError, TaichiRuntimeError) as e:
             if impl.get_runtime().print_full_traceback:
                 raise e
@@ -1424,11 +1467,11 @@ def data_oriented(cls):
                 wrapped = x.__func__
             else:
                 wrapped = x
+            assert isinstance(wrapped, (BoundFunc, TaichiCallable))
             wrapped._is_staticmethod = is_staticmethod
-            assert inspect.isfunction(wrapped)
             if wrapped._is_classkernel:
                 ret = _BoundedDifferentiableMethod(self, wrapped)
-                ret.__name__ = wrapped.__name__
+                ret.__name__ = wrapped.__name__  # type: ignore
                 if is_property:
                     return ret()
                 return ret

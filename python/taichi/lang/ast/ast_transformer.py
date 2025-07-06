@@ -19,7 +19,6 @@ from taichi.lang import (
     expr,
     impl,
     kernel_arguments,
-    kernel_impl,
     matrix,
     mesh,
 )
@@ -607,25 +606,14 @@ class ASTTransformer(Builder):
             node.ptr = func(node.func.caller, *args, **keywords)
             return node.ptr
 
-        # Handle TaichiCallable class functions that need self parameter
-        if (
-            isinstance(func, kernel_impl.TaichiCallable)
-            and func.func.classfunc
-            and len(args) == len(func.func.arguments) - 1
-        ):
-            # This is a method call without the self parameter
-            # We need to get the self parameter from the current context
-            if "self" in ctx.global_vars:
-                self_param = ctx.global_vars["self"]
-                args = [self_param] + list(args)
-
         ASTTransformer.warn_if_is_external_func(ctx, node)
         try:
             node.ptr = func(*args, **keywords)
         except TypeError as e:
             module = inspect.getmodule(func)
             error_msg = re.sub(r"\bExpr\b", "Taichi Expression", str(e))
-            msg = f"TypeError when calling `{func.__name__}`: {error_msg}."
+            func_name = getattr(func, "__name__", func.__class__.__name__)
+            msg = f"TypeError when calling `{func_name}`: {error_msg}."
             if ASTTransformer.is_external_func(ctx, node.func.ptr):
                 args_has_expr = any([isinstance(arg, Expr) for arg in args])
                 if args_has_expr and (module == math or module == np):
@@ -639,7 +627,7 @@ class ASTTransformer(Builder):
             raise TaichiTypeError(msg)
 
         if getattr(func, "_is_taichi_function", False):
-            ctx.func.has_print |= func.func.has_print
+            ctx.func.has_print |= func.wrapper.has_print
 
         return node.ptr
 
