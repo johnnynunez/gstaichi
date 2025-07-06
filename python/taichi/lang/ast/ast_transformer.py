@@ -8,8 +8,7 @@ import re
 import warnings
 from ast import unparse
 from collections import ChainMap
-from sys import version_info
-from typing import Any, Iterable, Type, cast
+from typing import Any, Type, cast
 
 import numpy as np
 

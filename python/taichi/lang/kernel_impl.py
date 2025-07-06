@@ -1364,18 +1364,17 @@ class _BoundedDifferentiableMethod:
         self.__name__: str | None = None
 
     def __call__(self, *args, **kwargs):
-        # try:
-        print("self", self, "args", args, "kwargs", kwargs)
-        print("self.isstaticmdethod", self._is_staticmethod)
-        print("primal", self._primal)
-        if self._is_staticmethod:
-            return self._primal(*args, **kwargs)
-        return self._primal(self._kernel_owner, *args, **kwargs)
-
-    # except (TaichiCompilationError, TaichiRuntimeError) as e:
-    #     if impl.get_runtime().print_full_traceback:
-    #         raise e
-    #     raise type(e)("\n" + str(e)) from None
+        try:
+            print("self", self, "args", args, "kwargs", kwargs)
+            print("self.isstaticmdethod", self._is_staticmethod)
+            print("primal", self._primal)
+            if self._is_staticmethod:
+                return self._primal(*args, **kwargs)
+            return self._primal(self._kernel_owner, *args, **kwargs)
+        except (TaichiCompilationError, TaichiRuntimeError) as e:
+            if impl.get_runtime().print_full_traceback:
+                raise e
+            raise type(e)("\n" + str(e)) from None
 
     def grad(self, *args, **kwargs):
         return self._adjoint(self._kernel_owner, *args, **kwargs)
