@@ -453,13 +453,13 @@ AnnotationType = Union[
 
 class TaichiCallableTemplateMapper:
     def __init__(self, arguments: list[KernelArgument], template_slot_locations: list[int]) -> None:
-        self.arguments = arguments
-        self.num_args = len(arguments)
-        self.template_slot_locations = template_slot_locations
-        self.mapping = {}
+        self.arguments: list[KernelArgument] = arguments
+        self.num_args: int = len(arguments)
+        self.template_slot_locations: list[int] = template_slot_locations
+        self.mapping: dict[tuple[Any, ...], int] = {}
 
     @staticmethod
-    def extract_arg(arg, anno: AnnotationType, arg_name: str):
+    def extract_arg(arg: Any, anno: AnnotationType, arg_name: str) -> Any:
         if anno == template or isinstance(anno, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -578,13 +578,13 @@ class TaichiCallableTemplateMapper:
         # Use '#' as a placeholder because other kinds of arguments are not involved in template instantiation
         return "#"
 
-    def extract(self, args):
-        extracted = []
+    def extract(self, args: tuple[Any, ...]) -> tuple[Any, ...]:
+        extracted: list[Any] = []
         for arg, kernel_arg in zip(args, self.arguments):
             extracted.append(self.extract_arg(arg, kernel_arg.annotation, kernel_arg.name))
         return tuple(extracted)
 
-    def lookup(self, args):
+    def lookup(self, args: tuple[Any, ...]) -> tuple[int, tuple[Any, ...]]:
         if len(args) != self.num_args:
             raise TypeError(f"{self.num_args} argument(s) needed but {len(args)} provided.")
 
@@ -595,7 +595,7 @@ class TaichiCallableTemplateMapper:
         return self.mapping[key], key
 
 
-def _get_global_vars(_func: Callable):
+def _get_global_vars(_func: Callable) -> dict[str, Any]:
     # Discussions: https://github.com/taichi-dev/taichi/issues/282
     global_vars = _func.__globals__.copy()
 
@@ -612,7 +612,7 @@ def _get_global_vars(_func: Callable):
 class Kernel:
     counter = 0
 
-    def __init__(self, _func: Callable, autodiff_mode: AutodiffMode, _classkernel=False):
+    def __init__(self, _func: Callable, autodiff_mode: AutodiffMode, _classkernel=False) -> None:
         self.func = _func
         self.kernel_counter = Kernel.counter
         Kernel.counter += 1
@@ -643,11 +643,11 @@ class Kernel:
         assert self.kernel_cpp is not None
         return self.kernel_cpp.ast_builder()
 
-    def reset(self):
+    def reset(self) -> None:
         self.runtime = impl.get_runtime()
         self.compiled_kernels = {}
 
-    def extract_arguments(self):
+    def extract_arguments(self) -> None:
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
@@ -795,7 +795,7 @@ class Kernel:
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
-    def launch_kernel(self, t_kernel: KernelCxx, *args):
+    def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
         assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
 
         tmps = []
@@ -988,7 +988,7 @@ class Kernel:
 
         set_later_list = []
 
-        def recursive_set_args(needed, provided, v, indices: tuple[int, ...]):
+        def recursive_set_args(needed: Type, provided: Type, v: Any, indices: tuple[int, ...]) -> int:
             in_argpack = len(indices) > 1
             nonlocal actual_argument_slot, exceed_max_arg_num, set_later_list
             if actual_argument_slot >= max_arg_num:
@@ -1124,7 +1124,7 @@ class Kernel:
             return launch_ctx.get_struct_ret_float(index)
         raise TaichiRuntimeTypeError(f"Invalid return type on index={index}")
 
-    def ensure_compiled(self, *args):
+    def ensure_compiled(self, args: tuple[Any, ...]) -> tuple[Callable, int, AutodiffMode]:
         instance_id, arg_features = self.mapper.lookup(args)
         key = (self.func, instance_id, self.autodiff_mode)
         self.materialize(key=key, args=args, arg_features=arg_features)
@@ -1133,7 +1133,7 @@ class Kernel:
     # For small kernels (< 3us), the performance can be pretty sensitive to overhead in __call__
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> Any:
         args = _process_args(self, args, kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
@@ -1183,7 +1183,7 @@ _KERNEL_CLASS_STACKFRAME_STMT_RES = [
 ]
 
 
-def _inside_class(level_of_class_stackframe):
+def _inside_class(level_of_class_stackframe: int) -> bool:
     try:
         maybe_class_frame = sys._getframe(level_of_class_stackframe)
         statement_list = inspect.getframeinfo(maybe_class_frame)[3]
