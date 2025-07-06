@@ -50,8 +50,6 @@ from taichi.lang.util import is_taichi_class, to_taichi_type
 from taichi.types import annotations, ndarray_type, primitive_types, texture_type
 from taichi.types.utils import is_integral
 
-from ast import unparse
-
 
 def reshape_list(flat_list: list[Any], target_shape: list[int]) -> list[Any]:
     if len(target_shape) < 2:
