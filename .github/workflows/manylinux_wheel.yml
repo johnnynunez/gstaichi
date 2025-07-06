@@ -101,7 +101,7 @@ jobs:
       - name: manylinux test
         run: |
           bash .github/workflows/scripts_new/manylinux_wheel/5_test.sh
-  api_docs:
+  pyright_linter:
     uses: ./.github/workflows/pyright_linter.yml
     needs: upload_to_storage
     with:
