@@ -21,7 +21,6 @@ from taichi.lang import (
     expr,
     impl,
     kernel_arguments,
-    kernel_impl,
     matrix,
     mesh,
 )
