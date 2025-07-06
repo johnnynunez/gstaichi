@@ -72,6 +72,15 @@ from taichi.types.utils import is_signed
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
+class BoundFunc:
+    def __init__(self, fn, instance):
+        self.fn = fn
+        self.instance = instance
+
+    def __call__(self, *args):
+        return self.fn(self.instance, *args)
+
+
 class TaichiCallable:
     def __init__(self, fn: Callable, wrapper: Callable) -> None:
         # self.func: Func | None = None
@@ -90,6 +99,12 @@ class TaichiCallable:
     def __call__(self, *args, **kwargs):
         print("TaichiCallable.__call__ self", self, "args", args, "kwargs", kwargs)
         return self.wrapper.__call__(*args, **kwargs)
+
+    def __get__(self, instance, owner):
+        print("__get__ self", self, "instance", instance, "owner", owner)
+        if instance is None:
+            return self
+        return BoundFunc(self.fn, instance)
 
 
 def func(fn: Callable, is_real_function=False) -> TaichiCallable:
