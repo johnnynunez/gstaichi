@@ -1284,6 +1284,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
     # Having |primal| contains |grad| makes the tape work.
     primal.grad = adjoint
 
+    wrapped: Callable
     if is_classkernel:
         # For class kernels, their primal/adjoint callables are constructed
         # when the kernel is accessed via the instance inside
@@ -1293,17 +1294,17 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
         #
         # See also: _BoundedDifferentiableMethod, data_oriented.
         @functools.wraps(_func)
-        def wrapped(*args, **kwargs):
+        def wrapped_classkernel(*args, **kwargs):
             # If we reach here (we should never), it means the class is not decorated
             # with @ti.data_oriented, otherwise getattr would have intercepted the call.
             clsobj = type(args[0])
             assert not hasattr(clsobj, "_data_oriented")
             raise TaichiSyntaxError(f"Please decorate class {clsobj.__name__} with @ti.data_oriented")
-
+        wrapped = wrapped_classkernel
     else:
 
         @functools.wraps(_func)
-        def wrapped(*args, **kwargs):
+        def wrapped_func(*args, **kwargs):
             # try:
             return primal(*args, **kwargs)
 
@@ -1311,7 +1312,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
         #     if impl.get_runtime().print_full_traceback:
         #         raise e
         #     raise type(e)("\n" + str(e)) from None
-
+        wrapped = wrapped_func
         wrapped.grad = adjoint
 
     wrapped._is_wrapped_kernel = True
