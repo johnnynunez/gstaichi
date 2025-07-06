@@ -2,6 +2,7 @@
 
 import ast
 import builtins
+import dataclasses
 import traceback
 from enum import Enum
 from textwrap import TextWrapper
