@@ -1,5 +1,3 @@
-# type: ignore
-
 import ast
 import functools
 import inspect
@@ -210,7 +208,7 @@ def _get_tree_and_ctx(
     tree = ast.parse(textwrap.dedent("\n".join(src)))
 
     func_body = tree.body[0]
-    func_body.decorator_list = []
+    func_body.decorator_list = []  # type: ignore , kick that can down the road...
 
     global_vars = _get_global_vars(self.func)
 
@@ -822,9 +820,9 @@ class Kernel:
             v_primal = v.arr
             v_grad = v.grad.arr if v.grad else None
             if v_grad is None:
-                launch_ctx.set_arg_ndarray(indices, v_primal)
+                launch_ctx.set_arg_ndarray(indices, v_primal)  # type: ignore , solvable probably, just not today
             else:
-                launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)
+                launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)  # type: ignore
 
         def set_arg_texture(indices: tuple[int, ...], v: taichi.lang._texture.Texture):
             launch_ctx.set_arg_texture(indices, v.tex)
@@ -1071,7 +1069,7 @@ class Kernel:
             if isinstance(needed, StructType):
                 if in_argpack:
                     return 1
-                if not isinstance(v, needed):
+                if not isinstance(v, needed):  # type: ignore Might be invalid? Maybe should rewrite as: not needed.__instancecheck__(v) ?
                     raise TaichiRuntimeTypeError(f"Argument {provided} cannot be converted into required type {needed}")
                 needed.set_kernel_struct_args(v, launch_ctx, indices)
                 return 1
