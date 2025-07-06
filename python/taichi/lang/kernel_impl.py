@@ -1235,7 +1235,7 @@ class Kernel:
             return launch_ctx.get_struct_ret_float(index)
         raise TaichiRuntimeTypeError(f"Invalid return type on index={index}")
 
-    def ensure_compiled(self, args: tuple[Any, ...]) -> tuple[Callable, int, AutodiffMode]:
+    def ensure_compiled(self, *args: tuple[Any, ...]) -> tuple[Callable, int, AutodiffMode]:
         instance_id, arg_features = self.mapper.lookup(args)
         key = (self.func, instance_id, self.autodiff_mode)
         self.materialize(key=key, args=args, arg_features=arg_features)
@@ -1271,7 +1271,7 @@ class Kernel:
         if self.autodiff_mode != AutodiffMode.NONE and impl.current_cfg().opt_level == 0:
             _logging.warn("""opt_level = 1 is enforced to enable gradient computation.""")
             impl.current_cfg().opt_level = 1
-        key = self.ensure_compiled(args)
+        key = self.ensure_compiled(*args)
         kernel_cpp = self.compiled_kernels[key]
         return self.launch_kernel(kernel_cpp, *args)
 
