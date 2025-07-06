@@ -174,7 +174,7 @@ integer_type_ids = [id(t) for t in integer_types]
 all_types = real_types + integer_types
 type_ids = [id(t) for t in all_types]
 
-python_primitive_types = Union[int, float, bool, str, None]
+_python_primitive_types = Union[int, float, bool, str, None]
 
 __all__ = [
     "float32",
@@ -202,5 +202,5 @@ __all__ = [
     "uint64",
     "u64",
     "ref",
-    "python_primitive_types",
+    "_python_primitive_types",
 ]

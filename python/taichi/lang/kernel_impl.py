@@ -856,7 +856,7 @@ class Kernel:
                 ctx.ast_builder = kernel_cxx.ast_builder()
                 print("calling transform_tree")
 
-                def ast_to_dict(node: ast.AST | list | primitive_types.python_primitive_types):
+                def ast_to_dict(node: ast.AST | list | primitive_types._python_primitive_types):
                     if isinstance(node, ast.AST):
                         fields = {k: ast_to_dict(v) for k, v in ast.iter_fields(node)}
                         return {
