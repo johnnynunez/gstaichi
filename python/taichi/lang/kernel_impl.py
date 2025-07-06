@@ -73,12 +73,35 @@ CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
 class BoundFunc:
-    def __init__(self, fn, instance):
+    def __init__(self, fn, instance, taichi_callable: "TaichiCallable"):
         self.fn = fn
         self.instance = instance
+        self.taichi_callable = taichi_callable
 
     def __call__(self, *args):
         return self.fn(self.instance, *args)
+
+    @property
+    def grad(self):
+        print("property grad", self.taichi_callable.grad)
+        return self.taichi_callable.grad
+
+    @property
+    def _is_staticmethod(self):
+        return self.taichi_callable._is_staticmethod
+
+    @_is_staticmethod.setter
+    def _is_staticmethod(self, value):
+        self.taichi_callable._is_staticmethod = value
+
+    @property
+    def _is_classkernel(self):
+        return self.taichi_callable._is_classkernel
+
+    def __getattr__(self, k) -> Any:
+        res = getattr(self.taichi_callable, k)
+        print("getattr", k, "=>", res)
+        return res
 
 
 class TaichiCallable:
@@ -104,7 +127,7 @@ class TaichiCallable:
         print("__get__ self", self, "instance", instance, "owner", owner)
         if instance is None:
             return self
-        return BoundFunc(self.fn, instance)
+        return BoundFunc(self.fn, instance, self)
 
 
 def func(fn: Callable, is_real_function=False) -> TaichiCallable:
@@ -1346,7 +1369,7 @@ def data_oriented(cls):
                 wrapped = x.__func__
             else:
                 wrapped = x
-            assert isinstance(wrapped, TaichiCallable)
+            assert isinstance(wrapped, BoundFunc)
             wrapped._is_staticmethod = is_staticmethod
             # assert inspect.isfunction(wrapped)
             if wrapped._is_classkernel:
