@@ -24,7 +24,7 @@ from taichi.lang.exception import (
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field, ScalarField
 from taichi.lang.kernel_arguments import SparseMatrixProxy
-from taichi.lang.kernel_impl import Kernel
+from taichi.lang.kernel_impl import Kernel, TaichiCallable
 from taichi.lang.matrix import (
     Matrix,
     MatrixField,
@@ -337,7 +337,7 @@ class PyTaichi:
         self.prog: Program | None = None
         self.src_info_stack = []
         self.inside_kernel = False
-        self.compiling_callable: Function | None = None  # pointer to instance of lang::Kernel/Function
+        self.compiling_callable: Kernel | Function | None = None  # pointer to instance of lang::Kernel/Function
         self.current_kernel: Kernel | None = None
         self.global_vars = []
         self.grad_vars = []
@@ -1154,7 +1154,8 @@ def static(x, *xs) -> Any:
         return x
     if isinstance(x, Field):
         return x
-    if isinstance(x, (FunctionType, MethodType)):
+    if isinstance(x, (FunctionType, MethodType, TaichiCallable)):
+        print(" is instanace FunctionType or MethodType", x, type(x))
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")
 

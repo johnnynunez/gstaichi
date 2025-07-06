@@ -4,10 +4,10 @@ import ast
 import builtins
 import traceback
 from enum import Enum
-from sys import version_info
 from textwrap import TextWrapper
-from typing import List
+from typing import TYPE_CHECKING, Any, List
 
+from taichi._lib.core.taichi_python import ASTBuilder
 from taichi.lang import impl
 from taichi.lang.exception import (
     TaichiCompilationError,
@@ -16,9 +16,15 @@ from taichi.lang.exception import (
     handle_exception_from_cpp,
 )
 
+if TYPE_CHECKING:
+    from taichi.lang.kernel_impl import (
+        Func,
+        Kernel,
+    )
+
 
 class Builder:
-    def __call__(self, ctx, node):
+    def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
         method = getattr(self, "build_" + node.__class__.__name__, None)
         try:
             if method is None:
@@ -42,8 +48,7 @@ class Builder:
 
 
 class VariableScopeGuard:
-    def __init__(self, scopes):
-        # print("init scopes", scopes)
+    def __init__(self, scopes: list[dict[str, Any]]):
         self.scopes = scopes
 
     def __enter__(self):
@@ -62,7 +67,7 @@ class StaticScopeStatus:
 
 
 class StaticScopeGuard:
-    def __init__(self, status):
+    def __init__(self, status: StaticScopeStatus):
         self.status = status
 
     def __enter__(self):
@@ -97,14 +102,14 @@ class LoopStatus(Enum):
 
 
 class LoopScopeAttribute:
-    def __init__(self, is_static):
+    def __init__(self, is_static: bool):
         self.is_static = is_static
-        self.status = LoopStatus.Normal
+        self.status: LoopStatus = LoopStatus.Normal
         self.nearest_non_static_if: ast.If | None = None
 
 
 class LoopScopeGuard:
-    def __init__(self, scopes, non_static_guard=None):
+    def __init__(self, scopes: list[dict[str, Any]], non_static_guard=None):
         self.scopes = scopes
         self.non_static_guard = non_static_guard
 
@@ -153,18 +158,18 @@ class ASTTransformerContext:
         self,
         excluded_parameters=(),
         is_kernel: bool = True,
-        func=None,
+        func: "Func | Kernel | None" = None,
         arg_features=None,
-        global_vars=None,
+        global_vars: dict[str, Any] | None = None,
         argument_data=None,
-        file=None,
-        src=None,
+        file: str | None = None,
+        src: list[str] | None = None,
         start_lineno: int | None = None,
-        ast_builder=None,
+        ast_builder: ASTBuilder | None = None,
         is_real_function: bool = False,
     ):
         self.func = func
-        self.local_scopes = []
+        self.local_scopes: list[dict[str, Any]] = []
         self.loop_scopes: List[LoopScopeAttribute] = []
         self.excluded_parameters = excluded_parameters
         self.is_kernel = is_kernel
@@ -189,7 +194,7 @@ class ASTTransformerContext:
         self.ast_builder = ast_builder
         self.visited_funcdef = False
         self.is_real_function = is_real_function
-        self.kernel_args = []
+        self.kernel_args: list = []
 
     # e.g.: FunctionDef, Module, Global
     def variable_scope_guard(self):
@@ -208,44 +213,44 @@ class ASTTransformerContext:
             self.non_static_control_flow_status,
         )
 
-    def non_static_control_flow_guard(self):
+    def non_static_control_flow_guard(self) -> NonStaticControlFlowGuard:
         return NonStaticControlFlowGuard(self.non_static_control_flow_status)
 
-    def static_scope_guard(self):
+    def static_scope_guard(self) -> StaticScopeGuard:
         return StaticScopeGuard(self.static_scope_status)
 
-    def current_scope(self):
+    def current_scope(self) -> dict[str, Any]:
         return self.local_scopes[-1]
 
-    def current_loop_scope(self):
+    def current_loop_scope(self) -> dict[str, Any]:
         return self.loop_scopes[-1]
 
-    def loop_status(self):
+    def loop_status(self) -> LoopStatus:
         if self.loop_scopes:
             return self.loop_scopes[-1].status
         return LoopStatus.Normal
 
-    def set_loop_status(self, status):
+    def set_loop_status(self, status: LoopStatus) -> None:
         self.loop_scopes[-1].status = status
 
-    def is_in_static_for(self):
+    def is_in_static_for(self) -> bool:
         if self.loop_scopes:
             return self.loop_scopes[-1].is_static
         return False
 
-    def is_in_non_static_control_flow(self):
+    def is_in_non_static_control_flow(self) -> bool:
         return self.non_static_control_flow_status.is_in_non_static_control_flow
 
-    def is_in_static_scope(self):
+    def is_in_static_scope(self) -> bool:
         return self.static_scope_status.is_in_static_scope
 
-    def is_var_declared(self, name):
+    def is_var_declared(self, name: str) -> bool:
         for s in self.local_scopes:
             if name in s:
                 return True
         return False
 
-    def create_variable(self, name, var):
+    def create_variable(self, name: str, var: Any) -> None:
         # print("create_variable name", name, "var", var)
         # asdf
         if hasattr(var, "__dataclass_fields__"):
@@ -263,13 +268,13 @@ class ASTTransformerContext:
             raise TaichiSyntaxError("Recreating variables is not allowed")
         self.current_scope()[name] = var
 
-    def check_loop_var(self, loop_var):
+    def check_loop_var(self, loop_var: str) -> None:
         if self.is_var_declared(loop_var):
             raise TaichiSyntaxError(
                 f"Variable '{loop_var}' is already declared in the outer scope and cannot be used as loop variable"
             )
 
-    def get_var_by_name(self, name):
+    def get_var_by_name(self, name: str) -> Any:
         for s in reversed(self.local_scopes):
             # print("local scope", s)
             if name in s:
@@ -289,17 +294,14 @@ class ASTTransformerContext:
         except AttributeError:
             raise TaichiNameError(f'Name "{name}" is not defined')
 
-    def get_pos_info(self, node):
+    def get_pos_info(self, node: ast.AST) -> str:
         msg = f'File "{self.file}", line {node.lineno + self.lineno_offset}, in {self.func.func.__name__}:\n'
-        if version_info < (3, 8):
-            msg += self.src[node.lineno - 1] + "\n"
-            return msg
         col_offset = self.indent + node.col_offset
         end_col_offset = self.indent + node.end_col_offset
 
         wrapper = TextWrapper(width=80)
 
-        def gen_line(code, hint):
+        def gen_line(code: str, hint: str) -> str:
             hint += " " * (len(code) - len(hint))
             code = wrapper.wrap(code)
             hint = wrapper.wrap(hint)

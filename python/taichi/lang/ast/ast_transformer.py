@@ -6,6 +6,7 @@ import math
 import operator
 import re
 import warnings
+from ast import unparse
 from collections import ChainMap
 from sys import version_info
 from typing import Any, Iterable, Type, cast
@@ -13,7 +14,16 @@ from typing import Any, Iterable, Type, cast
 import numpy as np
 
 from taichi._lib import core as _ti_core
-from taichi.lang import _ndarray, any_array, expr, impl, kernel_arguments, matrix, mesh
+from taichi.lang import (
+    _ndarray,
+    any_array,
+    expr,
+    impl,
+    kernel_arguments,
+    kernel_impl,
+    matrix,
+    mesh,
+)
 from taichi.lang import ops as ti_ops
 from taichi.lang._ndrange import _Ndrange, ndrange
 from taichi.lang.argpack import ArgPackType
@@ -140,7 +150,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_assign_unpack(ctx: ASTTransformerContext, node_target: ast.Tuple, values, is_static_assign: bool):
+    def build_assign_unpack(ctx: ASTTransformerContext, node_target: list | ast.Tuple, values, is_static_assign: bool):
         """Build the unpack assignments like this: (target1, target2) = (value1, value2).
         The function should be called only if the node target is a tuple.
 
@@ -599,6 +609,19 @@ class ASTTransformer(Builder):
         if hasattr(node.func, "caller"):
             node.ptr = func(node.func.caller, *args, **keywords)
             return node.ptr
+
+        # Handle TaichiCallable class functions that need self parameter
+        if (
+            isinstance(func, kernel_impl.TaichiCallable)
+            and func.func.classfunc
+            and len(args) == len(func.func.arguments) - 1
+        ):
+            # This is a method call without the self parameter
+            # We need to get the self parameter from the current context
+            if "self" in ctx.global_vars:
+                self_param = ctx.global_vars["self"]
+                args = [self_param] + list(args)
+
         ASTTransformer.warn_if_is_external_func(ctx, node)
         try:
             node.ptr = func(*args, **keywords)
@@ -638,7 +661,9 @@ class ASTTransformer(Builder):
         assert args.kw_defaults == []
         assert args.kwarg is None
 
-        def decl_and_create_variable(annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth):
+        def decl_and_create_variable(
+            annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth
+        ) -> tuple[bool, Any]:
             full_name = prefix_name + "_" + name
             # print("decl_and_create_variable fullname", full_name, "prefix_name", prefix_name, "annotation", annotation)
             if not isinstance(annotation, primitive_types.RefType):
@@ -694,7 +719,7 @@ class ASTTransformer(Builder):
                 return True, kernel_arguments.decl_struct_arg(annotation, name, arg_depth)
             return True, kernel_arguments.decl_scalar_arg(annotation, name, arg_depth)
 
-        def transform_as_kernel():
+        def transform_as_kernel() -> None:
             if node.returns is not None:
                 if not isinstance(node.returns, ast.Constant):
                     for return_type in ctx.func.return_type:
@@ -1728,7 +1753,7 @@ class ASTTransformer(Builder):
 build_stmt = ASTTransformer()
 
 
-def build_stmts(ctx: ASTTransformerContext, stmts: list):
+def build_stmts(ctx: ASTTransformerContext, stmts: list[ast.stmt]):
     with ctx.variable_scope_guard():
         for stmt in stmts:
             # print("stmt", stmt)
