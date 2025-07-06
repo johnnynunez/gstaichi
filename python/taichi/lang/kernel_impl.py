@@ -15,7 +15,7 @@ import types
 import typing
 import warnings
 import weakref
-from typing import Any, Callable, Type
+from typing import Any, Callable, Type, Union
 
 import numpy as np
 
@@ -27,7 +27,13 @@ import taichi.lang.snode
 import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
-from taichi._lib.core.taichi_python import ASTBuilder
+from taichi._lib.core.taichi_python import (
+    ASTBuilder,
+    FunctionKey,
+)
+from taichi._lib.core.taichi_python import (
+    Kernel as KernelCxx,
+)
 from taichi.lang import impl, ops, runtime_ops
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
 from taichi.lang.any_array import AnyArray
@@ -62,6 +68,8 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
+
+CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
 class TaichiCallable:
@@ -179,8 +187,8 @@ def _get_tree_and_ctx(
     )
 
 
-def _process_args(self: "Func | Kernel", args, kwargs):
-    ret = [argument.default for argument in self.arguments]
+def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs):
+    ret: list[Any] = [argument.default for argument in self.arguments]
     len_args = len(args)
 
     if len_args > len(ret):
@@ -228,9 +236,9 @@ class Func:
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
         self.arguments: list[KernelArgument] = []
-        self.return_type: tuple[Type] or None = None
+        self.return_type: tuple[Type, ...] | None = None
         self.extract_arguments()
-        self.template_slot_locations = []
+        self.template_slot_locations: list[int] = []
         for i, arg in enumerate(self.arguments):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
@@ -319,7 +327,7 @@ class Func:
             return ret[0]
         return tuple(ret)
 
-    def do_compile(self, key, args, arg_features):
+    def do_compile(self, key: FunctionKey, args, arg_features):
         tree, ctx = _get_tree_and_ctx(
             self, is_kernel=False, args=args, arg_features=arg_features, is_real_function=self.is_real_function
         )
@@ -343,10 +351,12 @@ class Func:
         if sig.return_annotation not in (inspect.Signature.empty, None):
             self.return_type = sig.return_annotation
             if (
-                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))  # type: ignore
                 and self.return_type.__origin__ is tuple
             ):
                 self.return_type = self.return_type.__args__
+            if self.return_type is None:
+                return
             if not isinstance(self.return_type, (list, tuple)):
                 self.return_type = (self.return_type,)
             for i, return_type in enumerate(self.return_type):
@@ -394,15 +404,26 @@ class Func:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
 
+AnnotationType = Union[
+    template,
+    ArgPackType,
+    "texture_type.TextureType",
+    "texture_type.RWTextureType",
+    ndarray_type.NdarrayType,
+    sparse_matrix_builder,
+    Any,
+]
+
+
 class TaichiCallableTemplateMapper:
-    def __init__(self, arguments, template_slot_locations):
+    def __init__(self, arguments: list[KernelArgument], template_slot_locations: list[int]) -> None:
         self.arguments = arguments
         self.num_args = len(arguments)
         self.template_slot_locations = template_slot_locations
         self.mapping = {}
 
     @staticmethod
-    def extract_arg(arg, anno, arg_name):
+    def extract_arg(arg, anno: AnnotationType, arg_name: str):
         if anno == template or isinstance(anno, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -538,7 +559,7 @@ class TaichiCallableTemplateMapper:
         return self.mapping[key], key
 
 
-def _get_global_vars(_func):
+def _get_global_vars(_func: Callable):
     # Discussions: https://github.com/taichi-dev/taichi/issues/282
     global_vars = _func.__globals__.copy()
 
@@ -555,7 +576,7 @@ def _get_global_vars(_func):
 class Kernel:
     counter = 0
 
-    def __init__(self, _func: Callable, autodiff_mode, _classkernel=False):
+    def __init__(self, _func: Callable, autodiff_mode: AutodiffMode, _classkernel=False):
         self.func = _func
         self.kernel_counter = Kernel.counter
         Kernel.counter += 1
@@ -567,7 +588,7 @@ class Kernel:
         )
         self.autodiff_mode = autodiff_mode
         self.grad: Kernel | None = None
-        self.arguments = []
+        self.arguments: list[KernelArgument] = []
         self.return_type = None
         self.classkernel = _classkernel
         self.extract_arguments()
@@ -579,7 +600,7 @@ class Kernel:
         impl.get_runtime().kernels.append(self)
         self.reset()
         self.kernel_cpp = None
-        self.compiled_kernels = {}
+        self.compiled_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
         self.has_print = False
 
     def ast_builder(self) -> ASTBuilder:
@@ -595,7 +616,7 @@ class Kernel:
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
             if (
-                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))
+                isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))  # type: ignore
                 and self.return_type.__origin__ is tuple
             ):
                 self.return_type = self.return_type.__args__
@@ -651,7 +672,7 @@ class Kernel:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
-    def materialize(self, key, args: list[Any], arg_features):
+    def materialize(self, key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
@@ -674,7 +695,7 @@ class Kernel:
 
         # Do not change the name of 'taichi_ast_generator'
         # The warning system needs this identifier to remove unnecessary messages
-        def taichi_ast_generator(kernel_cxx):
+        def taichi_ast_generator(kernel_cxx: Kernel):  # not sure if this type is correct, seems doubtful
             if self.runtime.inside_kernel:
                 raise TaichiSyntaxError(
                     "Kernels cannot call other kernels. I.e., nested kernels are not allowed. "
@@ -738,7 +759,7 @@ class Kernel:
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
-    def launch_kernel(self, t_kernel, *args):
+    def launch_kernel(self, t_kernel: KernelCxx, *args):
         assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
 
         tmps = []
@@ -749,7 +770,7 @@ class Kernel:
         max_arg_num = 64
         exceed_max_arg_num = False
 
-        def set_arg_ndarray(indices, v):
+        def set_arg_ndarray(indices: tuple[int, ...], v: taichi.lang._ndarray.Ndarray):
             v_primal = v.arr
             v_grad = v.grad.arr if v.grad else None
             if v_grad is None:
@@ -757,13 +778,13 @@ class Kernel:
             else:
                 launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)
 
-        def set_arg_texture(indices, v):
+        def set_arg_texture(indices: tuple[int, ...], v: taichi.lang._texture.Texture):
             launch_ctx.set_arg_texture(indices, v.tex)
 
-        def set_arg_rw_texture(indices, v):
+        def set_arg_rw_texture(indices: tuple[int, ...], v):
             launch_ctx.set_arg_rw_texture(indices, v.tex)
 
-        def set_arg_ext_array(indices, v, needed):
+        def set_arg_ext_array(indices: tuple[int, ...], v, needed):
             # Element shapes are already specialized in Taichi codegen.
             # The shape information for element dims are no longer needed.
             # Therefore we strip the element shapes from the shape vector,
@@ -895,7 +916,7 @@ class Kernel:
                     f"Argument {needed.to_string()} cannot be converted into required type {v}"
                 )
 
-        def set_arg_matrix(indices, v, needed):
+        def set_arg_matrix(indices: tuple[int, ...], v, needed):
             def cast_float(x):
                 if not isinstance(x, (int, float, np.integer, np.floating)):
                     raise TaichiRuntimeTypeError(
@@ -925,13 +946,13 @@ class Kernel:
             v = needed(*v)
             needed.set_kernel_struct_args(v, launch_ctx, indices)
 
-        def set_arg_sparse_matrix_builder(indices, v):
+        def set_arg_sparse_matrix_builder(indices: tuple[int, ...], v):
             # Pass only the base pointer of the ti.types.sparse_matrix_builder() argument
             launch_ctx.set_arg_uint(indices, v._get_ndarray_addr())
 
         set_later_list = []
 
-        def recursive_set_args(needed, provided, v, indices):
+        def recursive_set_args(needed, provided, v, indices: tuple[int, ...]):
             in_argpack = len(indices) > 1
             nonlocal actual_argument_slot, exceed_max_arg_num, set_later_list
             if actual_argument_slot >= max_arg_num:
@@ -1229,7 +1250,7 @@ class _BoundedDifferentiableMethod:
         self._primal = wrapped_kernel_func._primal
         self._adjoint = wrapped_kernel_func._adjoint
         self._is_staticmethod = wrapped_kernel_func._is_staticmethod
-        self.__name__ = None
+        self.__name__: str | None = None
 
     def __call__(self, *args, **kwargs):
         # try:
