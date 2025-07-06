@@ -133,7 +133,7 @@ class TaichiCallable:
         print("__get__ self", self, "instance", instance, "owner", owner)
         if instance is None:
             return self
-        return BoundFunc(self.fn, instance, self)
+        return BoundFunc(self.wrapper, instance, self)
 
 
 def func(fn: Callable, is_real_function=False) -> TaichiCallable:
