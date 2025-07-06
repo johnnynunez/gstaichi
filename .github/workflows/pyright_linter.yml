@@ -41,6 +41,9 @@ jobs:
           ls -lh dist/
           pip install dist/*.whl
           python -c 'import taichi as ti; ti.init(arch=ti.cpu); print(ti.__version__)'
+      - name: install torch and pyright
+        run: |
+          pip install -y torch pyright
       - name: run pyright
         run: |
-            pyright
+          pyright
