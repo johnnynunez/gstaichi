@@ -149,10 +149,10 @@ def pyfunc(fn: Callable) -> TaichiCallable:
 
 def _get_tree_and_ctx(
     self: "Func | Kernel",
+    args: tuple[Any, ...],
     excluded_parameters=(),
     is_kernel: bool = True,
     arg_features=None,
-    args=None,
     ast_builder: ASTBuilder | None = None,
     is_real_function: bool = False,
 ):
@@ -221,7 +221,7 @@ def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs):
                     f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
                 )
 
-    return ret
+    return tuple(ret)
 
 
 class Func:
@@ -352,9 +352,9 @@ class Func:
             self.return_type = sig.return_annotation
             if (
                 isinstance(self.return_type, (types.GenericAlias, typing._GenericAlias))  # type: ignore
-                and self.return_type.__origin__ is tuple
+                and self.return_type.__origin__ is tuple  # type: ignore
             ):
-                self.return_type = self.return_type.__args__
+                self.return_type = self.return_type.__args__  # type: ignore
             if self.return_type is None:
                 return
             if not isinstance(self.return_type, (list, tuple)):
