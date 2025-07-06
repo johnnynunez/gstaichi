@@ -1,15 +1,10 @@
 import numbers
 from types import FunctionType, MethodType
-from typing import Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 import numpy as np
 
 from taichi._lib import core as _ti_core
-from taichi._lib.core.taichi_python import (
-    DataType,
-    Function,
-    Program,
-)
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
 from taichi.lang._ndrange import GroupedNDRange, _Ndrange
@@ -24,7 +19,6 @@ from taichi.lang.exception import (
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field, ScalarField
 from taichi.lang.kernel_arguments import SparseMatrixProxy
-from taichi.lang.kernel_impl import BoundFunc, Kernel, TaichiCallable
 from taichi.lang.matrix import (
     Matrix,
     MatrixField,
@@ -66,6 +60,14 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
+if TYPE_CHECKING:
+    from taichi._lib.core.taichi_python import (
+        DataType,
+        Function,
+        Program,
+        KernelCxx,
+    )
+    from taichi.lang.kernel_impl import Kernel
 
 
 @taichi_scope
@@ -160,14 +162,14 @@ def begin_frontend_if(ast_builder, cond, stmt_dbg_info):
 def _calc_slice(index, default_stop):
     start, stop, step = index.start or 0, index.stop or default_stop, index.step or 1
 
-    def check_validity(x):
+    def check_validity(x: int) -> None:
         #  TODO(mzmzm): support variable in slice
         if isinstance(x, Expr):
             raise TaichiCompilationError(
                 "Taichi does not support variables in slice now, please use constant instead of it."
             )
 
-    check_validity(start), check_validity(stop), check_validity(step)
+    _, _, _ = check_validity(start), check_validity(stop), check_validity(step)
     return [_ for _ in range(start, stop, step)]
 
 
@@ -337,8 +339,8 @@ class PyTaichi:
         self.prog: Program | None = None
         self.src_info_stack = []
         self.inside_kernel = False
-        self.compiling_callable: Kernel | Function | None = None  # pointer to instance of lang::Kernel/Function
-        self.current_kernel: Kernel | None = None
+        self.compiling_callable: "KernelCxx | Kernel | Function | None" = None  # pointer to instance of lang::Kernel/Function
+        self.current_kernel: "Kernel | None" = None
         self.global_vars = []
         self.grad_vars = []
         self.dual_vars = []
@@ -1154,7 +1156,8 @@ def static(x, *xs) -> Any:
         return x
     if isinstance(x, Field):
         return x
-    if isinstance(x, (FunctionType, MethodType, BoundFunc, TaichiCallable)):
+    from taichi.lang import kernel_impl
+    if isinstance(x, (FunctionType, MethodType, kernel_impl.BoundFunc, kernel_impl.TaichiCallable)):
         print(" is instanace FunctionType or MethodType", x, type(x))
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")

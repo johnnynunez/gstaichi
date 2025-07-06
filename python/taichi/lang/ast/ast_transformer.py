@@ -51,7 +51,7 @@ from taichi.types import annotations, ndarray_type, primitive_types, texture_typ
 from taichi.types.utils import is_integral
 
 
-def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
+def reshape_list(flat_list: list[Any], target_shape: tuple[int, ...]) -> list[Any]:
     if len(target_shape) < 2:
         return flat_list
 
