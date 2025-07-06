@@ -1,5 +1,6 @@
 # type: ignore
 
+from typing import TYPE_CHECKING
 import numpy as np
 
 from taichi._lib import core as _ti_core
@@ -10,6 +11,8 @@ from taichi.types import primitive_types
 from taichi.types.enums import Layout
 from taichi.types.ndarray_type import NdarrayTypeMetadata
 from taichi.types.utils import is_real, is_signed
+if TYPE_CHECKING:
+    from taichi.lang.matrix import MatrixNdarray, VectorNdarray
 
 
 class Ndarray:
@@ -27,7 +30,7 @@ class Ndarray:
         self.dtype = None
         self.arr = None
         self.layout = Layout.AOS
-        self.grad = None
+        self.grad: 'ScalarNdarray' | 'VectorNdarray' | 'MatrixNdarray' | None = None
 
     def get_type(self):
         return NdarrayTypeMetadata(self.element_type, self.shape, self.grad is not None)
@@ -187,7 +190,7 @@ class Ndarray:
         ndarray_to_ndarray(self, other)
         impl.get_runtime().sync()
 
-    def _set_grad(self, grad):
+    def _set_grad(self, grad: "ScalarNdarray | VectorNdarray | MatrixNdarray"):
         """Sets the gradient ndarray.
 
         Args:
