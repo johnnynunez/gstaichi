@@ -73,15 +73,23 @@ CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
 class TaichiCallable:
-    def __init__(self, fn: Callable, fun: "Func", is_taichi_function: bool, is_real_function: bool):
-        self._is_taichi_function = is_taichi_function
-        self._is_real_function = is_real_function
-        self.func = fun
+    def __init__(self, fn: Callable, wrapper: Callable) -> None:
+        # self.func: Func | None = None
+        self.fn = fn
+        self.wrapper = wrapper
+        self._is_real_function = False
+        self._is_taichi_function = False
+        self._is_wrapped_kernel = False
+        self._is_classkernel = False
+        self._primal: Kernel | None = None
+        self._adjoint: Kernel | None = None
+        self.grad: Kernel | None = None
+        self._is_staticmethod = False
         functools.update_wrapper(self, fn)
 
     def __call__(self, *args, **kwargs):
         print("TaichiCallable.__call__ self", self, "args", args, "kwargs", kwargs)
-        return self.func.__call__(*args, **kwargs)
+        return self.wrapper.__call__(*args, **kwargs)
 
 
 def func(fn: Callable, is_real_function=False) -> TaichiCallable:
@@ -110,12 +118,13 @@ def func(fn: Callable, is_real_function=False) -> TaichiCallable:
     is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
 
     fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-    return TaichiCallable(
+    taichi_callable = TaichiCallable(
         fn,
         fun,
-        is_taichi_function=True,
-        is_real_function=is_real_function,
     )
+    taichi_callable._is_taichi_function = True
+    taichi_callable._is_real_function = is_real_function
+    return taichi_callable
 
 
 def real_func(fn: Callable):
@@ -139,12 +148,13 @@ def pyfunc(fn: Callable) -> TaichiCallable:
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3)
     fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
-    return TaichiCallable(
+    taichi_callable = TaichiCallable(
         fn,
         fun,
-        is_taichi_function=True,
-        is_real_function=False,
     )
+    taichi_callable._is_taichi_function = True
+    taichi_callable._is_real_function = False
+    return taichi_callable
 
 
 def _get_tree_and_ctx(
@@ -1162,7 +1172,7 @@ def _inside_class(level_of_class_stackframe):
     return False
 
 
-def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool = False):
+def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool = False) -> TaichiCallable:
     # Can decorators determine if a function is being defined inside a class?
     # https://stackoverflow.com/a/8793684/12003165
     is_classkernel = _inside_class(level_of_class_stackframe + 1)
@@ -1174,7 +1184,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
     # Having |primal| contains |grad| makes the tape work.
     primal.grad = adjoint
 
-    wrapped: Callable
+    wrapped: TaichiCallable
     if is_classkernel:
         # For class kernels, their primal/adjoint callables are constructed
         # when the kernel is accessed via the instance inside
@@ -1191,7 +1201,10 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
             assert not hasattr(clsobj, "_data_oriented")
             raise TaichiSyntaxError(f"Please decorate class {clsobj.__name__} with @ti.data_oriented")
 
-        wrapped = wrapped_classkernel
+        wrapped = TaichiCallable(
+            _func,
+            wrapped_classkernel,
+        )
     else:
 
         @functools.wraps(_func)
@@ -1203,7 +1216,10 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
                     raise e
                 raise type(e)("\n" + str(e)) from None
 
-        wrapped = wrapped_func
+        wrapped = TaichiCallable(
+            _func,
+            wrapped_func,
+        )
         wrapped.grad = adjoint
 
     wrapped._is_wrapped_kernel = True
@@ -1315,11 +1331,12 @@ def data_oriented(cls):
                 wrapped = x.__func__
             else:
                 wrapped = x
+            assert isinstance(wrapped, TaichiCallable)
             wrapped._is_staticmethod = is_staticmethod
-            assert inspect.isfunction(wrapped)
+            # assert inspect.isfunction(wrapped)
             if wrapped._is_classkernel:
                 ret = _BoundedDifferentiableMethod(self, wrapped)
-                ret.__name__ = wrapped.__name__
+                ret.__name__ = wrapped.__name__  # type: ignore
                 if is_property:
                     return ret()
                 return ret

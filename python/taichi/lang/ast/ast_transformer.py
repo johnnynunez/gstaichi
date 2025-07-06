@@ -609,11 +609,10 @@ class ASTTransformer(Builder):
             node.ptr = func(node.func.caller, *args, **keywords)
             return node.ptr
 
-        # Handle TaichiCallable class functions that need self parameter
         if (
             isinstance(func, kernel_impl.TaichiCallable)
-            and func.func.classfunc
-            and len(args) == len(func.func.arguments) - 1
+            and func.wrapper.classfunc
+            and len(args) == len(func.wrapper.arguments) - 1
         ):
             # This is a method call without the self parameter
             # We need to get the self parameter from the current context
@@ -641,7 +640,7 @@ class ASTTransformer(Builder):
             raise TaichiTypeError(msg)
 
         if getattr(func, "_is_taichi_function", False):
-            ctx.func.has_print |= func.func.has_print
+            ctx.func.has_print |= func.wrapper.has_print
 
         return node.ptr
 
