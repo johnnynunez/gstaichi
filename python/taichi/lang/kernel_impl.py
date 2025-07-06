@@ -1124,7 +1124,7 @@ class Kernel:
             return launch_ctx.get_struct_ret_float(index)
         raise TaichiRuntimeTypeError(f"Invalid return type on index={index}")
 
-    def ensure_compiled(self, args: tuple[Any, ...]) -> tuple[Callable, int, AutodiffMode]:
+    def ensure_compiled(self, *args: tuple[Any, ...]) -> tuple[Callable, int, AutodiffMode]:
         instance_id, arg_features = self.mapper.lookup(args)
         key = (self.func, instance_id, self.autodiff_mode)
         self.materialize(key=key, args=args, arg_features=arg_features)
