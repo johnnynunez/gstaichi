@@ -13,7 +13,6 @@ import types
 import typing
 import warnings
 import weakref
-from array import ArrayType
 from typing import Any, Callable, Type, Union
 
 import numpy as np
