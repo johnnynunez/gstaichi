@@ -79,27 +79,35 @@ class BoundFunc:
     def __call__(self, *args):
         return self.fn(self.instance, *args)
 
-    @property
-    def grad(self):
-        print("property grad", self.taichi_callable.grad)
-        return self.taichi_callable.grad
+    # @property
+    # def grad(self):
+    #     print("property grad", self.taichi_callable.grad)
+    #     return self.taichi_callable.grad
 
-    @property
-    def _is_staticmethod(self):
-        return self.taichi_callable._is_staticmethod
+    # @property
+    # def _is_staticmethod(self):
+    #     return self.taichi_callable._is_staticmethod
 
-    @_is_staticmethod.setter
-    def _is_staticmethod(self, value):
-        self.taichi_callable._is_staticmethod = value
+    # @_is_staticmethod.setter
+    # def _is_staticmethod(self, value):
+    #     self.taichi_callable._is_staticmethod = value
 
-    @property
-    def _is_classkernel(self):
-        return self.taichi_callable._is_classkernel
+    # @property
+    # def _is_classkernel(self):
+    #     return self.taichi_callable._is_classkernel
 
     def __getattr__(self, k) -> Any:
         res = getattr(self.taichi_callable, k)
         print("getattr", k, "=>", res)
         return res
+
+    def __setattr__(self, k, v) -> None:
+        if k in ("fn", "instance", "taichi_callable"):
+            object.__setattr__(self, k, v)
+        else:
+            print("setattr", k, "=", v)
+            # assert self.taichi_callable.__h, k)
+            setattr(self.taichi_callable, k, v)
 
 
 class TaichiCallable:
