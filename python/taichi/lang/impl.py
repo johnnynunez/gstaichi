@@ -23,6 +23,7 @@ from taichi.lang.exception import (
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field, ScalarField
 from taichi.lang.kernel_arguments import SparseMatrixProxy
+from taichi.lang.kernel_impl import BoundFunc, TaichiCallable
 from taichi.lang.matrix import (
     Matrix,
     MatrixField,
@@ -1155,7 +1156,7 @@ def static(x, *xs) -> Any:
     if isinstance(x, Field):
         return x
 
-    if isinstance(x, (FunctionType, MethodType, kernel_impl.BoundFunc, kernel_impl.TaichiCallable)):
+    if isinstance(x, (FunctionType, MethodType, BoundFunc, TaichiCallable)):
         print(" is instanace FunctionType or MethodType", x, type(x))
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")
