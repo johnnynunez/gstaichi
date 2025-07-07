@@ -99,9 +99,9 @@ class TaichiCallable:
         self._is_taichi_function = False
         self._is_wrapped_kernel = False
         self._is_classkernel = False
-        self._primal: "Kernel | None" = None
-        self._adjoint: "Kernel | None" = None
-        self.grad: "Kernel | None" = None
+        self._primal: Kernel | None = None
+        self._adjoint: Kernel | None = None
+        self.grad: Kernel | None = None
         self._is_staticmethod = False
         functools.update_wrapper(self, fn)
 
@@ -112,6 +112,71 @@ class TaichiCallable:
         if instance is None:
             return self
         return BoundFunc(self.wrapper, instance, self)
+
+
+def func(fn: Callable, is_real_function=False) -> TaichiCallable:
+    """Marks a function as callable in Taichi-scope.
+
+    This decorator transforms a Python function into a Taichi one. Taichi
+    will JIT compile it into native instructions.
+
+    Args:
+        fn (Callable): The Python function to be decorated
+        is_real_function (bool): Whether the function is a real function
+
+    Returns:
+        Callable: The decorated function
+
+    Example::
+
+        >>> @ti.func
+        >>> def foo(x):
+        >>>     return x + 2
+        >>>
+        >>> @ti.kernel
+        >>> def run():
+        >>>     print(foo(40))  # 42
+    """
+    is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
+
+    fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
+    taichi_callable = TaichiCallable(
+        fn,
+        fun,
+    )
+    taichi_callable._is_taichi_function = True
+    taichi_callable._is_real_function = is_real_function
+    return taichi_callable
+
+
+def real_func(fn: Callable) -> TaichiCallable:
+    return func(fn, is_real_function=True)
+
+
+def pyfunc(fn: Callable) -> TaichiCallable:
+    """Marks a function as callable in both Taichi and Python scopes.
+
+    When called inside the Taichi scope, Taichi will JIT compile it into
+    native instructions. Otherwise it will be invoked directly as a
+    Python function.
+
+    See also :func:`~taichi.lang.kernel_impl.func`.
+
+    Args:
+        fn (Callable): The Python function to be decorated
+
+    Returns:
+        Callable: The decorated function
+    """
+    is_classfunc = _inside_class(level_of_class_stackframe=3)
+    fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
+    taichi_callable = TaichiCallable(
+        fn,
+        fun,
+    )
+    taichi_callable._is_taichi_function = True
+    taichi_callable._is_real_function = False
+    return taichi_callable
 
 
 def _get_tree_and_ctx(
@@ -417,71 +482,6 @@ class Func:
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
-
-
-def func(fn: Callable, is_real_function=False) -> TaichiCallable:
-    """Marks a function as callable in Taichi-scope.
-
-    This decorator transforms a Python function into a Taichi one. Taichi
-    will JIT compile it into native instructions.
-
-    Args:
-        fn (Callable): The Python function to be decorated
-        is_real_function (bool): Whether the function is a real function
-
-    Returns:
-        Callable: The decorated function
-
-    Example::
-
-        >>> @ti.func
-        >>> def foo(x):
-        >>>     return x + 2
-        >>>
-        >>> @ti.kernel
-        >>> def run():
-        >>>     print(foo(40))  # 42
-    """
-    is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
-
-    fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-    taichi_callable = TaichiCallable(
-        fn,
-        fun,
-    )
-    taichi_callable._is_taichi_function = True
-    taichi_callable._is_real_function = is_real_function
-    return taichi_callable
-
-
-def real_func(fn: Callable) -> TaichiCallable:
-    return func(fn, is_real_function=True)
-
-
-def pyfunc(fn: Callable) -> TaichiCallable:
-    """Marks a function as callable in both Taichi and Python scopes.
-
-    When called inside the Taichi scope, Taichi will JIT compile it into
-    native instructions. Otherwise it will be invoked directly as a
-    Python function.
-
-    See also :func:`~taichi.lang.kernel_impl.func`.
-
-    Args:
-        fn (Callable): The Python function to be decorated
-
-    Returns:
-        Callable: The decorated function
-    """
-    is_classfunc = _inside_class(level_of_class_stackframe=3)
-    fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
-    taichi_callable = TaichiCallable(
-        fn,
-        fun,
-    )
-    taichi_callable._is_taichi_function = True
-    taichi_callable._is_real_function = False
-    return taichi_callable
 
 
 AnnotationType = Union[
