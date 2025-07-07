@@ -1,10 +1,14 @@
 import numbers
 from types import FunctionType, MethodType
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 
 from taichi._lib import core as _ti_core
+from taichi._lib.core.taichi_python import (
+    DataTypeCxx,
+    Program,
+)
 from taichi._snode.fields_builder import FieldsBuilder
 from taichi.lang._ndarray import ScalarNdarray
 from taichi.lang._ndrange import GroupedNDRange, _Ndrange
@@ -60,16 +64,6 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
-
-if TYPE_CHECKING:
-    from taichi._lib.core.taichi_python import (
-        DataTypeCxx,
-        Function,
-        KernelCxx,
-        Program,
-    )
-    from taichi.lang.kernel_impl import Kernel
-from taichi.lang import kernel_impl
 
 
 @taichi_scope
