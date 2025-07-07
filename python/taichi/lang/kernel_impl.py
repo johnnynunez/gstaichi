@@ -29,10 +29,8 @@ from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
     ASTBuilder,
     FunctionKey,
-    KernelLaunchContext,
-)
-from taichi._lib.core.taichi_python import (
     KernelCxx,
+    KernelLaunchContext,
 )
 from taichi.lang import impl, ops, runtime_ops
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
@@ -260,7 +258,7 @@ class Func:
         # asdfadf
         pass
 
-    def __call__(self: 'Func', *args, **kwargs) -> Any:
+    def __call__(self: "Func", *args, **kwargs) -> Any:
         print("__call__")
         # asdafdf
         args = _process_args(self, args, kwargs)
@@ -814,7 +812,7 @@ class Kernel:
             f.write(ast.dump(tree, indent=2))
         return new_tree
 
-    def materialize(self: 'Kernel', key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
+    def materialize(self: "Kernel", key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()

@@ -60,12 +60,13 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
+
 if TYPE_CHECKING:
     from taichi._lib.core.taichi_python import (
         DataTypeCxx,
         Function,
-        Program,
         KernelCxx,
+        Program,
     )
     from taichi.lang.kernel_impl import Kernel
 
@@ -339,7 +340,9 @@ class PyTaichi:
         self.prog: Program | None = None
         self.src_info_stack = []
         self.inside_kernel = False
-        self.compiling_callable: "KernelCxx | Kernel | Function | None" = None  # pointer to instance of lang::Kernel/Function
+        self.compiling_callable: "KernelCxx | Kernel | Function | None" = (
+            None  # pointer to instance of lang::Kernel/Function
+        )
         self.current_kernel: "Kernel | None" = None
         self.global_vars = []
         self.grad_vars = []
@@ -1157,6 +1160,7 @@ def static(x, *xs) -> Any:
     if isinstance(x, Field):
         return x
     from taichi.lang import kernel_impl
+
     if isinstance(x, (FunctionType, MethodType, kernel_impl.BoundFunc, kernel_impl.TaichiCallable)):
         print(" is instanace FunctionType or MethodType", x, type(x))
         return x
