@@ -7,7 +7,7 @@ from taichi._lib.core.taichi_python import (
     Axis,
 )
 from taichi._lib.core.taichi_python import (
-    SNode as SNodeCxx,
+    SNodeCxx,
 )
 from taichi.lang import expr, impl, matrix
 from taichi.lang.exception import TaichiRuntimeError
