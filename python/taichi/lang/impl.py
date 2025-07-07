@@ -1,6 +1,6 @@
 import numbers
 from types import FunctionType, MethodType
-from typing import Any, Iterable, Sequence, TYPE_CHECKING
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 
@@ -66,13 +66,6 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
-if TYPE_CHECKING:
-    from taichi._lib.core.taichi_python import (
-        DataTypeCxx,
-        Function,
-        Program,
-    )
-    from taichi.lang.kernel_impl import Kernel
 
 
 @taichi_scope
