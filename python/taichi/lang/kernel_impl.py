@@ -462,7 +462,7 @@ class TaichiCallableTemplateMapper:
                 return arg.ptr
             if isinstance(arg, taichi.lang.expr.Expr):
                 return arg.ptr.get_underlying_ptr_address()
-            if isinstance(arg, _ti_core.Expr):
+            if isinstance(arg, _ti_core.ExprCxx):
                 return arg.get_underlying_ptr_address()
             if isinstance(arg, tuple):
                 return tuple(TaichiCallableTemplateMapper.extract_arg(item, anno, arg_name) for item in arg)

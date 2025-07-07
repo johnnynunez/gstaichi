@@ -1,12 +1,12 @@
 import numbers
 from types import FunctionType, MethodType
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
-    DataType,
+    DataTypeCxx,
     Function,
     Program,
 )
@@ -66,6 +66,13 @@ from taichi.types.primitive_types import (
     u32,
     u64,
 )
+if TYPE_CHECKING:
+    from taichi._lib.core.taichi_python import (
+        DataTypeCxx,
+        Function,
+        Program,
+    )
+    from taichi.lang.kernel_impl import Kernel
 
 
 @taichi_scope
@@ -99,7 +106,7 @@ def expr_init(rhs):
         return tuple(expr_init(e) for e in rhs)
     if isinstance(rhs, dict):
         return dict((key, expr_init(val)) for key, val in rhs.items())
-    if isinstance(rhs, _ti_core.DataType):
+    if isinstance(rhs, _ti_core.DataTypeCxx):
         return rhs
     if isinstance(rhs, _ti_core.Arch):
         return rhs
@@ -875,7 +882,7 @@ def ndarray(dtype, shape, needs_grad=False):
     else:
         raise TaichiRuntimeError(f"{dtype} is not supported as ndarray element type")
     if needs_grad:
-        assert isinstance(dt, DataType)
+        assert isinstance(dt, DataTypeCxx)
         if not _ti_core.is_real(dt):
             raise TaichiRuntimeError(f"{dt} is not supported for ndarray with `needs_grad=True` or `needs_dual=True`.")
         x_grad = ndarray(dtype, shape, needs_grad=False)
