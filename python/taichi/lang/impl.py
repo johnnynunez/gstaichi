@@ -69,6 +69,7 @@ if TYPE_CHECKING:
         Program,
     )
     from taichi.lang.kernel_impl import Kernel
+from taichi.lang import kernel_impl
 
 
 @taichi_scope
@@ -1159,7 +1160,6 @@ def static(x, *xs) -> Any:
         return x
     if isinstance(x, Field):
         return x
-    from taichi.lang import kernel_impl
 
     if isinstance(x, (FunctionType, MethodType, kernel_impl.BoundFunc, kernel_impl.TaichiCallable)):
         print(" is instanace FunctionType or MethodType", x, type(x))
