@@ -730,7 +730,7 @@ class Kernel:
 
         # Do not change the name of 'taichi_ast_generator'
         # The warning system needs this identifier to remove unnecessary messages
-        def taichi_ast_generator(kernel_cxx: Kernel):  # not sure if this type is correct, seems doubtful
+        def taichi_ast_generator(kernel_cxx: KernelCxx):
             if self.runtime.inside_kernel:
                 raise TaichiSyntaxError(
                     "Kernels cannot call other kernels. I.e., nested kernels are not allowed. "
