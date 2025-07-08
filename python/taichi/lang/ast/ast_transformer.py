@@ -997,13 +997,17 @@ class ASTTransformer(Builder):
                 # deal with dataclasses
                 print("")
                 print("********* iterate over args.args")
-                sig = inspect.signature(ctx.func.func)
-                for k, v in sig.parameters.items():
-                    print("    ", k, v, type(v), v.annotation)
+                # sig = inspect.signature(ctx.func.func)
+                # for k, v in sig.parameters.items():
+                for v in ctx.func.orig_arguments:
+                    # k = arg.name
+                    # v = arg.annotation
+                    # print("    ", k, v, type(v), v.annotation)
+                    print("    ", v.name, v.annotation)
                     if dataclasses.is_dataclass(v.annotation):
                         print("found dataclass")
-                        print("create variabele", k, "=", v.annotation)
-                        ctx.create_variable(k, v.annotation)
+                        print("create variabele", v.name, "=", v.annotation)
+                        ctx.create_variable(v.name, v.annotation)
                 # print([(arg.name, arg.annotation) for arg in sig.parameters])
                 for arg in args.args:
                     # val = arg.ptr
