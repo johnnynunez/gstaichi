@@ -570,12 +570,12 @@ class ASTTransformer(Builder):
             val = arg.ptr
             print("  i", i, "arg", ast.dump(arg), "val", val)
             if dataclasses.is_dataclass(val):
-                print("found dataclass")
+                print("found dataclass val", val)
                 dataclass_type = val
                 for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
                     field_name = field.name
                     field_type = field.type
-                    field_val = getattr(val, field_name)
+                    # field_val = getattr(val, field_name)
                     child_name = f"__ti_{arg.id}_{field_name}"
                     print("child_name", child_name)
                     load_ctx = ast.Load()
@@ -602,6 +602,9 @@ class ASTTransformer(Builder):
     @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call):
         print("build_Call", ast.dump(node))
+        print('ctx.local_scopes:')
+        for scope in ctx.local_scopes:
+            print('  ', scope)
         if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
@@ -800,6 +803,7 @@ class ASTTransformer(Builder):
                     print("     transform_as_kernel got dataclass")
                     dataclass_type = ctx.func.arguments[i].annotation
                     arg_features = ctx.arg_features[i]
+                    ctx.create_variable(ctx.func.arguments[i].name, dataclass_type)
                     for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
                         field_name = field.name
                         new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
@@ -1897,8 +1901,12 @@ build_stmt = ASTTransformer()
 
 def build_stmts(ctx: ASTTransformerContext, stmts: list[ast.stmt]):
     with ctx.variable_scope_guard():
+        print("inside ctx.variable_scope_guard, scopes:")
+        for scope in ctx.local_scopes:
+            print("    ", scope)
         for stmt in stmts:
             if ctx.returned != ReturnStatus.NoReturn or ctx.loop_status() != LoopStatus.Normal:
+                print("     breaking")
                 break
             else:
                 build_stmt(ctx, stmt)

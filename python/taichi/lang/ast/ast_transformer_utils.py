@@ -284,10 +284,11 @@ class ASTTransformerContext:
         for s in reversed(self.local_scopes):
             # print("local scope", s)
             if name in s:
-                print("  returning", s[name])
+                print("  returning", name, "from local scope", s[name])
                 return s[name]
         if name in self.global_vars:
             var = self.global_vars[name]
+            print("  returning", name, "from global scope")
             from taichi.lang.matrix import (  # pylint: disable-msg=C0415
                 Matrix,
                 make_matrix,
