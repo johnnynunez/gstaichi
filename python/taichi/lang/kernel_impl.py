@@ -923,7 +923,7 @@ class Kernel:
         max_arg_num = 64
         exceed_max_arg_num = False
 
-        print("launch_kernel", t_kernel.__qualname__)
+        print("launch_kernel")
 
         def set_arg_ndarray(indices: tuple[int, ...], v: taichi.lang._ndarray.Ndarray) -> None:
             v_primal = v.arr
