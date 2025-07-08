@@ -29,25 +29,26 @@ class Builder:
         method_name = "build_" + node.__class__.__name__
         print(method_name, ast.dump(node)[:150])
         method = getattr(self, method_name, None)
-        try:
+        # try:
+        if True:
             if method is None:
                 error_msg = f'Unsupported node "{node.__class__.__name__}"'
                 raise TaichiSyntaxError(error_msg)
             info = ctx.get_pos_info(node) if isinstance(node, (ast.stmt, ast.expr)) else ""
             with impl.get_runtime().src_info_guard(info):
                 return method(ctx, node)
-        except Exception as e:
-            if impl.get_runtime().print_full_traceback:
-                raise e
-            if ctx.raised or not isinstance(node, (ast.stmt, ast.expr)):
-                raise e.with_traceback(None)
-            ctx.raised = True
-            e = handle_exception_from_cpp(e)
-            if not isinstance(e, TaichiCompilationError):
-                msg = ctx.get_pos_info(node) + traceback.format_exc()
-                raise TaichiCompilationError(msg) from None
-            msg = ctx.get_pos_info(node) + str(e)
-            raise type(e)(msg) from None
+        # except Exception as e:
+        #     if impl.get_runtime().print_full_traceback:
+        #         raise e
+        #     if ctx.raised or not isinstance(node, (ast.stmt, ast.expr)):
+        #         raise e.with_traceback(None)
+        #     ctx.raised = True
+        #     e = handle_exception_from_cpp(e)
+        #     if not isinstance(e, TaichiCompilationError):
+        #         msg = ctx.get_pos_info(node) + traceback.format_exc()
+        #         raise TaichiCompilationError(msg) from None
+        #     msg = ctx.get_pos_info(node) + str(e)
+        #     raise type(e)(msg) from None
 
 
 class VariableScopeGuard:
@@ -198,6 +199,7 @@ class ASTTransformerContext:
         self.visited_funcdef = False
         self.is_real_function = is_real_function
         self.kernel_args: list = []
+        print("ASTTransformerContext.__init__ func", func, "is_kernel", is_kernel)
 
     # e.g.: FunctionDef, Module, Global
     def variable_scope_guard(self):
@@ -298,10 +300,16 @@ class ASTTransformerContext:
         try:
             return getattr(builtins, name)
         except AttributeError:
+            print("ERROR: failed to find var", name, "lets print some diag info")
+            print("local scopes:")
+            for s in reversed(self.local_scopes):
+                print("    s.keys()", s.keys())
+            print("global_vars.keys()", self.global_vars.keys())
             raise TaichiNameError(f'Name "{name}" is not defined')
 
     def get_pos_info(self, node: ast.AST) -> str:
         msg = f'File "{self.file}", line {node.lineno + self.lineno_offset}, in {self.func.func.__name__}:\n'
+        print("msg", msg)
         col_offset = self.indent + node.col_offset
         end_col_offset = self.indent + node.end_col_offset
 
@@ -315,6 +323,7 @@ class ASTTransformerContext:
                 return "\n\n"
             return "".join([c + "\n" + h + "\n" for c, h in zip(code, hint)])
 
+        print("node", node, ast.dump(node), node.__dict__)
         if node.lineno == node.end_lineno:
             hint = " " * col_offset + "^" * (end_col_offset - col_offset)
             msg += gen_line(self.src[node.lineno - 1], hint)

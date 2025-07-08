@@ -322,11 +322,38 @@ class Func:
         self.taichi_functions = {}  # The |Function| class in C++
         self.has_print = False
 
-    def unpack_dataclasses(self, tree) -> Any:
-        print("unpack_dataclasses")
+    # def unpack_dataclasses(self, tree) -> Any:
+    #     print("unpack_dataclasses")
+    #     # print("type(tree)", type(tree))
+    #     # asdfadf
+    #     pass
+
+    def unpack_ndarray_struct(self, tree: ast.Module) -> ast.Module:
+        print("unpack_ndarray_struct (ast.Module)")
         # print("type(tree)", type(tree))
-        # asdfadf
-        pass
+        # print("dir(tree)", dir(tree))
+        class AttributeToNameTransformer(ast.NodeTransformer):
+            def visit_Attribute(self, node):
+                # Replace Attribute with Name using the attribute's name
+                if isinstance(node.value, ast.Attribute):
+                    return node
+                # print('node.')
+                # print("node.value", node.value, type(node.value), dir(node.value))
+                assert isinstance(node.value, ast.Name)
+                base_id = node.value.id
+                if base_id == "ti":
+                    return node
+                attr_name = node.attr
+                new_id = "__ti_" + base_id + "_" + attr_name
+                print("    AttributeToNameTransformer ", new_id)
+                return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+
+        transformer = AttributeToNameTransformer()
+        new_tree = transformer.visit(tree)
+        ast.fix_missing_locations(new_tree)
+        with open("/tmp/ast/unpack_func.ast", "w") as f:
+            f.write(ast.dump(tree, indent=2))
+        return new_tree
 
     def __call__(self: "Func", *args, **kwargs) -> Any:
         print("__call__")
@@ -357,7 +384,8 @@ class Func:
             ast_builder=current_kernel.ast_builder(),
             is_real_function=self.is_real_function,
         )
-        tree = self.unpack_dataclasses(tree)
+        tree = self.unpack_ndarray_struct(tree)
+        # tree = self.unpack_dataclasses(tree)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -484,6 +512,10 @@ class Func:
                 elif isinstance(annotation, template):
                     pass
                 elif isinstance(annotation, primitive_types.RefType):
+                    pass
+                elif isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
+                    print("is dataclass")
+                    # asasdf
                     pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
@@ -835,7 +867,7 @@ class Kernel:
         transformer = AttributeToNameTransformer()
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
-        with open("/tmp/ast/unpack.ast", "w") as f:
+        with open("/tmp/ast/unpack_kernel.ast", "w") as f:
             f.write(ast.dump(tree, indent=2))
         return new_tree
 

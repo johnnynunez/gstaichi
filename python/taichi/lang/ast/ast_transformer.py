@@ -248,10 +248,13 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_Subscript(ctx: ASTTransformerContext, node: ast.Subscript):
+        print("build_Subscript node", ast.dump(node))
         build_stmt(ctx, node.value)
         build_stmt(ctx, node.slice)
         if not ASTTransformer.is_tuple(node.slice):
+            print("  is_tuple")
             node.slice.ptr = [node.slice.ptr]
+        print("  node.value.ptr", node.value.ptr, "node.slice.ptr", node.slice.ptr)
         node.ptr = impl.subscript(ctx.ast_builder, node.value.ptr, *node.slice.ptr)
         return node.ptr
 
@@ -560,7 +563,45 @@ class ASTTransformer(Builder):
         return args
 
     @staticmethod
+    def expand_node_args_dataclasses(args: tuple[ast.AST]) -> tuple[ast.AST]:
+        # TODO: need to implement this
+        args_new = []
+        for i, arg in enumerate(args):
+            val = arg.ptr
+            print("  i", i, "arg", ast.dump(arg), "val", val)
+            if dataclasses.is_dataclass(val):
+                print("found dataclass")
+                dataclass_type = val
+                for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
+                    field_name = field.name
+                    field_type = field.type
+                    field_val = getattr(val, field_name)
+                    child_name = f"__ti_{arg.id}_{field_name}"
+                    print("child_name", child_name)
+                    load_ctx = ast.Load()
+                    # module = ast.parse(f"def func({child_name}):\n    pass")
+                    # arg_node = module.body[0].args.args[0]
+                    arg_node = ast.Name(
+                        id=child_name,
+                        ctx=load_ctx,
+                        lineno=arg.lineno,
+                        end_lineno=arg.end_lineno,
+                        col_offset=arg.col_offset,
+                        end_col_offset=arg.end_col_offset,
+                    )
+                    print('arg_node', ast.dump(arg_node), arg_node.__dict__)
+                    # ast_str = ast.dump(arg_node)
+                    # print("ast_str", ast_str)
+                    args_new.append(arg_node)
+            else:
+                args_new.append(arg)
+        return tuple(args_new)
+
+    # ast.dump(ast.parse("def func(foo: int):\n    pass").body[0].args.args[0])
+
+    @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call):
+        print("build_Call", ast.dump(node))
         if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
@@ -568,11 +609,20 @@ class ASTTransformer(Builder):
                 build_stmts(ctx, node.keywords)
         else:
             build_stmt(ctx, node.func)
+            print("   iterate args")
+            for i, arg in enumerate(node.args):
+                print("      i", i, "arg", ast.dump(arg))
+            print("  build_stmts over args...")
+            build_stmts(ctx, node.args)
+            print("  ... build_stmts over args done")
+            node.args = ASTTransformer.expand_node_args_dataclasses(node.args)
             build_stmts(ctx, node.args)
             build_stmts(ctx, node.keywords)
 
         args = []
-        for arg in node.args:
+        print("  build_Call iterate node.args len(node.args)", len(node.args))
+        for i, arg in enumerate(node.args):
+            print("    i", i, "arg", ast.dump(arg), 'arg.ptr', arg.ptr, type(arg.ptr))
             if isinstance(arg, ast.Starred):
                 arg_list = arg.ptr
                 if isinstance(arg_list, Expr) and arg_list.is_tensor():
@@ -611,6 +661,7 @@ class ASTTransformer(Builder):
 
         ASTTransformer.warn_if_is_external_func(ctx, node)
         try:
+            print(". build_Call calling function", func)
             node.ptr = func(*args, **keywords)
         except TypeError as e:
             module = inspect.getmodule(func)
@@ -745,13 +796,13 @@ class ASTTransformer(Builder):
                         invoke_later_dict[item[0]] = argpack, item[1], *item[2]
                     create_variable_later[arg.arg] = argpack
                 elif dataclasses.is_dataclass(ctx.func.arguments[i].annotation):
-                    print("got dataclass")
+                    print("     transform_as_kernel got dataclass")
                     dataclass_type = ctx.func.arguments[i].annotation
                     arg_features = ctx.arg_features[i]
                     for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
                         field_name = field.name
                         new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
-                        print("field_name", field_name, field.type, "new_field_name", new_field_name)
+                        print("     transform_as_kernel   field_name", field_name, field.type, "new_field_name", new_field_name)
                         # print("ctx.arg_features[i]", ctx.arg_features[i])
                         result, obj = decl_and_create_variable(
                             field.type,
@@ -761,6 +812,7 @@ class ASTTransformer(Builder):
                             "",
                             0,
                         )
+                        print("     transform_as_kernel calling ctx.create_variable", new_field_name, str(obj)[:100])
                         ctx.create_variable(new_field_name, obj if result else obj[0](*obj[1]))
                 else:
                     call_params = [
@@ -801,10 +853,60 @@ class ASTTransformer(Builder):
                 transform_as_kernel()
             else:
                 assert len(args.args) == len(ctx.argument_data)
+                print("ti.func iterate args")
                 for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
+                    print("  ti.func arg i", i, "data", str(data)[:100])
                     # Template arguments are passed by reference.
                     if isinstance(ctx.func.arguments[i].annotation, annotations.template):
                         ctx.create_variable(ctx.func.arguments[i].name, data)
+                        continue
+
+                    elif dataclasses.is_dataclass(ctx.func.arguments[i].annotation):
+                        print("got dataclass")
+                        dataclass_type = ctx.func.arguments[i].annotation
+                        # arg_features = ctx.arg_features[i]
+                        for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
+                            field_name = field.name
+                            field_type = field.type
+                            new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
+                            print("field_name", field_name, field.type, "new_field_name", new_field_name)
+                            # print("ctx.arg_features[i]", ctx.arg_features[i])
+                            # result, obj = decl_and_create_variable(
+                            #     field.type,
+                            #     new_field_name,
+                            #     arg_features[field_idx],
+                            #     invoke_later_dict,
+                            #     "",
+                            #     0,
+                            # )
+                            # ctx.create_variable(new_field_name, obj if result else obj[0](*obj[1]))
+                            data_child = getattr(data, field_name)
+                            if not isinstance(
+                                data_child,
+                                (
+                                    _ndarray.ScalarNdarray,
+                                    matrix.VectorNdarray,
+                                    matrix.MatrixNdarray,
+                                    any_array.AnyArray,
+                                ),
+                            ):
+                                raise TaichiSyntaxError(
+                                    f"Argument {arg.arg} of type {dataclass_type} {field_type} is not recognized."
+                                )
+                            field_type.check_matched(data_child.get_type(), field_name)
+                            var_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
+                            print("    creating var", var_name, "=", str(data_child)[:50])
+                            print("        ctx.arg_features", ctx.arg_features)
+                            data_child_anyarray = decl_and_create_variable(
+                                field_type,
+                                var_name,
+                                ctx.arg_features[i] if ctx.arg_features is not None else None,
+                                invoke_later_dict,
+                                "",
+                                0,
+                            )
+                            print("data_child_anyarray", data_child_anyarray)
+                            ctx.create_variable(var_name, data_child)
                         continue
 
                     # Ndarray arguments are passed by reference.
