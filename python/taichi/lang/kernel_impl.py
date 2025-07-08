@@ -1157,6 +1157,8 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
+        print("Kernel.__call__", self.func)
+        print("  Kernel.__call__", self.func, " _process_args")
         args = _process_args(self, args, kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
@@ -1182,8 +1184,10 @@ class Kernel:
         if self.autodiff_mode != AutodiffMode.NONE and impl.current_cfg().opt_level == 0:
             _logging.warn("""opt_level = 1 is enforced to enable gradient computation.""")
             impl.current_cfg().opt_level = 1
+        print("  Kernel.__call__", self.func, " ensure_compiled")
         key = self.ensure_compiled(*args)
         kernel_cpp = self.compiled_kernels[key]
+        print("  Kernel.__call__", self.func, " launch_kernel")
         return self.launch_kernel(kernel_cpp, *args)
 
 
