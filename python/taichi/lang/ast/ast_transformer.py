@@ -883,6 +883,9 @@ class ASTTransformer(Builder):
                     elif dataclasses.is_dataclass(ctx.func.arguments[data_i].annotation):
                         print("got dataclass")
                         dataclass_type = ctx.func.arguments[data_i].annotation
+                        # print("******* creating var name", ctx.func.arguments[data_i].name, "value", dataclass_type)
+                        # ctx.create_variable(ctx.func.arguments[data_i].name, dataclass_type)
+                        # asdasdf
                         # arg_features = ctx.arg_features[i]
                         for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
                             field_name = field.name
@@ -991,6 +994,22 @@ class ASTTransformer(Builder):
                     # Create a copy for non-template arguments,
                     # so that they are passed by value.
                     ctx.create_variable(arg.arg, impl.expr_init_func(data))
+                # deal with dataclasses
+                print("")
+                print("********* iterate over args.args")
+                sig = inspect.signature(ctx.func.func)
+                for k, v in sig.parameters.items():
+                    print("    ", k, v, type(v), v.annotation)
+                    if dataclasses.is_dataclass(v.annotation):
+                        print("found dataclass")
+                        print("create variabele", k, "=", v.annotation)
+                        ctx.create_variable(k, v.annotation)
+                # print([(arg.name, arg.annotation) for arg in sig.parameters])
+                for arg in args.args:
+                    # val = arg.ptr
+                    val = ctx.get_var_by_name(arg.arg)
+                    print('  arg', ast.dump(arg), "val", val)
+                # asdfdf
 
         with ctx.variable_scope_guard():
             build_stmts(ctx, node.body)
