@@ -756,7 +756,7 @@ void export_lang(py::module &m) {
         self->jit_run(compile_config, args);
       });
 
-  py::class_<Kernel>(m, "Kernel")
+  py::class_<Kernel>(m, "KernelCxx")
       .def("no_activate",
            [](Kernel *self, SNode *snode) {
              // TODO(#2193): Also apply to @ti.func?

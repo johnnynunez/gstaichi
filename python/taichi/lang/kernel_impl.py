@@ -28,10 +28,8 @@ from taichi._lib import core as _ti_core
 from taichi._lib.core.taichi_python import (
     ASTBuilder,
     FunctionKey,
+    KernelCxx,
     KernelLaunchContext,
-)
-from taichi._lib.core.taichi_python import (
-    Kernel as KernelCxx,
 )
 from taichi.lang import impl, ops, runtime_ops
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
