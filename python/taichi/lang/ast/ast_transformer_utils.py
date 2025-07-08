@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class Builder:
     def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
         method_name = "build_" + node.__class__.__name__
-        print(method_name)
+        print(method_name, ast.dump(node)[:150])
         method = getattr(self, method_name, None)
         try:
             if method is None:
@@ -284,6 +284,7 @@ class ASTTransformerContext:
         for s in reversed(self.local_scopes):
             # print("local scope", s)
             if name in s:
+                print("  returning", s[name])
                 return s[name]
         if name in self.global_vars:
             var = self.global_vars[name]
@@ -294,6 +295,7 @@ class ASTTransformerContext:
 
             if isinstance(var, Matrix):
                 return make_matrix(var.to_list())
+            print("  returning", var)
             return var
         try:
             return getattr(builtins, name)

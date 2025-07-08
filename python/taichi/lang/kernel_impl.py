@@ -913,6 +913,7 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
+                tree = self.unpack_ndarray_struct(tree)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -1123,7 +1124,7 @@ class Kernel:
         set_later_list = []
 
         def recursive_set_args(needed: Type, provided: Type, v: Any, indices: tuple[int, ...]) -> int:
-            print("recursive_set_args()")
+            print("recursive_set_args() needed", needed, "provided", provided, "v", str(v)[:150], "indices", indices)
             in_argpack = len(indices) > 1
             nonlocal actual_argument_slot, exceed_max_arg_num, set_later_list
             if actual_argument_slot >= max_arg_num:
@@ -1161,6 +1162,20 @@ class Kernel:
                     set_later_list.append((set_arg_sparse_matrix_builder, (v,)))
                     return 0
                 set_arg_sparse_matrix_builder(indices, v)
+                return 1
+            if dataclasses.is_dataclass(needed):
+                assert provided == needed
+                print("    recursive set args got dataclass")
+                dataclass_type = needed
+                for field in dataclasses.fields(dataclass_type):
+                    field_name = field.name
+                    field_type = field.type
+                    field_value = getattr(arg, field_name)
+                    arg_name = f"__ti_{arg_name}_{field_name}"
+                    recursive_set_args(field_type, field_type, field_value)
+                    # field_extracted = TaichiCallableTemplateMapper.extract_arg(
+                    #     field_value, field_type, arg_name
+                    # )
                 return 1
             if isinstance(needed, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
