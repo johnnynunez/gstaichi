@@ -11,6 +11,7 @@ import warnings
 from ast import unparse
 from collections import ChainMap
 from typing import Any, Type, cast
+import dataclasses
 
 import numpy as np
 
@@ -743,6 +744,24 @@ class ASTTransformer(Builder):
                     for item in items_to_put_in_dict:
                         invoke_later_dict[item[0]] = argpack, item[1], *item[2]
                     create_variable_later[arg.arg] = argpack
+                elif dataclasses.is_dataclass(ctx.func.arguments[i].annotation):
+                    print("got dataclass")
+                    dataclass_type = ctx.func.arguments[i].annotation
+                    arg_features = ctx.arg_features[i]
+                    for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
+                        field_name = field.name
+                        new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
+                        print("field_name", field_name, field.type, "new_field_name", new_field_name)
+                        # print("ctx.arg_features[i]", ctx.arg_features[i])
+                        result, obj = decl_and_create_variable(
+                            field.type,
+                            new_field_name,
+                            arg_features[field_idx],
+                            invoke_later_dict,
+                            "",
+                            0,
+                        )
+                        ctx.create_variable(new_field_name, obj if result else obj[0](*obj[1]))
                 else:
                     call_params = [
                         ctx.func.arguments[i].annotation,

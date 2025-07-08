@@ -261,7 +261,7 @@ def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple
     ret: list[Any] = [argument.default for argument in self.arguments]
     # print("ret", ret)
     # print("args", args)
-    args = expand_args_dataclasses(args)
+    # args = expand_args_dataclasses(args)
     # print("args", args)
     len_args = len(args)
 
@@ -510,6 +510,7 @@ class TaichiCallableTemplateMapper:
 
     @staticmethod
     def extract_arg(arg: Any, anno: AnnotationType, arg_name: str) -> Any:
+        print("extract_arg arg", arg, "anno", anno, "arg_name", arg_name)
         if anno == template or isinstance(anno, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -544,6 +545,21 @@ class TaichiCallableTemplateMapper:
                 TaichiCallableTemplateMapper.extract_arg(arg[name], dtype, arg_name)
                 for index, (name, dtype) in enumerate(anno.members.items())
             )
+        if dataclasses.is_dataclass(anno): # todo, pack dataclass members into tuple, similar to argpack
+            print("extract_arg: found dataclass")
+            dataclass_type = anno
+            _res_l = []
+            for field in dataclasses.fields(dataclass_type):
+                field_name = field.name
+                field_type = field.type
+                field_value = getattr(arg, field_name)
+                arg_name = f"__ti_{arg_name}_{field_name}"
+                field_extracted = TaichiCallableTemplateMapper.extract_arg(
+                    field_value, field_type, arg_name
+                )
+                _res_l.append(field_extracted)
+            print("extract_arg res", _res_l, _res_l[0][0].element_type())
+            return tuple(_res_l)
         if isinstance(anno, texture_type.TextureType):
             if not isinstance(arg, taichi.lang._texture.Texture):
                 raise TaichiRuntimeTypeError(f"Argument {arg_name} must be a texture, got {type(arg)}")
@@ -740,9 +756,9 @@ class Kernel:
                 if return_type is Ellipsis:
                     raise TaichiSyntaxError("Ellipsis is not supported in return type annotations")
         params = dict(sig.parameters)
-        orig_len = len(params)
-        params = self.expand_dataclasses(params)
-        is_dataclass = len(params) != orig_len
+        # orig_len = len(params)
+        # params = self.expand_dataclasses(params)
+        # is_dataclass = len(params) != orig_len
         arg_names = params.keys()
         for i, arg_name in enumerate(arg_names):
             param = params[arg_name]
@@ -789,6 +805,7 @@ class Kernel:
                 elif isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
                     print("is dataclass")
                     # asasdf
+                    pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             # if is_dataclass:
@@ -1354,12 +1371,12 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
 
         @functools.wraps(_func)
         def wrapped_func(*args, **kwargs):
-            try:
+            # try:
                 return primal(*args, **kwargs)
-            except (TaichiCompilationError, TaichiRuntimeError) as e:
-                if impl.get_runtime().print_full_traceback:
-                    raise e
-                raise type(e)("\n" + str(e)) from None
+            # except (TaichiCompilationError, TaichiRuntimeError) as e:
+            #     if impl.get_runtime().print_full_traceback:
+            #         raise e
+            #     raise type(e)("\n" + str(e)) from None
 
         wrapped = TaichiCallable(
             _func,
