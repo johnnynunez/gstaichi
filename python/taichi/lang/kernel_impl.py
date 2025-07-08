@@ -220,59 +220,99 @@ def _get_tree_and_ctx(
     )
 
 
-def expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
-    # print('params', params)
-    print("expand_args_dataclasses() (runtime launch check)")
-    new_args = []
-    # arg_names = params.keys()
-    # for i, arg_name in enumerate(arg_names):
-    for i, arg in enumerate(args):
-        # param = params[arg_name]
-        # annotation = arg.annotation
-        # print("arg", arg)
-        if (
-            # isinstance(arg, type(dataclasses.dataclass))
-            hasattr(arg, "__dataclass_fields__")
-        ):
-            print("  expand_args_dataclasses() found dataclass")
-            for field in dataclasses.fields(arg):
-                # Create a new inspect.Parameter for each dataclass field
-                # field_name = '__ti_' + field.name
-                # field_type = field.type
-                # field_value = field.
-                # new_param = inspect.Parameter(
-                #     name=field_name,
-                #     kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                #     default=inspect.Parameter.empty,
-                #     annotation=field.type,
-                # )
-                field_value = getattr(arg, field.name)
-                new_args.append(field_value)
-                print("        ", str(field_value)[:50])
+# def _expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
+#     # print('params', params)
+#     print("expand_args_dataclasses() (runtime launch check)")
+#     new_args = []
+#     # arg_names = params.keys()
+#     # for i, arg_name in enumerate(arg_names):
+#     for i, arg in enumerate(args):
+#         # param = params[arg_name]
+#         # annotation = arg.annotation
+#         # print("arg", arg)
+#         if (
+#             # isinstance(arg, type(dataclasses.dataclass))
+#             hasattr(arg, "__dataclass_fields__")
+#         ):
+#             print("  expand_args_dataclasses() found dataclass")
+#             for field in dataclasses.fields(arg):
+#                 # Create a new inspect.Parameter for each dataclass field
+#                 # field_name = '__ti_' + field.name
+#                 # field_type = field.type
+#                 # field_value = field.
+#                 # new_param = inspect.Parameter(
+#                 #     name=field_name,
+#                 #     kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+#                 #     default=inspect.Parameter.empty,
+#                 #     annotation=field.type,
+#                 # )
+#                 field_value = getattr(arg, field.name)
+#                 new_args.append(field_value)
+#                 print("        ", str(field_value)[:50])
+#         else:
+#             new_args.append(arg)
+#     # print("new_args", new_args)
+#     return tuple(new_args)
+
+
+def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgument]:
+    new_arguments = []
+    for i, argument in enumerate(arguments):
+        print("i", i, "argument", argument, "annotation", argument.annotation)
+        if dataclasses.is_dataclass(argument.annotation):
+            print("found dataclass")
+            for field in dataclasses.fields(argument.annotation):
+                field_name = field.name
+                field_type = field.type
+                print("field_name", field_name, field_type)
+                # field_value = getattr(arg, field.name)
+                new_argument = KernelArgument(
+                    _annotation=field_type,
+                    _name=f"__ti_{argument.name}_{field_name}",
+                )
+                new_arguments.append(new_argument)
         else:
-            new_args.append(arg)
-    # print("new_args", new_args)
-    return tuple(new_args)
+            new_arguments.append(argument)
+    return new_arguments
 
 
-def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
-    print("_process_args( args=", args, ")")
-    # print("self.arguments", self.arguments)
-    ret: list[Any] = [argument.default for argument in self.arguments]
+def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
+    """
+    used for both Func and Kernel
+    """
+    print("global _process_args( args=", args, ")")
+    print("  self.arguments", self.arguments, [(a.name, a.annotation) for a in self.arguments])
+
+    if is_func:
+        print("is func => expanding self.arguments")
+        self.arguments = expand_func_arguments(self.arguments)
+
+    # print("type(self)", type(self))
+    # is_func = isinstance(self, Func)
+    # return args
+    fused_args: list[Any] = [argument.default for argument in self.arguments]
     # print("ret", ret)
     # print("args", args)
     # args = expand_args_dataclasses(args)
     # print("args", args)
     len_args = len(args)
 
-    if len_args > len(ret):
+        # expand dataclasses
+        # print("len(args) before epxand", len(args))
+        # args = expand_args_dataclasses(args)
+        # print("args after expand", args, "len(args)", len(args))
+
+    print("len(args)", len(args))
+    print("len(fused_args)", len(fused_args))
+
+    if len_args > len(fused_args):
         arg_str = ", ".join([str(arg) for arg in args])
         expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arguments])
         msg = f"Too many arguments. Expected ({expected_str}), got ({arg_str})."
         raise TaichiSyntaxError(msg)
 
     for i, arg in enumerate(args):
-        ret[i] = arg
+        fused_args[i] = arg
 
     for key, value in kwargs.items():
         found = False
@@ -280,14 +320,14 @@ def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple
             if key == arg.name:
                 if i < len_args:
                     raise TaichiSyntaxError(f"Multiple values for argument '{key}'.")
-                ret[i] = value
+                fused_args[i] = value
                 found = True
                 break
         if not found:
             raise TaichiSyntaxError(f"Unexpected argument '{key}'.")
 
-    print("enumerate ret")
-    for i, arg in enumerate(ret):
+    print("enumerate fuused_args")
+    for i, arg in enumerate(fused_args):
         # print("i", i, "arg", arg)
         if arg is inspect.Parameter.empty:
             if self.arguments[i].annotation is inspect._empty:
@@ -297,7 +337,7 @@ def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple
                     f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
                 )
 
-    return tuple(ret)
+    return tuple(fused_args)
 
 
 class Func:
@@ -358,7 +398,7 @@ class Func:
     def __call__(self: "Func", *args, **kwargs) -> Any:
         print("__call__")
         # asdafdf
-        args = _process_args(self, args, kwargs)
+        args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
 
         if not impl.inside_kernel():
             if not self.pyfunc:
@@ -1323,7 +1363,7 @@ class Kernel:
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
         # print("__call__ args", args, "kwargs", kwargs)
-        args = _process_args(self, args, kwargs)
+        args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
         # then recover to primal when exiting the forward mode manager

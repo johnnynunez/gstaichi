@@ -687,6 +687,7 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef):
+        print("build_FunctionDef node", ast.dump(node))
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(
                 f"Function definition is not allowed in 'ti.{'kernel' if ctx.is_kernel else 'func'}'."
@@ -852,23 +853,37 @@ class ASTTransformer(Builder):
             if ctx.is_real_function:
                 transform_as_kernel()
             else:
-                assert len(args.args) == len(ctx.argument_data)
+                print("  build_FunctionDef args.args", args.args, "ctx.argument_data", ctx.argument_data)
+                print("args. args:")
+                for arg in args.args:
+                    print("    ", arg, ast.dump(arg))
+                print("ctx.argument_data:")
+                for arg in ctx.argument_data:
+                    print("    ", arg)
+                print("ctx.func.arguments")
+                for arg in ctx.func.arguments:
+                    print("    ", arg, arg.annotation, arg.name)
+                # assert len(args.args) == len(ctx.argument_data)
                 print("ti.func iterate args")
-                for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
-                    print("  ti.func arg i", i, "data", str(data)[:100])
+                args_offset = 0
+                for data_i, data in enumerate(ctx.argument_data):
+                # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
+                    print("  ti.func arg data_i", data_i, "data", str(data)[:100])
+                    annotation = ctx.func.arguments[data_i].annotation
+                    print("  annotation", annotation, type(annotation))
                     # Template arguments are passed by reference.
-                    if isinstance(ctx.func.arguments[i].annotation, annotations.template):
-                        ctx.create_variable(ctx.func.arguments[i].name, data)
+                    if isinstance(ctx.func.arguments[data_i].annotation, annotations.template):
+                        ctx.create_variable(ctx.func.arguments[data_i].name, data)
                         continue
 
-                    elif dataclasses.is_dataclass(ctx.func.arguments[i].annotation):
+                    elif dataclasses.is_dataclass(ctx.func.arguments[data_i].annotation):
                         print("got dataclass")
-                        dataclass_type = ctx.func.arguments[i].annotation
+                        dataclass_type = ctx.func.arguments[data_i].annotation
                         # arg_features = ctx.arg_features[i]
                         for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
                             field_name = field.name
                             field_type = field.type
-                            new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
+                            new_field_name = f"__ti_{ctx.func.arguments[data_i].name}_{field_name}"
                             print("field_name", field_name, field.type, "new_field_name", new_field_name)
                             # print("ctx.arg_features[i]", ctx.arg_features[i])
                             # result, obj = decl_and_create_variable(
@@ -894,13 +909,13 @@ class ASTTransformer(Builder):
                                     f"Argument {arg.arg} of type {dataclass_type} {field_type} is not recognized."
                                 )
                             field_type.check_matched(data_child.get_type(), field_name)
-                            var_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
+                            var_name = f"__ti_{ctx.func.arguments[data_i].name}_{field_name}"
                             print("    creating var", var_name, "=", str(data_child)[:50])
                             print("        ctx.arg_features", ctx.arg_features)
                             data_child_anyarray = decl_and_create_variable(
                                 field_type,
                                 var_name,
-                                ctx.arg_features[i] if ctx.arg_features is not None else None,
+                                ctx.arg_features[data_i] if ctx.arg_features is not None else None,
                                 invoke_later_dict,
                                 "",
                                 0,
@@ -910,7 +925,7 @@ class ASTTransformer(Builder):
                         continue
 
                     # Ndarray arguments are passed by reference.
-                    if isinstance(ctx.func.arguments[i].annotation, (ndarray_type.NdarrayType)):
+                    if isinstance(ctx.func.arguments[data_i].annotation, (ndarray_type.NdarrayType)):
                         if not isinstance(
                             data,
                             (
@@ -921,14 +936,14 @@ class ASTTransformer(Builder):
                             ),
                         ):
                             raise TaichiSyntaxError(
-                                f"Argument {arg.arg} of type {ctx.func.arguments[i].annotation} is not recognized."
+                                f"Argument {arg.arg} of type {ctx.func.arguments[data_i].annotation} is not recognized."
                             )
-                        ctx.func.arguments[i].annotation.check_matched(data.get_type(), ctx.func.arguments[i].name)
-                        ctx.create_variable(ctx.func.arguments[i].name, data)
+                        ctx.func.arguments[data_i].annotation.check_matched(data.get_type(), ctx.func.arguments[data_i].name)
+                        ctx.create_variable(ctx.func.arguments[data_i].name, data)
                         continue
 
                     # Matrix arguments are passed by value.
-                    if isinstance(ctx.func.arguments[i].annotation, (MatrixType)):
+                    if isinstance(ctx.func.arguments[data_i].annotation, (MatrixType)):
                         # "data" is expected to be an Expr here,
                         # so we simply call "impl.expr_init_func(data)" to perform:
                         #
@@ -942,31 +957,31 @@ class ASTTransformer(Builder):
                             )
 
                         element_shape = data.ptr.get_rvalue_type().shape()
-                        if len(element_shape) != ctx.func.arguments[i].annotation.ndim:
+                        if len(element_shape) != ctx.func.arguments[data_i].annotation.ndim:
                             raise TaichiSyntaxError(
-                                f"Argument {arg.arg} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with ndim {ctx.func.arguments[i].annotation.ndim}, but got {len(element_shape)}."
+                                f"Argument {arg.arg} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with ndim {ctx.func.arguments[data_i].annotation.ndim}, but got {len(element_shape)}."
                             )
 
-                        assert ctx.func.arguments[i].annotation.ndim > 0
-                        if element_shape[0] != ctx.func.arguments[i].annotation.n:
+                        assert ctx.func.arguments[data_i].annotation.ndim > 0
+                        if element_shape[0] != ctx.func.arguments[data_i].annotation.n:
                             raise TaichiSyntaxError(
-                                f"Argument {arg.arg} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with n {ctx.func.arguments[i].annotation.n}, but got {element_shape[0]}."
+                                f"Argument {arg.arg} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with n {ctx.func.arguments[data_i].annotation.n}, but got {element_shape[0]}."
                             )
 
                         if (
-                            ctx.func.arguments[i].annotation.ndim == 2
-                            and element_shape[1] != ctx.func.arguments[i].annotation.m
+                            ctx.func.arguments[data_i].annotation.ndim == 2
+                            and element_shape[1] != ctx.func.arguments[data_i].annotation.m
                         ):
                             raise TaichiSyntaxError(
-                                f"Argument {arg.arg} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with m {ctx.func.arguments[i].annotation.m}, but got {element_shape[0]}."
+                                f"Argument {arg.arg} of type {ctx.func.arguments[data_i].annotation} is expected to be a Matrix with m {ctx.func.arguments[data_i].annotation.m}, but got {element_shape[0]}."
                             )
 
                         ctx.create_variable(arg.arg, impl.expr_init_func(data))
                         continue
 
-                    if id(ctx.func.arguments[i].annotation) in primitive_types.type_ids:
+                    if id(ctx.func.arguments[data_i].annotation) in primitive_types.type_ids:
                         ctx.create_variable(
-                            arg.arg, impl.expr_init_func(ti_ops.cast(data, ctx.func.arguments[i].annotation))
+                            arg.arg, impl.expr_init_func(ti_ops.cast(data, ctx.func.arguments[data_i].annotation))
                         )
                         continue
                     # Create a copy for non-template arguments,
