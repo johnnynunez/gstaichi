@@ -4,6 +4,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build_wheel:
     name: Manylinux wheel Build
@@ -103,6 +105,8 @@ jobs:
           bash .github/workflows/scripts_new/manylinux_wheel/5_test.sh
   pyright_linter:
     uses: ./.github/workflows/pyright_linter.yml
+  api_docs:
+    uses: ./.github/workflows/api_doc.yml
     needs: upload_to_storage
     with:
       head_ref: ${{ github.head_ref }}
