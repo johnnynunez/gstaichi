@@ -1167,16 +1167,18 @@ class Kernel:
                 assert provided == needed
                 print("    recursive set args got dataclass")
                 dataclass_type = needed
-                for field in dataclasses.fields(dataclass_type):
+                for j, field in enumerate(dataclasses.fields(dataclass_type)):
                     field_name = field.name
                     field_type = field.type
-                    field_value = getattr(arg, field_name)
-                    arg_name = f"__ti_{arg_name}_{field_name}"
-                    recursive_set_args(field_type, field_type, field_value)
+                    print("     field_type", field_type, type(field_type))
+                    assert not isinstance(field_type, str)
+                    field_value = getattr(v, field_name)
+                    # arg_name = f"__ti_{arg_name}_{field_name}"
+                    recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
                     # field_extracted = TaichiCallableTemplateMapper.extract_arg(
                     #     field_value, field_type, arg_name
                     # )
-                return 1
+                return len(dataclasses.fields(dataclass_type))
             if isinstance(needed, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
                     set_later_list.append((set_arg_ndarray, (v,)))
@@ -1216,12 +1218,14 @@ class Kernel:
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
         template_num = 0
-        for i, val in enumerate(args):
+        i = 0
+        for val in args:
             needed_ = self.arguments[i].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
+                i += 1
                 continue
-            recursive_set_args(needed_, type(val), val, (i - template_num,))
+            i += recursive_set_args(needed_, type(val), val, (i - template_num,))
 
         for i, (set_arg_func, params) in enumerate(set_later_list):
             set_arg_func((len(args) - template_num + i,), *params)
