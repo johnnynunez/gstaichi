@@ -219,6 +219,17 @@ def _get_tree_and_ctx(
 
 
 def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
+    """
+    Input args and kwargs to this function is the input on the python side to the kernel or
+    function being called.
+
+    _process_args:
+    - fuses kwargs into args
+    - validates that the number of arguments doesn't exceed that expected (though curiously
+      without first folding in kwargs)
+    - checks for any missing parameters
+    - returns the new args (so we can forget about kwargs after this point)
+    """
     print("_process_args( args=", args, ")")
     # print("self.arguments", self.arguments)
     ret: list[Any] = [argument.default for argument in self.arguments]
@@ -646,6 +657,16 @@ class Kernel:
         self.compiled_kernels = {}
 
     def extract_arguments(self) -> None:
+        """
+        - uses inspect to get the signature of self.func
+        - sets self.return_type from the signature
+        - populates self.arguments from the signature
+
+        - validates each parameter:
+            - not varags, not default values
+            - has an annotation
+            - validates the annotation type
+        """
         print("Kernel.extract_arguments()")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
