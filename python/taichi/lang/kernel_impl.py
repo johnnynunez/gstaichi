@@ -1219,13 +1219,15 @@ class Kernel:
 
         template_num = 0
         i = 0
-        for val in args:
+        skip = 0
+        print("launch_kernel iterate args, len(args)", len(args))
+        for i, val in enumerate(args):
+            print("  val=", str(val)[:150])
             needed_ = self.arguments[i].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
-                i += 1
                 continue
-            i += recursive_set_args(needed_, type(val), val, (i - template_num,))
+            skip += recursive_set_args(needed_, type(val), val, (skip + i - template_num,)) - 1
 
         for i, (set_arg_func, params) in enumerate(set_later_list):
             set_arg_func((len(args) - template_num + i,), *params)
