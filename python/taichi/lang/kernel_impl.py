@@ -66,6 +66,7 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
+# from torch import P
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
@@ -221,6 +222,7 @@ def _get_tree_and_ctx(
 
 def expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
     # print('params', params)
+    print("expand_args_dataclasses() (runtime launch check)")
     new_args = []
     # arg_names = params.keys()
     # for i, arg_name in enumerate(arg_names):
@@ -232,7 +234,7 @@ def expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
             # isinstance(arg, type(dataclasses.dataclass))
             hasattr(arg, "__dataclass_fields__")
         ):
-            print("is dataclass")
+            print("  expand_args_dataclasses() found dataclass")
             for field in dataclasses.fields(arg):
                 # Create a new inspect.Parameter for each dataclass field
                 # field_name = '__ti_' + field.name
@@ -246,6 +248,7 @@ def expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
                 # )
                 field_value = getattr(arg, field.name)
                 new_args.append(field_value)
+                print("        ", str(field_value)[:50])
         else:
             new_args.append(arg)
     # print("new_args", new_args)
@@ -253,6 +256,7 @@ def expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
 
 
 def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
+    print("_process_args( args=", args, ")")
     # print("self.arguments", self.arguments)
     ret: list[Any] = [argument.default for argument in self.arguments]
     # print("ret", ret)
@@ -319,6 +323,7 @@ class Func:
         self.has_print = False
 
     def unpack_dataclasses(self, tree) -> Any:
+        print("unpack_dataclasses")
         # print("type(tree)", type(tree))
         # asdfadf
         pass
@@ -427,6 +432,7 @@ class Func:
         self.taichi_functions[key.instance_id].set_function_body(func_body)
 
     def extract_arguments(self) -> None:
+        print("extract_arguments")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect.Signature.empty, None):
             self.return_type = sig.return_annotation
@@ -692,6 +698,7 @@ class Kernel:
         self.compiled_kernels = {}
 
     def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
+        print("Kernel.expand_dataclasses params=", params)
         # print("params", params)
         new_params = {}
         arg_names = params.keys()
@@ -700,7 +707,7 @@ class Kernel:
             annotation = param.annotation
             # print("annotation", annotation)
             if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
-                print("is dataclass")
+                print("  is dataclass")
                 for field in dataclasses.fields(annotation):
                     # Create a new inspect.Parameter for each dataclass field
                     field_name = "__ti_" + field.name
@@ -711,12 +718,14 @@ class Kernel:
                         annotation=field.type,
                     )
                     new_params[field_name] = new_param
+                    print("    ", field_name, "=", str(new_param)[:50])
             else:
                 new_params[arg_name] = param
         # print("new_params", new_params)
         return new_params
 
     def extract_arguments(self) -> None:
+        print("Kernel.extract_arguments()")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
@@ -787,6 +796,7 @@ class Kernel:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
     def unpack_ndarray_struct(self, tree: ast.Module) -> ast.Module:
+        print("unpack_ndarray_struct (ast.Module)")
         # print("type(tree)", type(tree))
         # print("dir(tree)", dir(tree))
         class AttributeToNameTransformer(ast.NodeTransformer):
@@ -802,7 +812,7 @@ class Kernel:
                     return node
                 attr_name = node.attr
                 new_id = "__ti_" + base_id + "_" + attr_name
-                print("new name", new_id)
+                print("    AttributeToNameTransformer ", new_id)
                 return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
 
         transformer = AttributeToNameTransformer()
@@ -897,6 +907,7 @@ class Kernel:
 
         prog = impl.get_runtime().prog
         assert prog is not None
+        print("prog.create_kernel", kernel_name)
         taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
@@ -911,6 +922,8 @@ class Kernel:
         launch_ctx = t_kernel.make_launch_context()
         max_arg_num = 64
         exceed_max_arg_num = False
+
+        print("launch_kernel", t_kernel.__qualname__)
 
         def set_arg_ndarray(indices: tuple[int, ...], v: taichi.lang._ndarray.Ndarray) -> None:
             v_primal = v.arr
@@ -1093,6 +1106,7 @@ class Kernel:
         set_later_list = []
 
         def recursive_set_args(needed: Type, provided: Type, v: Any, indices: tuple[int, ...]) -> int:
+            print("recursive_set_args()")
             in_argpack = len(indices) > 1
             nonlocal actual_argument_slot, exceed_max_arg_num, set_later_list
             if actual_argument_slot >= max_arg_num:
