@@ -219,6 +219,8 @@ def _get_tree_and_ctx(
 
 
 def _process_args(self: "Func | Kernel", args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
+    print("_process_args( args=", args, ")")
+    # print("self.arguments", self.arguments)
     ret: list[Any] = [argument.default for argument in self.arguments]
     len_args = len(args)
 
@@ -278,6 +280,7 @@ class Func:
         self.has_print = False
 
     def __call__(self, *args, **kwargs) -> Any:
+        print("__call__")
         args = _process_args(self, args, kwargs)
 
         if not impl.inside_kernel():
@@ -643,6 +646,7 @@ class Kernel:
         self.compiled_kernels = {}
 
     def extract_arguments(self) -> None:
+        print("Kernel.extract_arguments()")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
@@ -741,6 +745,7 @@ class Kernel:
             self.runtime.compiling_callable = kernel_cxx
             try:
                 ctx.ast_builder = kernel_cxx.ast_builder()
+                print("calling transform_tree")
 
                 def ast_to_dict(node: ast.AST | list | primitive_types._python_primitive_types):
                     if isinstance(node, ast.AST):
@@ -786,6 +791,7 @@ class Kernel:
 
         prog = impl.get_runtime().prog
         assert prog is not None
+        print("prog.create_kernel", kernel_name)
         taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
@@ -800,6 +806,8 @@ class Kernel:
         launch_ctx = t_kernel.make_launch_context()
         max_arg_num = 64
         exceed_max_arg_num = False
+
+        print("launch_kernel")
 
         def set_arg_ndarray(indices: tuple[int, ...], v: taichi.lang._ndarray.Ndarray) -> None:
             v_primal = v.arr
@@ -982,6 +990,7 @@ class Kernel:
         set_later_list = []
 
         def recursive_set_args(needed: Type, provided: Type, v: Any, indices: tuple[int, ...]) -> int:
+            print("recursive_set_args()")
             in_argpack = len(indices) > 1
             nonlocal actual_argument_slot, exceed_max_arg_num, set_later_list
             if actual_argument_slot >= max_arg_num:

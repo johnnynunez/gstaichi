@@ -25,7 +25,9 @@ if TYPE_CHECKING:
 
 class Builder:
     def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
-        method = getattr(self, "build_" + node.__class__.__name__, None)
+        method_name = "build_" + node.__class__.__name__
+        print(method_name)
+        method = getattr(self, method_name, None)
         try:
             if method is None:
                 error_msg = f'Unsupported node "{node.__class__.__name__}"'
@@ -248,6 +250,21 @@ class ASTTransformerContext:
         return False
 
     def create_variable(self, name: str, var: Any) -> None:
+        print("create_variable name", name, "var", str(var)[:50])
+        if name == "my_struct":
+            asdffd
+        if hasattr(var, "__dataclass_fields__"):
+            print("  is dataclass")
+            for field in dataclasses.fields(var):
+                field_name = "__ti_" + name + "_" + field.name
+                # print("field_name", field_name)
+                field_value = getattr(var, field.name)
+                # print("field_value", field.value)
+                print("  create_variable", field_name, str(field_value)[:50])
+                self.current_scope()[field_name] = field_value
+                if field_name in self.current_scope():
+                    raise TaichiSyntaxError(f"Recreating variables is not allowed {field_name}")
+            return
         if name in self.current_scope():
             raise TaichiSyntaxError("Recreating variables is not allowed")
         self.current_scope()[name] = var
@@ -259,6 +276,7 @@ class ASTTransformerContext:
             )
 
     def get_var_by_name(self, name: str) -> Any:
+        print("get_var_by_name", name)
         for s in reversed(self.local_scopes):
             if name in s:
                 return s[name]

@@ -651,6 +651,7 @@ class ASTTransformer(Builder):
             annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth
         ) -> tuple[bool, Any]:
             full_name = prefix_name + "_" + name
+            print("decl_and_create_variable fullname", full_name, "prefix_name", prefix_name, "annotation", annotation)
             if not isinstance(annotation, primitive_types.RefType):
                 ctx.kernel_args.append(name)
             if isinstance(annotation, ArgPackType):
@@ -681,6 +682,14 @@ class ASTTransformer(Builder):
                     ),
                 )
             if isinstance(annotation, ndarray_type.NdarrayType):
+                call_params = [
+                    to_taichi_type(arg_features[0]),
+                    arg_features[1],
+                    full_name,
+                    arg_features[2],
+                    arg_features[3],
+                ]
+                print("    decl_and_create_variable is_ndarray_type returning ", kernel_arguments.decl_ndarray_arg, call_params)
                 return False, (
                     kernel_arguments.decl_ndarray_arg,
                     (
@@ -713,7 +722,9 @@ class ASTTransformer(Builder):
 
             invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
             create_variable_later = dict()
+            print("transform_as_kernel iterate args len(args.args)", len(args.args), "len(ctx.func.arguments)", len(ctx.func.arguments))
             for i, arg in enumerate(args.args):
+                print(" arg i", i, "arg", ast.dump(arg), type(arg))
                 if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
                     kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
                     d = {}
@@ -732,6 +743,15 @@ class ASTTransformer(Builder):
                         invoke_later_dict[item[0]] = argpack, item[1], *item[2]
                     create_variable_later[arg.arg] = argpack
                 else:
+                    call_params = [
+                        ctx.func.arguments[i].annotation,
+                        ctx.func.arguments[i].name,
+                        ctx.arg_features[i] if ctx.arg_features is not None else None,
+                        invoke_later_dict,
+                        "",
+                        0,
+                    ]
+                    print("transform_as_kernel() calling decl_and_create_variable, params", call_params)
                     result, obj = decl_and_create_variable(
                         ctx.func.arguments[i].annotation,
                         ctx.func.arguments[i].name,
@@ -740,6 +760,8 @@ class ASTTransformer(Builder):
                         "",
                         0,
                     )
+                    print("obj returned by decl_and_create_variable obj", obj)
+                    print("transform_as_kernel() calling ctx.create_variable", arg.arg, obj)
                     ctx.create_variable(arg.arg, obj if result else obj[0](*obj[1]))
             for k, v in invoke_later_dict.items():
                 argpack, name, func, params = v
