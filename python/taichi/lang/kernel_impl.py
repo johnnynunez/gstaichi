@@ -282,8 +282,8 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
     """
     used for both Func and Kernel
     """
-    print("global _process_args( args=", args, ")")
-    print("  self.arguments", self.arguments, [(a.name, a.annotation) for a in self.arguments])
+    print("global _process_args")
+    # print("  self.arguments", self.arguments, [(a.name, a.annotation) for a in self.arguments])
 
     if is_func:
         print("is func => expanding self.arguments")
@@ -304,10 +304,11 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
         # args = expand_args_dataclasses(args)
         # print("args after expand", args, "len(args)", len(args))
 
-    print("len(args)", len(args))
-    print("len(fused_args)", len(fused_args))
+    # print("len(args)", len(args))
+    # print("len(fused_args)", len(fused_args))
 
     if len_args > len(fused_args):
+        print("too many arguments")
         arg_str = ", ".join([str(arg) for arg in args])
         expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arguments])
         msg = f"Too many arguments. Expected ({expected_str}), got ({arg_str})."
@@ -330,7 +331,8 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
 
     print("enumerate fuused_args")
     for i, arg in enumerate(fused_args):
-        # print("i", i, "arg", arg)
+        # print("i", i, "arg", type(arg))
+        print("after print")
         if arg is inspect.Parameter.empty:
             if self.arguments[i].annotation is inspect._empty:
                 raise TaichiSyntaxError(f"Parameter `{self.arguments[i].name}` missing.")
@@ -339,7 +341,10 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
                     f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
                 )
 
-    return tuple(fused_args)
+    print("1")
+    res = tuple(fused_args)
+    print("2")
+    return res
 
 
 def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
@@ -600,7 +605,7 @@ class TaichiCallableTemplateMapper:
 
     @staticmethod
     def extract_arg(arg: Any, anno: AnnotationType, arg_name: str) -> Any:
-        print("extract_arg arg", arg, "anno", anno, "arg_name", arg_name)
+        print("extract_arg arg", type(arg), "anno", type(anno), "arg_name", arg_name)
         if anno == template or isinstance(anno, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -635,7 +640,7 @@ class TaichiCallableTemplateMapper:
                 TaichiCallableTemplateMapper.extract_arg(arg[name], dtype, arg_name)
                 for index, (name, dtype) in enumerate(anno.members.items())
             )
-        if dataclasses.is_dataclass(anno): # todo, pack dataclass members into tuple, similar to argpack
+        if dataclasses.is_dataclass(anno):
             print("extract_arg: found dataclass")
             dataclass_type = anno
             _res_l = []
@@ -735,12 +740,14 @@ class TaichiCallableTemplateMapper:
         return "#"
 
     def extract(self, args: tuple[Any, ...]) -> tuple[Any, ...]:
+        print("extract()")
         extracted: list[Any] = []
         for arg, kernel_arg in zip(args, self.arguments):
             extracted.append(self.extract_arg(arg, kernel_arg.annotation, kernel_arg.name))
         return tuple(extracted)
 
     def lookup(self, args: tuple[Any, ...]) -> tuple[int, tuple[Any, ...]]:
+        print("lookup()")
         if len(args) != self.num_args:
             raise TypeError(f"{self.num_args} argument(s) needed but {len(args)} provided.")
 
@@ -1302,7 +1309,7 @@ class Kernel:
         skip = 0
         print("launch_kernel iterate args, len(args)", len(args))
         for i, val in enumerate(args):
-            print("  val=", str(val)[:150])
+            # print("  val=", str(val)[:150])
             needed_ = self.arguments[i].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
@@ -1361,6 +1368,7 @@ class Kernel:
         raise TaichiRuntimeTypeError(f"Invalid return type on index={index}")
 
     def ensure_compiled(self, *args: tuple[Any, ...]) -> tuple[Callable, int, AutodiffMode]:
+        print("ensure_compiled")
         instance_id, arg_features = self.mapper.lookup(args)
         key = (self.func, instance_id, self.autodiff_mode)
         self.materialize(key=key, args=args, arg_features=arg_features)
@@ -1370,6 +1378,7 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
+        print("__call__")
         # print("__call__ args", args, "kwargs", kwargs)
         args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
 
