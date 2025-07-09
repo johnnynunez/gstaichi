@@ -424,7 +424,25 @@ class Func:
             ast_builder=current_kernel.ast_builder(),
             is_real_function=self.is_real_function,
         )
-        tree = unpack_ndarray_struct(tree, struct_locals=set())
+
+        assert ctx.func is not None
+        sig = inspect.signature(ctx.func.func)
+        parameters = sig.parameters
+        struct_locals = set()
+        print("calculating struct locals")
+        for param_name, parameter in parameters.items():
+            print('param_name', param_name, "parameter.annotation", parameter.annotation)
+            if dataclasses.is_dataclass(parameter.annotation):
+                print("found dataclass")
+                for field in dataclasses.fields(parameter.annotation):
+                    field_name = field.name
+                    child_name = f"__ti_{param_name}_{field_name}"
+                    print("child_name", child_name)
+                    struct_locals.add(child_name)
+        print("struct_locals", struct_locals)
+        print("ctx.func.func", ctx.func.func)
+
+        tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
