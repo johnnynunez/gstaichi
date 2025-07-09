@@ -1,9 +1,11 @@
 # type: ignore
 
 import ast
+import dataclasses
 import functools
 import inspect
 import json
+from typing import Any
 import operator
 import os
 import pathlib
@@ -166,18 +168,41 @@ def _get_tree_and_ctx(
     )
 
 
-def _process_args(self, args, kwargs):
-    ret = [argument.default for argument in self.arguments]
+def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgument]:
+    new_arguments = []
+    for i, argument in enumerate(arguments):
+        print("i", i, "argument", argument, "annotation", argument.annotation)
+        if dataclasses.is_dataclass(argument.annotation):
+            print("found dataclass")
+            for field in dataclasses.fields(argument.annotation):
+                field_name = field.name
+                field_type = field.type
+                print("field_name", field_name, field_type)
+                # field_value = getattr(arg, field.name)
+                new_argument = KernelArgument(
+                    _annotation=field_type,
+                    _name=f"__ti_{argument.name}_{field_name}",
+                )
+                new_arguments.append(new_argument)
+        else:
+            new_arguments.append(argument)
+    return new_arguments
+	
+	
+def _process_args(self, is_func: bool, args, kwargs):
+    if is_func:
+        self.arguments = expand_func_arguments(self.arguments)
+    fused_args = [argument.default for argument in self.arguments]
     len_args = len(args)
 
-    if len_args > len(ret):
+    if len_args > len(fused_args):
         arg_str = ", ".join([str(arg) for arg in args])
         expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arguments])
         msg = f"Too many arguments. Expected ({expected_str}), got ({arg_str})."
         raise TaichiSyntaxError(msg)
 
     for i, arg in enumerate(args):
-        ret[i] = arg
+        fused_args[i] = arg
 
     for key, value in kwargs.items():
         found = False
@@ -185,13 +210,13 @@ def _process_args(self, args, kwargs):
             if key == arg.name:
                 if i < len_args:
                     raise TaichiSyntaxError(f"Multiple values for argument '{key}'.")
-                ret[i] = value
+                fused_args[i] = value
                 found = True
                 break
         if not found:
             raise TaichiSyntaxError(f"Unexpected argument '{key}'.")
 
-    for i, arg in enumerate(ret):
+    for i, arg in enumerate(fused_args):
         if arg is inspect.Parameter.empty:
             if self.arguments[i].annotation is inspect._empty:
                 raise TaichiSyntaxError(f"Parameter `{self.arguments[i].name}` missing.")
@@ -200,7 +225,7 @@ def _process_args(self, args, kwargs):
                     f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
                 )
 
-    return ret
+    return tuple(fused_args)
 
 
 class Func:
@@ -215,6 +240,7 @@ class Func:
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
         self.arguments = []
+        self.orig_arguments: list[KernelArgument] = []
         self.return_type = None
         self.extract_arguments()
         self.template_slot_locations = []
@@ -225,8 +251,27 @@ class Func:
         self.taichi_functions = {}  # The |Function| class in C++
         self.has_print = False
 
+    def unpack_ndarray_struct(self, tree: ast.Module) -> ast.Module:
+        class AttributeToNameTransformer(ast.NodeTransformer):
+            def visit_Attribute(self, node):
+                if isinstance(node.value, ast.Attribute):
+                    return node
+                assert isinstance(node.value, ast.Name)
+                base_id = node.value.id
+                if base_id == "ti":
+                    return node
+                attr_name = node.attr
+                new_id = "__ti_" + base_id + "_" + attr_name
+                return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+
+        transformer = AttributeToNameTransformer()
+        new_tree = transformer.visit(tree)
+        ast.fix_missing_locations(new_tree)
+        with open("/tmp/ast/unpack_func.ast", "w") as f:
+            f.write(ast.dump(tree, indent=2))
+        return new_tree
     def __call__(self, *args, **kwargs):
-        args = _process_args(self, args, kwargs)
+        args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
 
         if not impl.inside_kernel():
             if not self.pyfunc:
@@ -250,6 +295,7 @@ class Func:
             ast_builder=impl.get_runtime().current_kernel.ast_builder(),
             is_real_function=self.is_real_function,
         )
+        tree = self.unpack_ndarray_struct(tree)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -376,9 +422,12 @@ class Func:
                     pass
                 elif isinstance(annotation, primitive_types.RefType):
                     pass
+                elif isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
+                    pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
+            self.orig_arguments.append(KernelArgument(annotation, param.name, param.default))
 
 
 class TaichiCallableTemplateMapper:
@@ -424,6 +473,19 @@ class TaichiCallableTemplateMapper:
                 TaichiCallableTemplateMapper.extract_arg(arg[name], dtype, arg_name)
                 for index, (name, dtype) in enumerate(anno.members.items())
             )
+        if dataclasses.is_dataclass(anno):
+            dataclass_type = anno
+            _res_l = []
+            for field in dataclasses.fields(dataclass_type):
+                field_name = field.name
+                field_type = field.type
+                field_value = getattr(arg, field_name)
+                arg_name = f"__ti_{arg_name}_{field_name}"
+                field_extracted = TaichiCallableTemplateMapper.extract_arg(
+                    field_value, field_type, arg_name
+                )
+                _res_l.append(field_extracted)
+            return tuple(_res_l)
         if isinstance(anno, texture_type.TextureType):
             if not isinstance(arg, taichi.lang._texture.Texture):
                 raise TaichiRuntimeTypeError(f"Argument {arg_name} must be a texture, got {type(arg)}")
@@ -576,6 +638,32 @@ class Kernel:
         self.runtime = impl.get_runtime()
         self.compiled_kernels = {}
 
+    def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
+        print("Kernel.expand_dataclasses params=", params)
+        # print("params", params)
+        new_params = {}
+        arg_names = params.keys()
+        for i, arg_name in enumerate(arg_names):
+            param = params[arg_name]
+            annotation = param.annotation
+            # print("annotation", annotation)
+            if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
+                print("  is dataclass")
+                for field in dataclasses.fields(annotation):
+                    # Create a new inspect.Parameter for each dataclass field
+                    field_name = "__ti_" + field.name
+                    new_param = inspect.Parameter(
+                        name=field_name,
+                        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        default=inspect.Parameter.empty,
+                        annotation=field.type,
+                    )
+                    new_params[field_name] = new_param
+                    print("    ", field_name, "=", str(new_param)[:50])
+            else:
+                new_params[arg_name] = param
+        # print("new_params", new_params)
+        return new_params
     def extract_arguments(self):
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
@@ -637,10 +725,29 @@ class Kernel:
                     pass
                 elif annotation == template:
                     pass
+                elif isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
+                    pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
+    def unpack_ndarray_struct(self, tree: ast.Module) -> ast.Module:
+        class AttributeToNameTransformer(ast.NodeTransformer):
+            def visit_Attribute(self, node):
+                if isinstance(node.value, ast.Attribute):
+                    return node
+                assert isinstance(node.value, ast.Name)
+                base_id = node.value.id
+                if base_id == "ti":
+                    return node
+                attr_name = node.attr
+                new_id = "__ti_" + base_id + "_" + attr_name
+                return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+
+        transformer = AttributeToNameTransformer()
+        new_tree = transformer.visit(tree)
+        ast.fix_missing_locations(new_tree)
+        return new_tree
     def materialize(self, key=None, args=None, arg_features=None):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
@@ -665,6 +772,7 @@ class Kernel:
         # Do not change the name of 'taichi_ast_generator'
         # The warning system needs this identifier to remove unnecessary messages
         def taichi_ast_generator(kernel_cxx):
+            nonlocal tree
             if self.runtime.inside_kernel:
                 raise TaichiSyntaxError(
                     "Kernels cannot call other kernels. I.e., nested kernels are not allowed. "
@@ -713,6 +821,7 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
+                tree = self.unpack_ndarray_struct(tree)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -953,6 +1062,16 @@ class Kernel:
                     return 0
                 set_arg_sparse_matrix_builder(indices, v)
                 return 1
+            if dataclasses.is_dataclass(needed):
+                assert provided == needed
+                dataclass_type = needed
+                for j, field in enumerate(dataclasses.fields(dataclass_type)):
+                    field_name = field.name
+                    field_type = field.type
+                    assert not isinstance(field_type, str)
+                    field_value = getattr(v, field_name)
+                    recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
+                return len(dataclasses.fields(dataclass_type))
             if isinstance(needed, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
                     set_later_list.append((set_arg_ndarray, (v,)))
@@ -992,12 +1111,13 @@ class Kernel:
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
         template_num = 0
+        skip = 0
         for i, val in enumerate(args):
             needed_ = self.arguments[i].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
                 continue
-            recursive_set_args(needed_, type(val), val, (i - template_num,))
+            skip += recursive_set_args(needed_, type(val), val, (skip + i - template_num,)) - 1
 
         for i, (set_arg_func, params) in enumerate(set_later_list):
             set_arg_func((len(args) - template_num + i,), *params)
@@ -1059,7 +1179,7 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs):
-        args = _process_args(self, args, kwargs)
+        args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
         # then recover to primal when exiting the forward mode manager
