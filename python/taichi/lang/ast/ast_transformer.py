@@ -893,8 +893,9 @@ class ASTTransformer(Builder):
                         continue
 
                     if id(ctx.func.arguments[data_i].annotation) in primitive_types.type_ids:
+                        var_name = ctx.func.arguments[data_i].name
                         ctx.create_variable(
-                            arg.arg, impl.expr_init_func(ti_ops.cast(data, ctx.func.arguments[data_i].annotation))
+                            var_name, impl.expr_init_func(ti_ops.cast(data, ctx.func.arguments[data_i].annotation))
                         )
                         continue
                     # Create a copy for non-template arguments,
