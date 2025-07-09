@@ -1,6 +1,7 @@
+from dataclasses import dataclass
+
 import taichi as ti
 from tests import test_utils
-from dataclasses import dataclass
 
 
 @test_utils.test()
