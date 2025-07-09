@@ -888,7 +888,8 @@ class ASTTransformer(Builder):
                                 f"Argument {arg.arg} of type {ctx.func.arguments[data_i].annotation} is expected to be a Matrix with m {ctx.func.arguments[data_i].annotation.m}, but got {element_shape[0]}."
                             )
 
-                        ctx.create_variable(arg.arg, impl.expr_init_func(data))
+                        var_name = ctx.func.arguments[data_i].name
+                        ctx.create_variable(var_name, impl.expr_init_func(data))
                         continue
 
                     if id(ctx.func.arguments[data_i].annotation) in primitive_types.type_ids:
@@ -898,7 +899,8 @@ class ASTTransformer(Builder):
                         continue
                     # Create a copy for non-template arguments,
                     # so that they are passed by value.
-                    ctx.create_variable(arg.arg, impl.expr_init_func(data))
+                    var_name = ctx.func.arguments[data_i].name
+                    ctx.create_variable(var_name, impl.expr_init_func(data))
                 for v in ctx.func.orig_arguments:
                     if dataclasses.is_dataclass(v.annotation):
                         ctx.create_variable(v.name, v.annotation)
