@@ -175,7 +175,6 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
             for field in dataclasses.fields(argument.annotation):
                 field_name = field.name
                 field_type = field.type
-                # field_value = getattr(arg, field.name)
                 new_argument = KernelArgument(
                     _annotation=field_type,
                     _name=f"__ti_{argument.name}_{field_name}",

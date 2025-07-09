@@ -581,8 +581,6 @@ class ASTTransformer(Builder):
                 args_new.append(arg)
         return tuple(args_new)
 
-    # ast.dump(ast.parse("def func(foo: int):\n    pass").body[0].args.args[0])
-
     @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call):
         if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
