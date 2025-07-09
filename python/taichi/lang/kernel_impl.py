@@ -237,6 +237,7 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
             if new_id not in struct_locals:
                 return node
             return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+
     transformer = AttributeToNameTransformer()
     new_tree = transformer.visit(tree)
     ast.fix_missing_locations(new_tree)
