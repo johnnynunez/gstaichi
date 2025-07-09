@@ -270,6 +270,8 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
                     _annotation=field_type,
                     _name=f"__ti_{argument.name}_{field_name}",
                 )
+                # print("new_argument", new_argument)
+                # asdfad
                 new_arguments.append(new_argument)
         else:
             new_arguments.append(argument)
@@ -340,7 +342,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
     return tuple(fused_args)
 
 
-def unpack_ndarray_struct(tree: ast.Module, ctx: ASTTransformerContext) -> ast.Module:
+def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
     class AttributeToNameTransformer(ast.NodeTransformer):
         def visit_Attribute(self, node):
             if isinstance(node.value, ast.Attribute):
@@ -353,9 +355,11 @@ def unpack_ndarray_struct(tree: ast.Module, ctx: ASTTransformerContext) -> ast.M
             attr_name = node.attr
             # print("attr.name", attr.name)
             new_id = "__ti_" + base_id + "_" + attr_name
-            return node
-            # if new_id not in locals:
-            #     return node
+            # return node
+            if new_id not in struct_locals:
+                return node
+            print("updating ast for new_id", new_id)
+            # asdf
             return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
     transformer = AttributeToNameTransformer()
     new_tree = transformer.visit(tree)
@@ -420,7 +424,7 @@ class Func:
             ast_builder=current_kernel.ast_builder(),
             is_real_function=self.is_real_function,
         )
-        tree = unpack_ndarray_struct(tree, ctx=ctx)
+        tree = unpack_ndarray_struct(tree, struct_locals=set())
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -954,7 +958,24 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
-                tree = unpack_ndarray_struct(tree, ctx=ctx)
+                assert ctx.func is not None
+                sig = inspect.signature(ctx.func.func)
+                parameters = sig.parameters
+                struct_locals = set()
+                print("calculating struct locals")
+                for param_name, parameter in parameters.items():
+                    print('param_name', param_name, "parameter.annotation", parameter.annotation)
+                    if dataclasses.is_dataclass(parameter.annotation):
+                        print("found dataclass")
+                        for field in dataclasses.fields(parameter.annotation):
+                            field_name = field.name
+                            child_name = f"__ti_{param_name}_{field_name}"
+                            print("child_name", child_name)
+                            struct_locals.add(child_name)
+                print("struct_locals", struct_locals)
+                print("ctx.func.func", ctx.func.func)
+                # asdfasdf
+                tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
