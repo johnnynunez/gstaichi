@@ -352,7 +352,8 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
         def visit_Attribute(self, node):
             if isinstance(node.value, ast.Attribute):
                 return node
-            assert isinstance(node.value, ast.Name)
+            if not isinstance(node.value, ast.Name):
+                return node
             base_id = node.value.id
             # print("base_id", base_id)
             # if base_id in ["ti", "ops"]:
