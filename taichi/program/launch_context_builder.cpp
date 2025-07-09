@@ -241,12 +241,17 @@ void LaunchContextBuilder::set_arg_external_array_with_shape(
   }
 }
 
-void LaunchContextBuilder::set_arg_ndarray(const std::vector<int> &arg_id,
+void LaunchContextBuilder::set_arg_ndarray(const std::vector<int> arg_id,
                                            const Ndarray &arr) {
+  std::cout << "set_arg_ndarray 1" << std::endl;
   intptr_t ptr = arr.get_device_allocation_ptr_as_int();
+  std::cout << "set_arg_ndarray 2" << std::endl;
+  std::cout << "set_arg_ndarray 2 shape.size" << arr.shape.size() << std::endl;
   TI_ASSERT_INFO(arr.shape.size() <= taichi_max_num_indices,
                  "External array cannot have > {max_num_indices} indices");
+  std::cout << "set_arg_ndarray 3" << std::endl;
   set_arg_ndarray_impl(arg_id, ptr, arr.shape);
+  std::cout << "set_arg_ndarray 4" << std::endl;
 }
 
 void LaunchContextBuilder::set_arg_argpack(const std::vector<int> &arg_id,

@@ -245,8 +245,11 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_Subscript(ctx: ASTTransformerContext, node: ast.Subscript):
+        print("build_Subscript node", ast.dump(node))
         build_stmt(ctx, node.value)
         build_stmt(ctx, node.slice)
+        print("node.value", ast.dump(node.value))
+        print("node.slice", ast.dump(node.slice))
         if not ASTTransformer.is_tuple(node.slice):
             node.slice.ptr = [node.slice.ptr]
         node.ptr = impl.subscript(ctx.ast_builder, node.value.ptr, *node.slice.ptr)
@@ -1084,8 +1087,10 @@ class ASTTransformer(Builder):
         # whether it is a method of Dynamic SNode and build the expression if it is by calling
         # build_attribute_if_is_dynamic_snode_method. If we find that it is not a method of Dynamic SNode,
         # we continue to process it as a normal attribute node.
+        print("build_attribute node", ast.dump(node))
         try:
             build_stmt(ctx, node.value)
+            print("node.value.ptr", node.value.ptr)
         except Exception as e:
             e = handle_exception_from_cpp(e)
             if isinstance(e, TaichiIndexError):

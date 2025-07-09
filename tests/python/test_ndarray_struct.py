@@ -11,6 +11,7 @@ def test_ndarray_struct_l1():
     c = ti.ndarray(ti.i32, shape=(211,))
     d = ti.ndarray(ti.i32, shape=(223,))
     e = ti.ndarray(ti.i32, shape=(227,))
+    ti.sync()
 
     @dataclass
     class MyStruct:
@@ -27,6 +28,7 @@ def test_ndarray_struct_l1():
         bar[222] = 41
 
     my_struct = MyStruct(a=a, b=b, c=c)
+    ti.sync()
     k1(d, my_struct, e)
     assert d[33] == 2
     assert a[35] == 3
@@ -42,6 +44,7 @@ def test_ndarray_struct_l2():
     c = ti.ndarray(ti.i32, shape=(211,))
     d = ti.ndarray(ti.i32, shape=(223,))
     e = ti.ndarray(ti.i32, shape=(227,))
+    ti.sync()
 
     @dataclass
     class MyStruct:
@@ -67,6 +70,7 @@ def test_ndarray_struct_l2():
         s1(z, my_struct, bar)
 
     my_struct = MyStruct(a=a, b=b, c=c)
+    ti.sync()
     k1(d, my_struct, e)
     assert d[33] == 2
     assert a[35] == 3
@@ -87,6 +91,7 @@ def test_ndarray_struct_l3():
     c = ti.ndarray(ti.i32, shape=(211,))
     d = ti.ndarray(ti.i32, shape=(223,))
     e = ti.ndarray(ti.i32, shape=(227,))
+    ti.sync()
 
     @dataclass
     class MyStruct:
@@ -121,6 +126,7 @@ def test_ndarray_struct_l3():
         s1(z, my_struct, bar)
 
     my_struct = MyStruct(a=a, b=b, c=c)
+    ti.sync()
     k1(d, my_struct, e)
     assert d[33] == 2
     assert a[35] == 3
@@ -147,6 +153,7 @@ def test_ndarray_struct_l4():
     c = ti.ndarray(ti.i32, shape=(211,))
     d = ti.ndarray(ti.i32, shape=(223,))
     e = ti.ndarray(ti.i32, shape=(227,))
+    ti.sync()
 
     @dataclass
     class MyStruct:
@@ -190,6 +197,7 @@ def test_ndarray_struct_l4():
         s1(z, my_struct, bar)
 
     my_struct = MyStruct(a=a, b=b, c=c)
+    ti.sync()
     k1(d, my_struct, e)
     assert d[33] == 2
     assert a[35] == 3

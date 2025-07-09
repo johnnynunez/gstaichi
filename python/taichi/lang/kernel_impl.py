@@ -300,6 +300,8 @@ class Func:
             ast_builder=impl.get_runtime().current_kernel.ast_builder(),
             is_real_function=self.is_real_function,
         )
+        for arg in args:
+            print('arg', arg)
         tree = unpack_ndarray_struct(tree, ctx=ctx)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
@@ -801,6 +803,13 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
+                
+                for arg in args:
+                    print("arg", arg)
+                for arg in ctx.argument_data:
+                    print("arg data arg", arg)
+                # print('current_scope', ctx.current_scope())
+
                 tree = unpack_ndarray_struct(tree, ctx=ctx)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
@@ -830,7 +839,8 @@ class Kernel:
             v_primal = v.arr
             v_grad = v.grad.arr if v.grad else None
             if v_grad is None:
-                launch_ctx.set_arg_ndarray(indices, v_primal)
+                print("indices", indices)
+                launch_ctx.set_arg_ndarray(list(indices), v_primal)
             else:
                 launch_ctx.set_arg_ndarray_with_grad(indices, v_primal, v_grad)
 
