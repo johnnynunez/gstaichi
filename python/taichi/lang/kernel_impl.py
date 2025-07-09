@@ -263,8 +263,6 @@ class Func:
         transformer = AttributeToNameTransformer()
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
-        with open("/tmp/ast/unpack_func.ast", "w") as f:
-            f.write(ast.dump(tree, indent=2))
         return new_tree
 
     def __call__(self, *args, **kwargs):
