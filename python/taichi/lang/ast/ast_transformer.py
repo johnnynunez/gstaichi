@@ -1245,7 +1245,28 @@ class ASTTransformer(Builder):
                 node.ptr = getattr(tensor_ops, node.attr)
                 setattr(node, "caller", node.value.ptr)
         else:
-            node.ptr = getattr(node.value.ptr, node.attr)
+            if dataclasses.is_dataclass(node.value.ptr):
+                print("got dataclass")
+                print("node.value", ast.dump(node.value), node.value.id)
+                child_name = f"__ti_{node.value.id}_{node.attr}"
+                print("node.value.ptr", node.value.ptr, "node.attr", node.attr)
+                # node.ptr = getattr(node.value.ptr, child_name)
+                _node = ast.Name(
+                    id=child_name,
+                    ctx=node.ctx,
+                    lineno=node.lineno,
+                    end_lineno=node.end_lineno,
+                    col_offset=node.col_offset,
+                    end_col_offset=node.end_col_offset,
+                )
+                print("_node", ast.dump(_node))
+                build_stmt(ctx, _node)
+                print("_node.ptr", _node.ptr)
+                node.ptr = _node.ptr
+                node.value.ptr = _node.ptr
+                return _node.ptr
+            else:
+                node.ptr = getattr(node.value.ptr, node.attr)
         return node.ptr
 
     @staticmethod
