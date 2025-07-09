@@ -1058,14 +1058,11 @@ class Kernel:
                 return 1
             if dataclasses.is_dataclass(needed):
                 assert provided == needed
-                dataclass_type = needed
-                for j, field in enumerate(dataclasses.fields(dataclass_type)):
-                    field_name = field.name
-                    field_type = field.type
-                    assert not isinstance(field_type, str)
-                    field_value = getattr(v, field_name)
-                    recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
-                return len(dataclasses.fields(dataclass_type))
+                for j, field in enumerate(dataclasses.fields(needed)):
+                    assert not isinstance(field.type, str)
+                    field_value = getattr(v, field.name)
+                    recursive_set_args(field.type, field.type, field_value, (indices[0] + j,))
+                return len(dataclasses.fields(needed))
             if isinstance(needed, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
                     set_later_list.append((set_arg_ndarray, (v,)))

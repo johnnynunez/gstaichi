@@ -557,16 +557,14 @@ class ASTTransformer(Builder):
         return args
 
     @staticmethod
-    def expand_node_args_dataclasses(args: tuple[ast.AST]) -> tuple[ast.AST]:
+    def expand_node_args_dataclasses(args: tuple[ast.AST, ...]) -> tuple[ast.AST, ...]:
         args_new = []
-        for i, arg in enumerate(args):
+        for arg in args:
             val = arg.ptr
             if dataclasses.is_dataclass(val):
                 dataclass_type = val
-                for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                    field_name = field.name
-                    field_type = field.type
-                    child_name = f"__ti_{arg.id}_{field_name}"
+                for field in dataclasses.fields(dataclass_type):
+                    child_name = f"__ti_{arg.id}_{field.name}"
                     load_ctx = ast.Load()
                     arg_node = ast.Name(
                         id=child_name,
