@@ -5,7 +5,6 @@ import dataclasses
 import functools
 import inspect
 import json
-from typing import Any
 import operator
 import os
 import pathlib
@@ -17,6 +16,7 @@ import types
 import typing
 import warnings
 import weakref
+from typing import Any
 
 import numpy as np
 
@@ -183,8 +183,8 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
         else:
             new_arguments.append(argument)
     return new_arguments
-	
-	
+
+
 def _process_args(self, is_func: bool, args, kwargs):
     if is_func:
         self.arguments = expand_func_arguments(self.arguments)
@@ -266,6 +266,7 @@ class Func:
         with open("/tmp/ast/unpack_func.ast", "w") as f:
             f.write(ast.dump(tree, indent=2))
         return new_tree
+
     def __call__(self, *args, **kwargs):
         args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
 
@@ -477,9 +478,7 @@ class TaichiCallableTemplateMapper:
                 field_type = field.type
                 field_value = getattr(arg, field_name)
                 arg_name = f"__ti_{arg_name}_{field_name}"
-                field_extracted = TaichiCallableTemplateMapper.extract_arg(
-                    field_value, field_type, arg_name
-                )
+                field_extracted = TaichiCallableTemplateMapper.extract_arg(field_value, field_type, arg_name)
                 _res_l.append(field_extracted)
             return tuple(_res_l)
         if isinstance(anno, texture_type.TextureType):
@@ -653,6 +652,7 @@ class Kernel:
             else:
                 new_params[arg_name] = param
         return new_params
+
     def extract_arguments(self):
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
@@ -737,6 +737,7 @@ class Kernel:
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
         return new_tree
+
     def materialize(self, key=None, args=None, arg_features=None):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)

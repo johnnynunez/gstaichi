@@ -2,6 +2,7 @@
 
 import ast
 import collections.abc
+import dataclasses
 import inspect
 import itertools
 import math
@@ -11,7 +12,6 @@ import warnings
 from collections import ChainMap
 from sys import version_info
 from typing import Any, Iterable, Type
-import dataclasses
 
 import numpy as np
 
@@ -848,7 +848,9 @@ class ASTTransformer(Builder):
                             raise TaichiSyntaxError(
                                 f"Argument {arg.arg} of type {ctx.func.arguments[data_i].annotation} is not recognized."
                             )
-                        ctx.func.arguments[data_i].annotation.check_matched(data.get_type(), ctx.func.arguments[data_i].name)
+                        ctx.func.arguments[data_i].annotation.check_matched(
+                            data.get_type(), ctx.func.arguments[data_i].name
+                        )
                         ctx.create_variable(ctx.func.arguments[data_i].name, data)
                         continue
 
