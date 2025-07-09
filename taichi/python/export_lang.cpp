@@ -793,7 +793,21 @@ void export_lang(py::module &m) {
       .def("set_arg_external_array_with_shape",
            &LaunchContextBuilder::set_arg_external_array_with_shape)
       .def("set_arg_argpack", &LaunchContextBuilder::set_arg_argpack)
-      .def("set_arg_ndarray", &LaunchContextBuilder::set_arg_ndarray)
+      .def("set_arg_ndarray", [](
+          LaunchContextBuilder *self,
+          py::tuple indices, const Ndarray &arr
+      ) {
+          std::cout << "ndarray.size() " << arr.shape.size() << std::endl;
+          std::vector<int> indices_vec;
+          // std::cout << "indices.size()" << indices.size() << std::endl;
+          indices_vec.reserve(indices.size());
+          for (const auto &i : indices) {
+            // std::cout << "i: " << i.cast<int>() << std::endl;
+            indices_vec.push_back(i.cast<int>());
+          }
+          self->set_arg_ndarray(indices_vec, arr);
+      })
+      // .def("set_arg_ndarray", &LaunchContextBuilder::set_arg_ndarray)
       .def("set_arg_ndarray_with_grad",
            &LaunchContextBuilder::set_arg_ndarray_with_grad)
       .def("set_arg_texture", &LaunchContextBuilder::set_arg_texture)
