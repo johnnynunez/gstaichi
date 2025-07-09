@@ -171,13 +171,10 @@ def _get_tree_and_ctx(
 def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgument]:
     new_arguments = []
     for i, argument in enumerate(arguments):
-        print("i", i, "argument", argument, "annotation", argument.annotation)
         if dataclasses.is_dataclass(argument.annotation):
-            print("found dataclass")
             for field in dataclasses.fields(argument.annotation):
                 field_name = field.name
                 field_type = field.type
-                print("field_name", field_name, field_type)
                 # field_value = getattr(arg, field.name)
                 new_argument = KernelArgument(
                     _annotation=field_type,
@@ -639,18 +636,13 @@ class Kernel:
         self.compiled_kernels = {}
 
     def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
-        print("Kernel.expand_dataclasses params=", params)
-        # print("params", params)
         new_params = {}
         arg_names = params.keys()
         for i, arg_name in enumerate(arg_names):
             param = params[arg_name]
             annotation = param.annotation
-            # print("annotation", annotation)
             if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
-                print("  is dataclass")
                 for field in dataclasses.fields(annotation):
-                    # Create a new inspect.Parameter for each dataclass field
                     field_name = "__ti_" + field.name
                     new_param = inspect.Parameter(
                         name=field_name,
@@ -659,10 +651,8 @@ class Kernel:
                         annotation=field.type,
                     )
                     new_params[field_name] = new_param
-                    print("    ", field_name, "=", str(new_param)[:50])
             else:
                 new_params[arg_name] = param
-        # print("new_params", new_params)
         return new_params
     def extract_arguments(self):
         sig = inspect.signature(self.func)
