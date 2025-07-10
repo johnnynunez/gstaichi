@@ -245,3 +245,44 @@ def test_ndarray_struct_diverse_params():
     assert c[42] == 34
     assert bar_param[112] == 125
     assert field1[4] == 69
+
+
+@test_utils.test()
+def test_ndarray_struct_prim1():
+    gc.collect()
+    gc.collect()
+
+    a = ti.ndarray(ti.i32, shape=(55,))
+    b = ti.ndarray(ti.i32, shape=(57,))
+    c = ti.ndarray(ti.i32, shape=(211,))
+    z_param = ti.ndarray(ti.i32, shape=(223,))
+    bar_param = ti.ndarray(ti.i32, shape=(227,))
+
+    @dataclass
+    class MyStructAB:
+        p3: ti.i32
+        a: ti.types.NDArray[ti.i32, 1]
+        p1: ti.i32
+        p2: ti.i32
+
+    @dataclass
+    class MyStructC:
+        c: ti.types.NDArray[ti.i32, 1]
+
+    @ti.kernel
+    def k1(
+        z: ti.types.NDArray[ti.i32, 1],
+        my_struct_ab: MyStructAB,
+        bar: ti.types.NDArray[ti.i32, 1],
+        my_struct_c: MyStructC,
+    ) -> None:
+        my_struct_ab.a[36] += my_struct_ab.p1
+        my_struct_ab.a[37] += my_struct_ab.p2
+        my_struct_ab.a[38] += my_struct_ab.p3
+
+    my_struct_ab_param = MyStructAB(a=a, p1=119, p2=123, p3=345)
+    my_struct_c_param = MyStructC(c=c)
+    k1(z_param, my_struct_ab_param, bar_param, my_struct_c_param)
+    assert a[36] == 119
+    assert a[37] == 123
+    assert a[38] == 345
