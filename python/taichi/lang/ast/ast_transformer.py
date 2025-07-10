@@ -733,11 +733,12 @@ class ASTTransformer(Builder):
             invoke_later_dict: dict[str, tuple[any, str, any]] = dict()
             create_variable_later = dict()
             for i, arg in enumerate(args.args):
-                if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
-                    kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
+                argument = ctx.func.arguments[i]
+                if isinstance(argument.annotation, ArgPackType):
+                    kernel_arguments.push_argpack_arg(argument.name)
                     d = {}
                     items_to_put_in_dict: list[tuple[str, str, any]] = []
-                    for j, (name, anno) in enumerate(ctx.func.arguments[i].annotation.members.items()):
+                    for j, (name, anno) in enumerate(argument.annotation.members.items()):
                         result, obj = decl_and_create_variable(
                             anno, name, ctx.arg_features[i][j], invoke_later_dict, "__argpack_" + name, 1
                         )
@@ -750,13 +751,11 @@ class ASTTransformer(Builder):
                     for item in items_to_put_in_dict:
                         invoke_later_dict[item[0]] = argpack, item[1], *item[2]
                     create_variable_later[arg.arg] = argpack
-                elif dataclasses.is_dataclass(ctx.func.arguments[i].annotation):
-                    dataclass_type = ctx.func.arguments[i].annotation
+                elif dataclasses.is_dataclass(argument.annotation):
                     arg_features = ctx.arg_features[i]
-                    ctx.create_variable(ctx.func.arguments[i].name, dataclass_type)
-                    for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                        field_name = field.name
-                        new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
+                    ctx.create_variable(argument.name, argument.annotation)
+                    for field_idx, field in enumerate(dataclasses.fields(argument.annotation)):
+                        new_field_name = f"__ti_{argument.name}_{field.name}"
                         result, obj = decl_and_create_variable(
                             field.type,
                             new_field_name,
@@ -765,17 +764,27 @@ class ASTTransformer(Builder):
                             "",
                             0,
                         )
-                        ctx.create_variable(new_field_name, obj if result else obj[0](*obj[1]))
+                        if result:
+                            ctx.create_variable(new_field_name, obj)
+                        else:
+                            decl_type_func, type_args = obj
+                            obj = decl_type_func(*type_args)
+                            ctx.create_variable(new_field_name, obj)
                 else:
                     result, obj = decl_and_create_variable(
-                        ctx.func.arguments[i].annotation,
-                        ctx.func.arguments[i].name,
+                        argument.annotation,
+                        argument.name,
                         ctx.arg_features[i] if ctx.arg_features is not None else None,
                         invoke_later_dict,
                         "",
                         0,
                     )
-                    ctx.create_variable(arg.arg, obj if result else obj[0](*obj[1]))
+                    if result:
+                        ctx.create_variable(arg.arg, obj)
+                    else:
+                        decl_type_func, type_args = obj
+                        obj = decl_type_func(*type_args)
+                        ctx.create_variable(arg.arg, obj)
             for k, v in invoke_later_dict.items():
                 argpack, name, func, params = v
                 argpack[name] = func(*params)
@@ -793,7 +802,6 @@ class ASTTransformer(Builder):
             if ctx.is_real_function:
                 transform_as_kernel()
             else:
-                args_offset = 0
                 for data_i, data in enumerate(ctx.argument_data):
                     annotation = ctx.func.arguments[data_i].annotation
                     if isinstance(ctx.func.arguments[data_i].annotation, annotations.template):
@@ -802,11 +810,8 @@ class ASTTransformer(Builder):
 
                     elif dataclasses.is_dataclass(ctx.func.arguments[data_i].annotation):
                         dataclass_type = ctx.func.arguments[data_i].annotation
-                        for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                            field_name = field.name
-                            field_type = field.type
-                            new_field_name = f"__ti_{ctx.func.arguments[data_i].name}_{field_name}"
-                            data_child = getattr(data, field_name)
+                        for field in dataclasses.fields(dataclass_type):
+                            data_child = getattr(data, field.name)
                             if not isinstance(
                                 data_child,
                                 (
@@ -817,18 +822,10 @@ class ASTTransformer(Builder):
                                 ),
                             ):
                                 raise TaichiSyntaxError(
-                                    f"Argument {ctx.func.arguments[data_i].name} of type {dataclass_type} {field_type} is not recognized."
+                                    f"Argument {ctx.func.arguments[data_i].name} of type {dataclass_type} {field.type} is not recognized."
                                 )
-                            field_type.check_matched(data_child.get_type(), field_name)
-                            var_name = f"__ti_{ctx.func.arguments[data_i].name}_{field_name}"
-                            data_child_anyarray = decl_and_create_variable(
-                                field_type,
-                                var_name,
-                                ctx.arg_features[data_i] if ctx.arg_features is not None else None,
-                                invoke_later_dict,
-                                "",
-                                0,
-                            )
+                            field.type.check_matched(data_child.get_type(), field.name)
+                            var_name = f"__ti_{ctx.func.arguments[data_i].name}_{field.name}"
                             ctx.create_variable(var_name, data_child)
                         continue
 
