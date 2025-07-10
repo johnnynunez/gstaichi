@@ -1,4 +1,5 @@
 import copy
+import sys
 
 import numpy as np
 import pytest
@@ -1161,3 +1162,83 @@ def test_real_func_write_ndarray_cfg():
     a = ti.Vector.ndarray(3, float, shape=(2,))
     foo(a)
     assert (a[0] == vec3(3)).all()
+
+
+def check_objs(name: str) -> None:
+    import gc
+
+    all_objects = gc.get_objects()
+    scalar_ndarrays = [obj for obj in all_objects if type(obj).__name__ == "ScalarNdarray"]
+    print("check_objs", name)
+    print(f"Found {len(scalar_ndarrays)} ScalarNdarray objects in memory")
+    for i, obj in enumerate(scalar_ndarrays):
+        print(f"  Object {i}: id={id(obj)}, shape={getattr(obj, 'shape', 'unknown')}")
+
+
+@test_utils.test()
+@pytest.mark.parametrize("execution_count", range(1000))
+# @pytest.mark.parametrize("execution_count", range(1))
+def test_ndarray_simple_kernel_call(execution_count: int) -> None:
+    # import gc
+    # gc.collect()
+    # import objgraph
+    a = ti.ndarray(ti.i32, shape=(55,))
+    print("a refcount", sys.getrefcount(a), sys.getrefcount(a.arr))
+    check_objs("1")
+    b = ti.ndarray(ti.i32, shape=(57,))
+    print("a refcount", sys.getrefcount(a), sys.getrefcount(a.arr))
+    check_objs("2")
+    c = ti.ndarray(ti.i32, shape=(211,))
+    print("a refcount", sys.getrefcount(a), sys.getrefcount(a.arr))
+    print("\ncreating z param >>>>")
+    check_objs("3")
+    z_param = ti.ndarray(ti.i32, shape=(223,))
+    print(" <<< z param created\n")
+    print("a refcount", sys.getrefcount(a), sys.getrefcount(a.arr))
+    check_objs("4")
+    bar_param = ti.ndarray(ti.i32, shape=(227,))
+    print("a refcount", sys.getrefcount(a), sys.getrefcount(a.arr))
+
+    field1 = ti.field(ti.i32, shape=(100,))
+
+    print("z_param.shape", z_param.arr.shape, z_param.arr.shape_cxx, z_param.arr.total_shape())
+    for v in [a, b, c, z_param, bar_param]:
+        assert len(v.arr.shape) > 0, f"{v}"
+        print("ref count", v, sys.getrefcount(v), sys.getrefcount(v.arr))
+    print("")
+    # objgraph.show_backrefs([z_param], filename="/tmp/z1.png")
+
+    check_objs("before kernel")
+
+    print("define kernel")
+
+    @ti.kernel
+    # def k1(field1: ti.template()) -> None:
+    def k1(z_param2: ti.types.NDArray[ti.i32, 1]) -> None:
+        z_param2[33] += 2
+
+    import gc
+
+    check_objs("after kernel")
+
+    # adsf = ti.types.NDArray[ti.i32, 1]
+    # objgraph.show_backrefs([z_param], filename="/tmp/z2.png")
+
+    print("")
+    print("z_param.shape", z_param.arr.shape, z_param.arr.shape_cxx, z_param.arr.total_shape())
+    for v in [a, b, c, z_param, bar_param]:
+        assert len(v.arr.shape) > 0, f"{v}"
+        print("ref count", v, sys.getrefcount(v), sys.getrefcount(v.arr))
+    print("")
+    print("call gc...")
+    gc.collect()
+    for v in [a, b, c, z_param, bar_param]:
+        assert len(v.arr.shape) > 0, f"{v}"
+        print("ref count", v, sys.getrefcount(v), sys.getrefcount(v.arr))
+    print("z_param.shape", z_param.arr.shape, z_param.arr.shape_cxx, z_param.arr.total_shape())
+    print("call gc...")
+    gc.collect()
+    print("z_param.shape", z_param.arr.shape, z_param.arr.shape_cxx, z_param.arr.total_shape())
+    print("call kernel")
+    k1(z_param)
+    # k1(z_param)
