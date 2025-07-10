@@ -38,7 +38,7 @@ class FieldsBuilder:
     """
 
     def __init__(self):
-        self.ptr: SNodeCxx = _snode_registry.create_root(impl.get_runtime().prog)
+        self.ptr: SNodeCxx = _snode_registry.create_root(impl.get_runtime()._prog)
         self.root = snode.SNode(self.ptr)
         self.finalized = False
         self.empty = True
@@ -53,9 +53,9 @@ class FieldsBuilder:
             A list of the roots of the finalized SNodeTree.
         """
         roots_ptr = []
-        size = impl.get_runtime().prog.get_snode_tree_size()
+        size = impl.get_runtime()._prog.get_snode_tree_size()
         for i in range(size):
-            res = impl.get_runtime().prog.get_snode_root(i)
+            res = impl.get_runtime()._prog.get_snode_root(i)
             roots_ptr.append(snode.SNode(res))
         return roots_ptr
 
@@ -182,7 +182,9 @@ class FieldsBuilder:
             warning("Finalizing an empty FieldsBuilder!")
         self.finalized = True
         impl.get_runtime().finalize_fields_builder(self)
-        return SNodeTree(_ti_core.finalize_snode_tree(_snode_registry, self.ptr, impl.get_runtime().prog, compile_only))
+        return SNodeTree(
+            _ti_core.finalize_snode_tree(_snode_registry, self.ptr, impl.get_runtime()._prog, compile_only)
+        )
 
     def _check_not_finalized(self):
         if self.finalized:

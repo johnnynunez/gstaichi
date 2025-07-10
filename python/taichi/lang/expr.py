@@ -50,7 +50,6 @@ class Expr(TaichiOperations):
             self.ptr.set_dbg_info(self.dbg_info)
         if not self.ptr_type_checked:
             prog = impl.get_runtime().prog
-            assert prog is not None
             self.ptr.type_check(prog.config())
             self.ptr_type_checked = True
 
@@ -144,7 +143,6 @@ def make_constant_expr(val, dtype):
 def make_var_list(size: int, ast_builder: "ASTBuilder | None" = None):
     exprs = []
     prog = impl.get_runtime().prog
-    assert prog is not None
     for _ in range(size):
         if ast_builder is None:
             exprs.append(prog.make_id_expr(""))
