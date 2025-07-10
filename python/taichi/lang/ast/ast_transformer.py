@@ -588,8 +588,11 @@ class ASTTransformer(Builder):
                 build_stmts(ctx, node.keywords)
         else:
             build_stmt(ctx, node.func)
+            # creates variable for the dataclass itself (as well as other variables,
+            # not related to dataclasses). Necessary for calling further child functions
             build_stmts(ctx, node.args)
             node.args = ASTTransformer.expand_node_args_dataclasses(node.args)
+            # create variables for the now-expanded dataclass members
             build_stmts(ctx, node.args)
             build_stmts(ctx, node.keywords)
 
@@ -755,21 +758,21 @@ class ASTTransformer(Builder):
                     arg_features = ctx.arg_features[i]
                     ctx.create_variable(argument.name, argument.annotation)
                     for field_idx, field in enumerate(dataclasses.fields(argument.annotation)):
-                        new_field_name = f"__ti_{argument.name}_{field.name}"
+                        flat_name = f"__ti_{argument.name}_{field.name}"
                         result, obj = decl_and_create_variable(
                             field.type,
-                            new_field_name,
+                            flat_name,
                             arg_features[field_idx],
                             invoke_later_dict,
                             "",
                             0,
                         )
                         if result:
-                            ctx.create_variable(new_field_name, obj)
+                            ctx.create_variable(flat_name, obj)
                         else:
                             decl_type_func, type_args = obj
                             obj = decl_type_func(*type_args)
-                            ctx.create_variable(new_field_name, obj)
+                            ctx.create_variable(flat_name, obj)
                 else:
                     result, obj = decl_and_create_variable(
                         argument.annotation,
