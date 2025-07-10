@@ -16,7 +16,6 @@ import types
 import typing
 import warnings
 import weakref
-from typing import Any
 
 import numpy as np
 
