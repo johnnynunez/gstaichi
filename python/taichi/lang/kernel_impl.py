@@ -244,6 +244,27 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
     return new_tree
 
 
+def extract_struct_locals_from_context(ctx: ASTTransformerContext):
+    """
+    Uses ctx.func.func to get the function signature
+    Searches this for any dataclasses
+    - if it finds any dataclasses, then converts them into expanded names
+    - e.g. my_struct: MyStruct, and MyStruct contains a, b, c would become:
+        {"__ti_my_struct_a", "__ti_my_struct_b, "__ti_my_struct_c"}
+    """
+    assert ctx.func is not None
+    sig = inspect.signature(ctx.func.func)
+    parameters = sig.parameters
+    struct_locals = set()
+    for param_name, parameter in parameters.items():
+        if dataclasses.is_dataclass(parameter.annotation):
+            for field in dataclasses.fields(parameter.annotation):
+                field_name = field.name
+                child_name = f"__ti_{param_name}_{field_name}"
+                struct_locals.add(child_name)
+    return struct_locals
+
+
 class Func:
     function_counter = 0
 
@@ -293,17 +314,7 @@ class Func:
             is_real_function=self.is_real_function,
         )
 
-        assert ctx.func is not None
-        sig = inspect.signature(ctx.func.func)
-        parameters = sig.parameters
-        struct_locals = set()
-        for param_name, parameter in parameters.items():
-            if dataclasses.is_dataclass(parameter.annotation):
-                for field in dataclasses.fields(parameter.annotation):
-                    field_name = field.name
-                    child_name = f"__ti_{param_name}_{field_name}"
-                    struct_locals.add(child_name)
-
+        struct_locals = extract_struct_locals_from_context(ctx)
         tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
@@ -450,6 +461,7 @@ class TaichiCallableTemplateMapper:
         - needs grad (or not)
     - these are returned as a heterogeneous tuple, whose contents depends on the type
     """
+
     def __init__(self, arguments, template_slot_locations):
         self.arguments = arguments
         self.num_args = len(arguments)
@@ -795,16 +807,7 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
-                assert ctx.func is not None
-                sig = inspect.signature(ctx.func.func)
-                parameters = sig.parameters
-                struct_locals = set()
-                for param_name, parameter in parameters.items():
-                    if dataclasses.is_dataclass(parameter.annotation):
-                        for field in dataclasses.fields(parameter.annotation):
-                            field_name = field.name
-                            child_name = f"__ti_{param_name}_{field_name}"
-                            struct_locals.add(child_name)
+                struct_locals = extract_struct_locals_from_context(ctx)
                 tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
