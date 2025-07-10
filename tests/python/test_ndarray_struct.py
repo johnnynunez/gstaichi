@@ -1,3 +1,4 @@
+import gc
 from dataclasses import dataclass
 
 import taichi as ti
@@ -6,6 +7,8 @@ from tests import test_utils
 
 @test_utils.test()
 def test_ndarray_struct_l4():
+    gc.collect()
+    gc.collect()
     a = ti.ndarray(ti.i32, shape=(55,))
     b = ti.ndarray(ti.i32, shape=(57,))
     c = ti.ndarray(ti.i32, shape=(211,))
@@ -121,6 +124,9 @@ def test_ndarray_struct_l4():
 
 @test_utils.test()
 def test_ndarray_struct_diverse_params():
+    gc.collect()
+    gc.collect()
+
     a = ti.ndarray(ti.i32, shape=(55,))
     b = ti.ndarray(ti.i32, shape=(57,))
     c = ti.ndarray(ti.i32, shape=(211,))
