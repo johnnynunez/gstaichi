@@ -440,6 +440,16 @@ class Func:
 
 
 class TaichiCallableTemplateMapper:
+    """
+    This should probably be renamed to sometihng like FeatureMapper, or
+    FeatureExtractor, since:
+    - it's not specific to templates
+    - it extracts what are later called 'features', for example for ndarray this includes:
+        - element type
+        - number dimensions
+        - needs grad (or not)
+    - these are returned as a heterogeneous tuple, whose contents depends on the type
+    """
     def __init__(self, arguments, template_slot_locations):
         self.arguments = arguments
         self.num_args = len(arguments)
