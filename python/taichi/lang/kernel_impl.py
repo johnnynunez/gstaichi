@@ -645,26 +645,6 @@ class Kernel:
         self.runtime = impl.get_runtime()
         self.compiled_kernels = {}
 
-    def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
-        new_params = {}
-        arg_names = params.keys()
-        for i, arg_name in enumerate(arg_names):
-            param = params[arg_name]
-            annotation = param.annotation
-            if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
-                for field in dataclasses.fields(annotation):
-                    field_name = "__ti_" + field.name
-                    new_param = inspect.Parameter(
-                        name=field_name,
-                        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        default=inspect.Parameter.empty,
-                        annotation=field.type,
-                    )
-                    new_params[field_name] = new_param
-            else:
-                new_params[arg_name] = param
-        return new_params
-
     def extract_arguments(self):
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
