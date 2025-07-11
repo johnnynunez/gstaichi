@@ -10,6 +10,7 @@ import re
 import warnings
 from collections import ChainMap
 from sys import version_info
+from typing import Any, Iterable, Type
 
 import numpy as np
 
@@ -18,7 +19,12 @@ from taichi.lang import _ndarray, any_array, expr, impl, kernel_arguments, matri
 from taichi.lang import ops as ti_ops
 from taichi.lang._ndrange import _Ndrange, ndrange
 from taichi.lang.argpack import ArgPackType
-from taichi.lang.ast.ast_transformer_utils import Builder, LoopStatus, ReturnStatus
+from taichi.lang.ast.ast_transformer_utils import (
+    ASTTransformerContext,
+    Builder,
+    LoopStatus,
+    ReturnStatus,
+)
 from taichi.lang.ast.symbol_resolver import ASTResolver
 from taichi.lang.exception import (
     TaichiIndexError,
@@ -42,7 +48,7 @@ else:
     from ast import unparse
 
 
-def reshape_list(flat_list, target_shape):
+def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
     if len(target_shape) < 2:
         return flat_list
 
@@ -56,7 +62,7 @@ def reshape_list(flat_list, target_shape):
     return reshape_list(curr_list, target_shape[:-1])
 
 
-def boundary_type_cast_warning(expression):
+def boundary_type_cast_warning(expression: Expr) -> None:
     expr_dtype = expression.ptr.get_rvalue_type()
     if not is_integral(expr_dtype) or expr_dtype in [
         primitive_types.i64,
@@ -71,7 +77,7 @@ def boundary_type_cast_warning(expression):
 
 class ASTTransformer(Builder):
     @staticmethod
-    def build_Name(ctx, node):
+    def build_Name(ctx: ASTTransformerContext, node: ast.Name):
         node.ptr = ctx.get_var_by_name(node.id)
         if isinstance(node, (ast.stmt, ast.expr)) and isinstance(node.ptr, Expr):
             node.ptr.dbg_info = _ti_core.DebugInfo(ctx.get_pos_info(node))
@@ -79,7 +85,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_AnnAssign(ctx, node):
+    def build_AnnAssign(ctx: ASTTransformerContext, node: ast.AnnAssign):
         build_stmt(ctx, node.value)
         build_stmt(ctx, node.annotation)
 
@@ -91,7 +97,9 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_assign_annotated(ctx, target, value, is_static_assign, annotation):
+    def build_assign_annotated(
+        ctx: ASTTransformerContext, target: ast.Name, value, is_static_assign: bool, annotation: Type
+    ):
         """Build an annotated assignment like this: target: annotation = value.
 
         Args:
@@ -123,8 +131,7 @@ class ASTTransformer(Builder):
         return var
 
     @staticmethod
-    def build_Assign(ctx, node):
-        print("ASTTransformer.build_assign node", node, 'node.value', node.value)
+    def build_Assign(ctx: ASTTransformerContext, node: ast.Assign) -> None:
         build_stmt(ctx, node.value)
         is_static_assign = isinstance(node.value, ast.Call) and node.value.func.ptr is impl.static
 
@@ -138,7 +145,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_assign_unpack(ctx, node_target, values, is_static_assign):
+    def build_assign_unpack(ctx: ASTTransformerContext, node_target: ast.Tuple, values, is_static_assign: bool):
         """Build the unpack assignments like this: (target1, target2) = (value1, value2).
         The function should be called only if the node target is a tuple.
 
@@ -184,7 +191,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_assign_basic(ctx, target, value, is_static_assign):
+    def build_assign_basic(ctx: ASTTransformerContext, target: ast.Name, value, is_static_assign: bool):
         """Build basic assignment like this: target = value.
 
         Args:
@@ -220,7 +227,7 @@ class ASTTransformer(Builder):
         return var
 
     @staticmethod
-    def build_NamedExpr(ctx, node):
+    def build_NamedExpr(ctx: ASTTransformerContext, node: ast.NamedExpr):
         build_stmt(ctx, node.value)
         is_static_assign = isinstance(node.value, ast.Call) and node.value.func.ptr is impl.static
         node.ptr = ASTTransformer.build_assign_basic(ctx, node.target, node.value.ptr, is_static_assign)
@@ -237,7 +244,7 @@ class ASTTransformer(Builder):
         return False
 
     @staticmethod
-    def build_Subscript(ctx, node):
+    def build_Subscript(ctx: ASTTransformerContext, node: ast.Subscript):
         build_stmt(ctx, node.value)
         build_stmt(ctx, node.slice)
         if not ASTTransformer.is_tuple(node.slice):
@@ -246,7 +253,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_Slice(ctx, node):
+    def build_Slice(ctx: ASTTransformerContext, node: ast.Slice):
         if node.lower is not None:
             build_stmt(ctx, node.lower)
         if node.upper is not None:
@@ -262,25 +269,25 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_ExtSlice(ctx, node):
+    def build_ExtSlice(ctx: ASTTransformerContext, node: ast.ExtSlice):
         build_stmts(ctx, node.dims)
         node.ptr = tuple(dim.ptr for dim in node.dims)
         return node.ptr
 
     @staticmethod
-    def build_Tuple(ctx, node):
+    def build_Tuple(ctx: ASTTransformerContext, node: ast.Tuple):
         build_stmts(ctx, node.elts)
         node.ptr = tuple(elt.ptr for elt in node.elts)
         return node.ptr
 
     @staticmethod
-    def build_List(ctx, node):
+    def build_List(ctx: ASTTransformerContext, node: ast.List):
         build_stmts(ctx, node.elts)
         node.ptr = [elt.ptr for elt in node.elts]
         return node.ptr
 
     @staticmethod
-    def build_Dict(ctx, node):
+    def build_Dict(ctx: ASTTransformerContext, node: ast.Dict):
         dic = {}
         for key, value in zip(node.keys, node.values):
             if key is None:
@@ -291,17 +298,17 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def process_listcomp(ctx, node, result):
+    def process_listcomp(ctx: ASTTransformerContext, node, result) -> None:
         result.append(build_stmt(ctx, node.elt))
 
     @staticmethod
-    def process_dictcomp(ctx, node, result):
+    def process_dictcomp(ctx: ASTTransformerContext, node, result) -> None:
         key = build_stmt(ctx, node.key)
         value = build_stmt(ctx, node.value)
         result[key] = value
 
     @staticmethod
-    def process_generators(ctx, node, now_comp, func, result):
+    def process_generators(ctx: ASTTransformerContext, node: ast.GeneratorExp, now_comp, func, result):
         if now_comp >= len(node.generators):
             return func(ctx, node, result)
         with ctx.static_scope_guard():
@@ -321,7 +328,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def process_ifs(ctx, node, now_comp, now_if, func, result):
+    def process_ifs(ctx: ASTTransformerContext, node: ast.If, now_comp, now_if, func, result):
         if now_if >= len(node.generators[now_comp].ifs):
             return ASTTransformer.process_generators(ctx, node, now_comp + 1, func, result)
         cond = node.generators[now_comp].ifs[now_if].ptr
@@ -331,51 +338,51 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_ListComp(ctx, node):
+    def build_ListComp(ctx: ASTTransformerContext, node: ast.ListComp):
         result = []
         ASTTransformer.process_generators(ctx, node, 0, ASTTransformer.process_listcomp, result)
         node.ptr = result
         return node.ptr
 
     @staticmethod
-    def build_DictComp(ctx, node):
+    def build_DictComp(ctx: ASTTransformerContext, node: ast.DictComp):
         result = {}
         ASTTransformer.process_generators(ctx, node, 0, ASTTransformer.process_dictcomp, result)
         node.ptr = result
         return node.ptr
 
     @staticmethod
-    def build_Index(ctx, node):
+    def build_Index(ctx: ASTTransformerContext, node: ast.Index):
         node.ptr = build_stmt(ctx, node.value)
         return node.ptr
 
     @staticmethod
-    def build_Constant(ctx, node):
+    def build_Constant(ctx: ASTTransformerContext, node: ast.Constant):
         node.ptr = node.value
         return node.ptr
 
     @staticmethod
-    def build_Num(ctx, node):
+    def build_Num(ctx: ASTTransformerContext, node: ast.Num):
         node.ptr = node.n
         return node.ptr
 
     @staticmethod
-    def build_Str(ctx, node):
+    def build_Str(ctx: ASTTransformerContext, node: ast.Str):
         node.ptr = node.s
         return node.ptr
 
     @staticmethod
-    def build_Bytes(ctx, node):
+    def build_Bytes(ctx: ASTTransformerContext, node: ast.Bytes):
         node.ptr = node.s
         return node.ptr
 
     @staticmethod
-    def build_NameConstant(ctx, node):
+    def build_NameConstant(ctx: ASTTransformerContext, node: ast.NameConstant):
         node.ptr = node.value
         return node.ptr
 
     @staticmethod
-    def build_keyword(ctx, node):
+    def build_keyword(ctx: ASTTransformerContext, node: ast.keyword):
         build_stmt(ctx, node.value)
         if node.arg is None:
             node.ptr = node.value.ptr
@@ -384,12 +391,12 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_Starred(ctx, node):
+    def build_Starred(ctx: ASTTransformerContext, node: ast.Starred):
         node.ptr = build_stmt(ctx, node.value)
         return node.ptr
 
     @staticmethod
-    def build_FormattedValue(ctx, node):
+    def build_FormattedValue(ctx: ASTTransformerContext, node: ast.FormattedValue):
         node.ptr = build_stmt(ctx, node.value)
         if node.format_spec is None or len(node.format_spec.values) == 0:
             return node.ptr
@@ -401,7 +408,7 @@ class ASTTransformer(Builder):
         return ["__ti_fmt_value__", node.ptr, format_str]
 
     @staticmethod
-    def build_JoinedStr(ctx, node):
+    def build_JoinedStr(ctx: ASTTransformerContext, node: ast.JoinedStr):
         str_spec = ""
         args = []
         for sub_node in node.values:
@@ -420,7 +427,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_call_if_is_builtin(ctx, node, args, keywords):
+    def build_call_if_is_builtin(ctx: ASTTransformerContext, node, args, keywords):
         from taichi.lang import matrix_ops  # pylint: disable=C0415
 
         func = node.func.ptr
@@ -450,7 +457,7 @@ class ASTTransformer(Builder):
         return False
 
     @staticmethod
-    def build_call_if_is_type(ctx, node, args, keywords):
+    def build_call_if_is_type(ctx: ASTTransformerContext, node, args, keywords):
         func = node.func.ptr
         if id(func) in primitive_types.type_ids:
             if len(args) != 1 or keywords:
@@ -468,7 +475,7 @@ class ASTTransformer(Builder):
         return False
 
     @staticmethod
-    def is_external_func(ctx, func) -> bool:
+    def is_external_func(ctx: ASTTransformerContext, func) -> bool:
         if ctx.is_in_static_scope():  # allow external function in static scope
             return False
         if hasattr(func, "_is_taichi_function") or hasattr(func, "_is_wrapped_kernel"):  # taichi func/kernel
@@ -478,7 +485,7 @@ class ASTTransformer(Builder):
         return True
 
     @staticmethod
-    def warn_if_is_external_func(ctx, node):
+    def warn_if_is_external_func(ctx: ASTTransformerContext, node):
         func = node.func.ptr
         if not ASTTransformer.is_external_func(ctx, func):
             return
@@ -506,7 +513,7 @@ class ASTTransformer(Builder):
     # raw_args: [1.0, 2.0]
     # raw_keywords: {'k': <ti.Expr>}
     # return value: ['qwerty {} {} {} {} {}', 2.0, 1.0, ['__ti_fmt_value__', 2.0, '.3f'], ['__ti_fmt_value__', <ti.Expr>, '.4f'], <ti.Expr>]
-    def canonicalize_formatted_string(raw_string, *raw_args, **raw_keywords):
+    def canonicalize_formatted_string(raw_string: str, *raw_args: list, **raw_keywords: dict):
         raw_brackets = re.findall(r"{(.*?)}", raw_string)
         brackets = []
         unnamed = 0
@@ -550,7 +557,7 @@ class ASTTransformer(Builder):
         return args
 
     @staticmethod
-    def build_Call(ctx, node):
+    def build_Call(ctx: ASTTransformerContext, node: ast.Call):
         print("ASTTransformer.build_Call node.func", node.func)
         if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
@@ -624,7 +631,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_FunctionDef(ctx, node):
+    def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef):
         print("ASTTransformer.build_FunctionDef")
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(
@@ -700,13 +707,13 @@ class ASTTransformer(Builder):
                         kernel_arguments.decl_ret(return_type)
             impl.get_runtime().compiling_callable.finalize_rets()
 
-            invoke_later_dict = dict()
+            invoke_later_dict: dict[str, tuple[any, str, any]] = dict()
             create_variable_later = dict()
             for i, arg in enumerate(args.args):
                 if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
                     kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
                     d = {}
-                    items_to_put_in_dict = []
+                    items_to_put_in_dict: list[tuple[str, str, any]] = []
                     for j, (name, anno) in enumerate(ctx.func.arguments[i].annotation.members.items()):
                         result, obj = decl_and_create_variable(
                             anno, name, ctx.arg_features[i][j], invoke_later_dict, "__argpack_" + name, 1
@@ -824,7 +831,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_Return(ctx, node):
+    def build_Return(ctx: ASTTransformerContext, node: ast.Return) -> None:
         if not ctx.is_real_function:
             if ctx.is_in_non_static_control_flow():
                 raise TaichiSyntaxError("Return inside non-static if/for is not supported")
@@ -940,7 +947,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_Module(ctx, node):
+    def build_Module(ctx: ASTTransformerContext, node: ast.Module) -> None:
         print("ASTTransformer.build_module >>>")
         with ctx.variable_scope_guard():
             # Do NOT use |build_stmts| which inserts 'del' statements to the
@@ -951,7 +958,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_attribute_if_is_dynamic_snode_method(ctx, node):
+    def build_attribute_if_is_dynamic_snode_method(ctx: ASTTransformerContext, node) -> bool:
         is_subscript = isinstance(node.value, ast.Subscript)
         names = ("append", "deactivate", "length")
         if node.attr not in names:
@@ -980,7 +987,7 @@ class ASTTransformer(Builder):
         return True
 
     @staticmethod
-    def build_Attribute(ctx, node):
+    def build_Attribute(ctx: ASTTransformerContext, node: ast.Attribute):
         # There are two valid cases for the methods of Dynamic SNode:
         #
         # 1. x[i, j].append (where the dimension of the field (3 in this case) is equal to one plus the number of the
@@ -1050,7 +1057,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_BinOp(ctx, node):
+    def build_BinOp(ctx: ASTTransformerContext, node: ast.BinOp):
         build_stmt(ctx, node.left)
         build_stmt(ctx, node.right)
         # pylint: disable-msg=C0415
@@ -1078,7 +1085,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_AugAssign(ctx, node):
+    def build_AugAssign(ctx: ASTTransformerContext, node: ast.AugAssign):
         build_stmt(ctx, node.target)
         build_stmt(ctx, node.value)
         if isinstance(node.target, ast.Name) and node.target.id in ctx.kernel_args:
@@ -1090,7 +1097,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_UnaryOp(ctx, node):
+    def build_UnaryOp(ctx: ASTTransformerContext, node: ast.UnaryOp):
         build_stmt(ctx, node.operand)
         op = {
             ast.UAdd: lambda l: l,
@@ -1125,7 +1132,7 @@ class ASTTransformer(Builder):
         return operands[-1].ptr
 
     @staticmethod
-    def build_BoolOp(ctx, node):
+    def build_BoolOp(ctx: ASTTransformerContext, node: ast.BoolOp):
         build_stmts(ctx, node.values)
         if ctx.is_in_static_scope():
             ops = {
@@ -1147,7 +1154,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_Compare(ctx, node):
+    def build_Compare(ctx: ASTTransformerContext, node: ast.Compare):
         build_stmt(ctx, node.left)
         build_stmts(ctx, node.comparators)
         ops = {
@@ -1186,7 +1193,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def get_decorator(ctx, node):
+    def get_decorator(ctx: ASTTransformerContext, node) -> str:
         if not isinstance(node, ast.Call):
             return ""
         for wanted, name in [
@@ -1200,7 +1207,7 @@ class ASTTransformer(Builder):
         return ""
 
     @staticmethod
-    def get_for_loop_targets(node):
+    def get_for_loop_targets(node: ast.Name | ast.Tuple | Any) -> list:
         """
         Returns the list of indices of the for loop |node|.
         See also: https://docs.python.org/3/library/ast.html#ast.For
@@ -1211,7 +1218,7 @@ class ASTTransformer(Builder):
         return [name.id for name in node.target.elts]
 
     @staticmethod
-    def build_static_for(ctx, node, is_grouped):
+    def build_static_for(ctx: ASTTransformerContext, node: ast.For, is_grouped: bool) -> None:
         ti_unroll_limit = impl.get_runtime().unrolling_limit
         if is_grouped:
             assert len(node.iter.args[0].args) == 1
@@ -1284,7 +1291,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_range_for(ctx, node):
+    def build_range_for(ctx: ASTTransformerContext, node: ast.For) -> None:
         with ctx.variable_scope_guard():
             loop_name = node.target.id
             ctx.check_loop_var(loop_name)
@@ -1319,7 +1326,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_ndrange_for(ctx, node):
+    def build_ndrange_for(ctx: ASTTransformerContext, node: ast.For) -> None:
         with ctx.variable_scope_guard():
             ndrange_var = impl.expr_init(build_stmt(ctx, node.iter))
             ndrange_begin = ti_ops.cast(expr.Expr(0), primitive_types.i32)
@@ -1362,7 +1369,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_grouped_ndrange_for(ctx, node):
+    def build_grouped_ndrange_for(ctx: ASTTransformerContext, node: ast.For) -> None:
         with ctx.variable_scope_guard():
             ndrange_var = impl.expr_init(build_stmt(ctx, node.iter.args[0]))
             ndrange_begin = ti_ops.cast(expr.Expr(0), primitive_types.i32)
@@ -1396,7 +1403,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_struct_for(ctx, node, is_grouped):
+    def build_struct_for(ctx: ASTTransformerContext, node: ast.For, is_grouped: bool) -> None:
         # for i, j in x
         # for I in ti.grouped(x)
         targets = ASTTransformer.get_for_loop_targets(node)
@@ -1430,7 +1437,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_mesh_for(ctx, node):
+    def build_mesh_for(ctx: ASTTransformerContext, node: ast.For) -> None:
         targets = ASTTransformer.get_for_loop_targets(node)
         if len(targets) != 1:
             raise TaichiSyntaxError("Mesh for should have 1 loop target, found {len(targets)}")
@@ -1454,7 +1461,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_nested_mesh_for(ctx, node):
+    def build_nested_mesh_for(ctx: ASTTransformerContext, node: ast.For) -> None:
         targets = ASTTransformer.get_for_loop_targets(node)
         if len(targets) != 1:
             raise TaichiSyntaxError("Nested-mesh for should have 1 loop target, found {len(targets)}")
@@ -1485,7 +1492,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_For(ctx, node):
+    def build_For(ctx: ASTTransformerContext, node: ast.For) -> None:
         if node.orelse:
             raise TaichiSyntaxError("'else' clause for 'for' not supported in Taichi kernels")
         decorator = ASTTransformer.get_decorator(ctx, node.iter)
@@ -1532,7 +1539,7 @@ class ASTTransformer(Builder):
                 return ASTTransformer.build_struct_for(ctx, node, is_grouped=False)
 
     @staticmethod
-    def build_While(ctx, node):
+    def build_While(ctx: ASTTransformerContext, node: ast.While) -> None:
         if node.orelse:
             raise TaichiSyntaxError("'else' clause for 'while' not supported in Taichi kernels")
 
@@ -1551,7 +1558,7 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_If(ctx, node):
+    def build_If(ctx: ASTTransformerContext, node: ast.If) -> ast.If | None:
         build_stmt(ctx, node.test)
         is_static_if = ASTTransformer.get_decorator(ctx, node.test) == "static"
 
@@ -1574,12 +1581,12 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_Expr(ctx, node):
+    def build_Expr(ctx: ASTTransformerContext, node: ast.Expr) -> None:
         build_stmt(ctx, node.value)
         return None
 
     @staticmethod
-    def build_IfExp(ctx, node):
+    def build_IfExp(ctx: ASTTransformerContext, node: ast.IfExp):
         build_stmt(ctx, node.test)
         build_stmt(ctx, node.body)
         build_stmt(ctx, node.orelse)
@@ -1615,7 +1622,7 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def _is_string_mod_args(msg):
+    def _is_string_mod_args(msg) -> bool:
         # 1. str % (a, b, c, ...)
         # 2. str % single_item
         # Note that |msg.right| may not be a tuple.
@@ -1630,7 +1637,7 @@ class ASTTransformer(Builder):
         return False
 
     @staticmethod
-    def _handle_string_mod_args(ctx, node):
+    def _handle_string_mod_args(ctx: ASTTransformerContext, node):
         msg = build_stmt(ctx, node.left)
         args = build_stmt(ctx, node.right)
         if not isinstance(args, collections.abc.Sequence):
@@ -1639,7 +1646,7 @@ class ASTTransformer(Builder):
         return msg, args
 
     @staticmethod
-    def ti_format_list_to_assert_msg(raw):
+    def ti_format_list_to_assert_msg(raw) -> tuple[str, list]:
         # TODO: ignore formats here for now
         entries, _ = impl.ti_format_list_to_content_entries([raw])
         msg = ""
@@ -1661,7 +1668,7 @@ class ASTTransformer(Builder):
         return msg, args
 
     @staticmethod
-    def build_Assert(ctx, node):
+    def build_Assert(ctx: ASTTransformerContext, node: ast.Assert) -> None:
         extra_args = []
         if node.msg is not None:
             if ASTTransformer._is_string_mod_args(node.msg):
@@ -1683,9 +1690,9 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_Break(ctx, node):
+    def build_Break(ctx: ASTTransformerContext, node: ast.Break) -> None:
         if ctx.is_in_static_for():
-            nearest_non_static_if: ast.If = ctx.current_loop_scope().nearest_non_static_if
+            nearest_non_static_if = ctx.current_loop_scope().nearest_non_static_if
             if nearest_non_static_if:
                 msg = ctx.get_pos_info(nearest_non_static_if.test)
                 msg += (
@@ -1699,9 +1706,9 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_Continue(ctx, node):
+    def build_Continue(ctx: ASTTransformerContext, node: ast.Continue) -> None:
         if ctx.is_in_static_for():
-            nearest_non_static_if: ast.If = ctx.current_loop_scope().nearest_non_static_if
+            nearest_non_static_if = ctx.current_loop_scope().nearest_non_static_if
             if nearest_non_static_if:
                 msg = ctx.get_pos_info(nearest_non_static_if.test)
                 msg += (
@@ -1715,14 +1722,14 @@ class ASTTransformer(Builder):
         return None
 
     @staticmethod
-    def build_Pass(ctx, node):
+    def build_Pass(ctx: ASTTransformerContext, node: ast.Pass) -> None:
         return None
 
 
 build_stmt = ASTTransformer()
 
 
-def build_stmts(ctx, stmts):
+def build_stmts(ctx: ASTTransformerContext, stmts: list):
     with ctx.variable_scope_guard():
         for stmt in stmts:
             if ctx.returned != ReturnStatus.NoReturn or ctx.loop_status() != LoopStatus.Normal:
