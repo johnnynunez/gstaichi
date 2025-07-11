@@ -222,7 +222,7 @@ class Func:
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
         self.arguments: list[KernelArgument] = []
-        self.return_type: tuple[Type] or None = None
+        self.return_type: tuple[Type, ...] | None = None
         self.extract_arguments()
         self.template_slot_locations: list[int] = []
         for i, arg in enumerate(self.arguments):
@@ -240,6 +240,8 @@ class Func:
                 raise TaichiSyntaxError("Taichi functions cannot be called from Python-scope.")
             return self.func(*args)
 
+        current_kernel = impl.get_runtime().current_kernel
+        assert current_kernel is not None
         if self.is_real_function:
             current_kernel = impl.get_runtime().current_kernel
             assert current_kernel is not None

@@ -336,9 +336,9 @@ class SrcInfoGuard:
 class PyTaichi:
     def __init__(self, kernels=None):
         self.materialized = False
-        self.prog: Program | None = None
+        self._prog: Program | None = None
         self.src_info_stack = []
-        self.inside_kernel = False
+        self.inside_kernel: bool = False
         self.compiling_callable: Kernel | Function | None = None  # pointer to instance of lang::Kernel/Function
         self.current_kernel: Kernel | None = None
         self.global_vars = []
@@ -348,13 +348,19 @@ class PyTaichi:
         self.default_fp = f32
         self.default_ip = i32
         self.default_up = u32
-        self.print_full_traceback = False
+        self.print_full_traceback: bool = False
         self.target_tape = None
         self.fwd_mode_manager = None
         self.grad_replaced = False
         self.kernels = kernels or []
         self._signal_handler_registry = None
         self.unfinalized_fields_builder = {}
+
+    @property
+    def prog(self) -> Program:
+        if self._prog is None:
+            raise TaichiRuntimeError("_prog attribute not initialized. Maybe you forgot to call `ti.init()` first?")
+        return self._prog
 
     def initialize_fields_builder(self, builder):
         self.unfinalized_fields_builder[builder] = get_traceback(2)
@@ -400,8 +406,8 @@ class PyTaichi:
         default_cfg().default_up = self.default_up
 
     def create_program(self):
-        if self.prog is None:
-            self.prog = _ti_core.Program()
+        if self._prog is None:
+            self._prog = _ti_core.Program()
 
     @staticmethod
     def materialize_root_fb(is_first_call):
@@ -507,22 +513,22 @@ class PyTaichi:
             self._signal_handler_registry = _ti_core.HackedSignalRegister()
 
     def clear(self):
-        if self.prog:
-            self.prog.finalize()
-            self.prog = None
+        if self._prog:
+            self._prog.finalize()
+            self._prog = None
         self._signal_handler_registry = None
         self.materialized = False
 
     def sync(self):
         self.materialize()
-        assert self.prog is not None
-        self.prog.synchronize()
+        assert self._prog is not None
+        self._prog.synchronize()
 
 
 pytaichi = PyTaichi()
 
 
-def get_runtime():
+def get_runtime() -> PyTaichi:
     return pytaichi
 
 
@@ -684,8 +690,6 @@ def create_field_member(dtype, name, needs_grad, needs_dual):
 
     # primal
     prog = get_runtime().prog
-    if prog is None:
-        raise TaichiRuntimeError("Cannont create field, maybe you forgot to call `ti.init()` first?")
 
     x = Expr(prog.make_id_expr(""))
     x.declaration_tb = get_traceback(stacklevel=4)
@@ -857,10 +861,6 @@ def ndarray(dtype, shape, needs_grad=False):
             >>> z = ti.ndarray(matrix_ty, shape=(4, 5))  # ndarray of shape (4, 5), each element is a matrix of (3, 4) ti.float scalars.
     """
     # primal
-    prog = get_runtime().prog
-    if prog is None:
-        raise TaichiRuntimeError("Cannont create ndarray, maybe you forgot to call `ti.init()` first?")
-
     if isinstance(shape, numbers.Number):
         shape = (shape,)
     if not all((isinstance(x, int) or isinstance(x, np.integer)) and x > 0 and x <= 2**31 - 1 for x in shape):

@@ -3,12 +3,20 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build_wheel:
     name: Manylinux wheel Build
     runs-on: ubuntu-22.04
     container: quay.io/pypa/manylinux_2_28_x86_64:latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-build
+      cancel-in-progress: true
     strategy:
       matrix:
         PYTHON_CP_VERSION: ['cp310', 'cp311', 'cp312', 'cp313']
@@ -33,11 +41,14 @@ jobs:
           name: manylinux_wheel_${{ matrix.PYTHON_CP_VERSION }}
           path: wheelhouse/*.whl
 
-  upload_to_storaage:
+  upload_to_storage:
     name: Manylinux wheel upload
     runs-on: ubuntu-22.04
     needs: build_wheel
     environment: aws_storage
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-upload
+      cancel-in-progress: true
     strategy:
       matrix:
         PYTHON_CP_VERSION: ['cp310', 'cp311', 'cp312', 'cp313']
@@ -63,8 +74,11 @@ jobs:
   test_wheel:
     name: Manylinux wheel Test
     runs-on: ubuntu-22.04
-    needs: upload_to_storaage
+    needs: upload_to_storage
     environment: aws_storage
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
+      cancel-in-progress: true
     strategy:
       matrix:
         include:
@@ -101,3 +115,11 @@ jobs:
       - name: manylinux test
         run: |
           bash .github/workflows/scripts_new/manylinux_wheel/5_test.sh
+  api_docs:
+    uses: ./.github/workflows/api_doc.yml
+    needs: upload_to_storage
+    with:
+      head_ref: ${{ github.head_ref || github.ref_name }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
