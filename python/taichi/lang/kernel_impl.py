@@ -1058,7 +1058,7 @@ class Kernel:
                 for j, field in enumerate(dataclasses.fields(needed_arg_type)):
                     assert not isinstance(field.type, str)
                     field_value = getattr(v, field.name)
-                    idx += recursive_set_args(field.type, field.type, field_value, (indices[0] + j,))
+                    idx += recursive_set_args(field.type, field.type, field_value, (indices[0] + idx,))
                 return idx
             if isinstance(needed_arg_type, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
