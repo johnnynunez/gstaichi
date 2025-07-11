@@ -151,6 +151,14 @@ def _get_tree_and_ctx(
         for i in self.template_slot_locations:
             template_var_name = self.arguments[i].name
             global_vars[template_var_name] = args[i]
+        parameters = inspect.signature(self.func).parameters
+        for arg_i, (name, param) in enumerate(parameters.items()):
+            if dataclasses.is_dataclass(param.annotation):
+                for field in dataclasses.fields(param.annotation):
+                    field_name = field.name
+                    child_value = getattr(args[arg_i], field.name)
+                    flat_name = f"__ti_{name}_{field.name}"
+                    global_vars[flat_name] = child_value
 
     return tree, ASTTransformerContext(
         excluded_parameters=excluded_parameters,
@@ -1046,11 +1054,12 @@ class Kernel:
                 return 1
             if dataclasses.is_dataclass(needed_arg_type):
                 assert provided_arg_type == needed_arg_type
+                idx = 0
                 for j, field in enumerate(dataclasses.fields(needed_arg_type)):
                     assert not isinstance(field.type, str)
                     field_value = getattr(v, field.name)
-                    recursive_set_args(field.type, field.type, field_value, (indices[0] + j,))
-                return len(dataclasses.fields(needed_arg_type))
+                    idx += recursive_set_args(field.type, field.type, field_value, (indices[0] + j,))
+                return idx
             if isinstance(needed_arg_type, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
                     set_later_list.append((set_arg_ndarray, (v,)))
@@ -1089,6 +1098,8 @@ class Kernel:
                     )
                 needed_arg_type.set_kernel_struct_args(v, launch_ctx, indices)
                 return 1
+            if isinstance(needed_arg_type, template):
+                return 0
             raise ValueError(f"Argument type mismatch. Expecting {needed_arg_type}, got {type(v)}.")
 
         template_num = 0
