@@ -4,6 +4,11 @@ sidebar_position: 6
 
 # Taichi Argument Pack
 
+# NOTE: ARGUMENT PACK WILL VERY LIKELY BE REMOVED
+
+- replaced by caching (not added yet)
+- dataclasses.dataclass struct (in PR)
+
 Taichi provides custom [argpack types](../type_system/type.md#argument-pack-type) for developers to cache unchanged parameters between multiple kernel calls.
 
 Argument packs, also known as argpacks, are user-defined data types that act as wrappers for parameters. They allow multiple parameters to be stored and used as a single parameter. One key advantage of using argpacks is their ability to buffer parameters. If you have certain parameters that remain unchanged when calling kernels, you can store them in argpacks. Taichi can then cache these argpacks on device, resulting in improved kernel performance.
