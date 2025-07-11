@@ -421,9 +421,7 @@ class PyTaichi:
             # https://github.com/taichi-dev/taichi/blob/27bb1dc3227d9273a79fcb318fdb06fd053068f5/tests/python/test_ad_basics.py#L260-L266
             return
 
-        prog = get_runtime().prog
-        assert prog is not None
-        if prog.config().debug:
+        if impl.get_runtime().prog.config().debug:
             if not root.finalized:
                 root._allocate_adjoint_checkbit()
 
@@ -1199,9 +1197,7 @@ def stop_grad(x):
 
 
 def current_cfg():
-    prog = get_runtime().prog
-    assert prog is not None
-    return prog.config()
+    return impl.get_runtime().prog.config()
 
 
 def default_cfg():

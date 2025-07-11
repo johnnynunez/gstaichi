@@ -49,9 +49,7 @@ class Expr(TaichiOperations):
         if self.dbg_info:
             self.ptr.set_dbg_info(self.dbg_info)
         if not self.ptr_type_checked:
-            prog = impl.get_runtime().prog
-            assert prog is not None
-            self.ptr.type_check(prog.config())
+            self.ptr.type_check(impl.get_runtime().prog.config())
             self.ptr_type_checked = True
 
     def is_tensor(self):
