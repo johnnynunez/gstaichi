@@ -336,7 +336,7 @@ class PyTaichi:
         self.materialized = False
         self._prog: Program | None = None
         self.src_info_stack = []
-        self.inside_kernel = False
+        self.inside_kernel: bool = False
         self.compiling_callable: Kernel | Function | None = None  # pointer to instance of lang::Kernel/Function
         self.current_kernel: Kernel | None = None
         self.global_vars = []
@@ -356,7 +356,8 @@ class PyTaichi:
 
     @property
     def prog(self) -> Program:
-        assert self._prog is not None
+        if self._prog is None:
+            raise TaichiRuntimeError("_prog attribute not initialized. Maybe you forgot to call `ti.init()` first?")
         return self._prog
 
     def initialize_fields_builder(self, builder):
@@ -684,9 +685,7 @@ def create_field_member(dtype, name, needs_grad, needs_dual):
     dtype = cook_dtype(dtype)
 
     # primal
-    prog = get_runtime()._prog
-    if prog is None:
-        raise TaichiRuntimeError("Cannont create field, maybe you forgot to call `ti.init()` first?")
+    prog = get_runtime().prog
 
     x = Expr(prog.make_id_expr(""))
     x.declaration_tb = get_traceback(stacklevel=4)
@@ -858,10 +857,6 @@ def ndarray(dtype, shape, needs_grad=False):
             >>> z = ti.ndarray(matrix_ty, shape=(4, 5))  # ndarray of shape (4, 5), each element is a matrix of (3, 4) ti.float scalars.
     """
     # primal
-    prog = get_runtime()._prog
-    if prog is None:
-        raise TaichiRuntimeError("Cannont create ndarray, maybe you forgot to call `ti.init()` first?")
-
     if isinstance(shape, numbers.Number):
         shape = (shape,)
     if not all((isinstance(x, int) or isinstance(x, np.integer)) and x > 0 and x <= 2**31 - 1 for x in shape):
