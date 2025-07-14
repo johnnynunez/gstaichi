@@ -150,8 +150,6 @@ my_kernel(x, y)
 print(x)  # Prints [5, 7, 9]
 ```
 
-You can also use argument packs if you want to pass many arguments to a kernel. See [Taichi Argument Pack](../advanced/argument_pack.md) for more information.
-
 When defining the arguments of a kernel in Taichi, please make sure that each of the arguments has type hint.
 
 :::caution WARNING
