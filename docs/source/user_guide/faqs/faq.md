@@ -8,7 +8,7 @@ sidebar_position: 1
 
 ### Why does my `pip` complain `package not found` when installing Taichi?
 
-You may have a Python interpreter with an unsupported version. Currently, Taichi only supports Python 3.7/3.8/3.9/3.10 (64-bit) . For more information about installation-specific issues, please check [Installation Troubleshooting](./install.md).
+You may have a Python interpreter with an unsupported version. Currently, Taichi only supports Python 3.10/3.11/3.12/3.13 (64-bit) . For more information about installation-specific issues, please check [Installation Troubleshooting](./install.md).
 
 ## Parallel programming
 
@@ -92,49 +92,9 @@ Currently, Taichi does not support the `bool` type.
 
 These structures have to be decomposed into 1D Taichi fields. For example, when representing a graph, you can allocate two fields, one for the vertices and the other for the edges. You can then traverse the elements using `for v in vertices` or `for v in range(n)`.
 
-## Operations
-
-### In Taichi v1.3.0, the matmul result of a vector and a transposed vector gives a scalar instead of a matrix.
-
-Taichi distinguishes vectors from matrices starting from v1.3.0, as explained in the [release note](https://github.com/taichi-dev/taichi/releases/tag/v1.3.0). `transpose()` on a vector is no longer allowed. Use `a.outer_product(b)`, instead of `a @ b.transpose()`, to find the outer product of two vectors.
-
 ## Developement related
 
-### Can I enable auto compeletion for Taichi?
-
-Yes, Taichi's Python user-facing APIs should work natively with any language server for Python.
-
-Take VSCode as an example, you can install `Python` or `Pylance` extensions to get language support like signature help with type information, code completion etc.
-
-If it doesn't work out of box after installing the extension, please make sure the right Python interpreter is selected by:
-
-- invoke command palette (`Shift + Command + P (Mac) / Ctrl + Shift + P (Windows/Linux)`)
-- find `Python: Select Interpreter`
-- make sure you select the path to the Python interpreter you're using with a `taichi` package installed
-
-### How to install Taichi on a server without Internet access?
-
-Follow these steps to install Taichi on a server without Internet access.
-
-1. From a computer with Internet access, pip download Taichi, ensuring that this computer has the same operating system as the target server:
-
-```plaintext
-pip download taichi
-```
-
-_This command downloads the wheel package of Taichi and all its dependencies._
-
-2. Copy the downloaded *.whl packages to your local server and install each with the following command. Note that you *must\* complete all dependency installation before installing Taichi.
-
-```
-python -m pip install xxxx.whl
-```
-
 ## Integration with other libs/softwares
-
-### What is the most convenient way to load images into Taichi fields?
-
-One feasible solution is `field.from_numpy(ti.tools.imread('filename.png'))`.
 
 ### Can Taichi interact with **other Python packages** such as `matplotlib`?
 
@@ -158,12 +118,6 @@ plt.show()
 ```
 
 Besides, you can also pass numpy arrays or torch tensors into a Taichi kernel as arguments. See [Interacting with external arrays](../basic/external.md) for more details.
-
-### Can I integrate Taichi and Houdini?
-
-The answer is an unequivocal Yes! Our contributors managed to embed [taichi_elements](https://github.com/taichi-dev/taichi_elements), a multi-material continuum physics engine, into Houdini as an extension, combining Houdini's flexibility in preprocessing with Taichi's strength in high-performance computation.
-
-You can follow the instructions provided [here](https://github.com/taichi-dev/taichi_houdini).
 
 ## Precision related
 
@@ -319,40 +273,3 @@ Taichi fields adopt a different coordinate system from NumPy's arrays for storin
 This is different from the usual convention taken by popular third-party libs like `matplotlib` or `opencv`, where [0, 0] denotes the pixel at the top left corner, the first axis extends down to the bottom of the image, and the second axis extends to the right.
 
 Therefore, to display a NumPy array using `matplotlb`'s `imshow()`, you must rotate it 90 degrees clockwise.
-
-## Miscellaneous
-
-### How does Taichi compare with Python packages designed for data science or machine learning?
-
-Popular packages designed for data science or machine learning include NumPy, JAX, PyTorch, and TensorFlow. A major difference between them and Taichi lies in the granularity of math operations.
-
-A common feature shared by the other packages is that they treat a single data array as the smallest unit of operations. Take PyTorch as an example. PyTorch processes a tensor as a whole and thus prefers such operations as the addition/subtraction/multiplication/division of tensors and matrix multiplication. The operators are parallelized internally, but the implementation process is invisible to users. As a result, users have to combine operators in various ways if they want to manipulate elements in tensors.
-
-Unlike them, Taichi makes element-level operations transparent and directly manipulates each iteration of the loops. This is why Taichi outperforms the other packages in scientific computing. In this sense, it compares more to C++ and CUDA.
-
-### How does Taichi compare with Cython?
-
-Cython is a superset of the Python language for quickly generating C/C++ extensions. It is a frequently-used tool to improve Python code performance thanks to its support for C data types and static typing. In fact, many modules in the official NumPy and SciPy code are written and compiled in Cython.
-
-On the flip side, the mixture of Python and C values compromises Cython's readability. In addition, though Cython supports parallel computing to a certain degree (via multi-threading), it cannot offload computation to GPU backends.
-
-Compared with Cython, Taichi is more friendly to Non-C users because it can achieve significant performance improvement with pure valid Python code. Supporting a wide range of backends, Taichi is subject to much fewer limits when performing parallel programming. In addition, unlike Cython, Taichi does not require the OpenMP API or an extra parallelism module to accelerate your program. Just specify a backend and wrap the loop with the decorator `@ti.kernel`; then, you can leave the job to Taichi.
-
-### How does Taichi compare with Numba?
-
-As its name indicates, Numba is tailored for NumPy. Numba is recommended if your functions involve vectorization of NumPy arrays. Compared with Numba, Taichi enjoys the following advantages:
-
-- Taichi provides advanced features, including quantized data types, dataclasses and sparse data structures, and allows you to adjust memory layout flexibly. These features are especially helpful when a program handles massive amounts of data. However, Numba only performs best when dealing with dense NumPy arrays.
-- Taichi can run on different GPU backends, making large-scale parallel programming (such as particle simulation or rendering) much more efficient. But it would be hard even to imagine writing a renderer in Numba.
-
-### How does Taichi compare with ctypes?
-
-ctypes allows you to call C/C++ compiled code from Python and run C++/CUDA programs in Python through a C-compatible API. It is a convenient option to access a vast collection of libraries in Python while achieving some improvement in performance. However, ctypes elevates the usage barrier: To write a satisfactory program, you need to command C, Python, CMake, CUDA, and even more languages. Moreover, ctypes may not fit in well with some performance-critical scenarios where you try to call large C libraries in Python, given the runtime overhead it incurs.
-
-In contrast, it is much more reassuring to keep everything in Python. Taichi accelerates the performance of native Python code through automatic parallelization without involving the libraries out of the Python ecosystem. It also enables offline cache, which drastically reduces the launch overhead of Taichi kernels after the first call.
-
-### How does Taichi compare with PyPy?
-
-Similar to Taichi, PyPy also accelerates Python code via just-in-time (JIT) compilation. PyPy is attractive because users can keep Python scripts as they are without even moderate modification. On the other hand, its strict conformity with Python rules leaves limited room for optimization.
-
-If you expect a greater leap in performance, Taichi can achieve the end. But you need to familiarize yourself with Taichi's syntax and assumptions, which differ from Python's slightly.
