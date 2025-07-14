@@ -7,17 +7,6 @@ sidebar_position: 1
 This article describes the syntax and semantics of the Taichi programming
 language.
 
-**To users**: If you have gone through the user tutorials and still feel uncertain
-about your program behavior, then you are in the right place. If you find the
-actual behavior different from what is described in this article, feel free to
-create an [issue](https://github.com/taichi-dev/taichi/issues/new/choose).
-You should not rely solely on this article since things unspecified are subject to changes.
-
-**To contributors**: This article specifies what the language *should* be. That
-is, you should try to match the implementation of the Taichi compiler with this
-article. You can clearly determine a certain behavior is *correct*, *buggy*, or
-*undefined* from this article.
-
 ## Introduction
 
 Taichi is a domain-specific language embedded in Python.
@@ -73,7 +62,7 @@ the remaining expressions will be evaluated to Taichi values at runtime.
 A Taichi value has a Taichi type, which is one of the following:
 - A primitive type, as described in [Type system](../type_system/type.md)
 - A compound type, as described in [Type system](../type_system/type.md)
-- An ndarray type, as introduced in [Tutorial: Run Taichi programs in C++ application](../deployment/tutorial.md)
+- An ndarray type
 - A sparse matrix builder type, as introduced in [Sparse
 Matrix](../math/sparse_matrix.md)
 
