@@ -17,6 +17,10 @@ author = ""
 release = __version__
 version = __version__
 
+autoapi_dirs = ['../../python/taichi']
+autoapi_options = ['members', 'undoc-members', 'show-inheritance', 'show-module-summary']
+autoapi_python_use_implicit_namespaces = True
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -33,6 +37,7 @@ extensions = [
     "sphinxcontrib.video",
     "sphinx_togglebutton",
     "sphinx_design",
+    'autoapi.extension',
 ]
 
 # https://myst-parser.readthedocs.io/en/latest/syntax/optional.html
