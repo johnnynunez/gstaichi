@@ -256,7 +256,7 @@ class ASTTransformerContext:
         return False
 
     def create_variable(self, name: str, var: Any) -> None:
-        print("create_variable name", name, "var", str(var)[:50])
+        print("create_variable name", name)
         # if hasattr(var, "__dataclass_fields__"):
         #     print("  is dataclass")
         #     for field in dataclasses.fields(var):
@@ -284,7 +284,7 @@ class ASTTransformerContext:
         for s in reversed(self.local_scopes):
             # print("local scope", s)
             if name in s:
-                print("  returning", name, "from local scope", s[name])
+                print("  returning", name)
                 return s[name]
         if name in self.global_vars:
             var = self.global_vars[name]
