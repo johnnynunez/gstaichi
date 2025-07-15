@@ -163,7 +163,7 @@ class ASTTransformerContext:
         excluded_parameters=(),
         is_kernel: bool = True,
         func: "Func | Kernel | None" = None,
-        arg_features=None,
+        arg_features: list[tuple[Any, ...]] | None = None,
         global_vars: dict[str, Any] | None = None,
         argument_data=None,
         file: str | None = None,
