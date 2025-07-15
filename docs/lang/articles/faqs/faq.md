@@ -155,15 +155,6 @@ render_pixels()
 arr = pixels.to_numpy()  # store taichi data into numpy arrays
 plt.imshow(arr)
 plt.show()
-import matplotlib.cm as cm
-cmap = cm.get_cmap('magma')
-gui = ti.GUI('Color map', (512, 512))
-
-while gui.running:
-    render_pixels()
-    arr = pixels.to_numpy()
-    gui.set_image(cmap(arr))
-    gui.show()
 ```
 
 Besides, you can also pass numpy arrays or torch tensors into a Taichi kernel as arguments. See [Interacting with external arrays](../basic/external.md) for more details.
@@ -244,26 +235,6 @@ def test(arr: ti.types.ndarray()):
 test(array)
 ```
 
-## Visualization
-
-### Does the Taichi's GUI system support color mapping when rendering simulation results?
-
-Taichi's GUI system can display colors when the field it accepts is a 3D vector field where each vector represents the RGB values of a pixel.
-
-To enable color mapping, convert `ti.field` into a NumPy array and call Matplotlib's colormap (`cm`), as shown in the following example:
-
-```python skip-ci:Trivial
-pixels = ti.Vector.field(3, shape=(w, h))
-gui = ti.GUI(f'Window title', (w, h))
-step = 0
-while gui.running: # Main loop
-    simulate_one_substep(pixels)
-    img = pixels.to_numpy()
-    img = cm.jet(img)
-    gui.set_image(img)
-    gui.show()
-```
-
 ## Objective-oriented programming
 
 ### Why does inheritance fail? I created a parent class and a child class, both decorated with `@ti.data_oriented`, and placed fields under `@ti.kernel`.
@@ -314,7 +285,7 @@ class TriangleRasterizer:
 
 ### How can I write data in Taichi fields to files? `write()` does not work.
 
-You cannot save data in Taichi fields directly, but there is a workaround. Taichi allows interaction with external arrays. Use `to_numpy` to convert a Taichi field to a NumPy array, as explained in [this section](https://docs.taichi-lang.org/docs/master/external). Then write the Numpy array to files via `numpy.savetxt`.
+You cannot save data in Taichi fields directly, but there is a workaround. Taichi allows interaction with external arrays. Use `to_numpy` to convert a Taichi field to a NumPy array, as explained in [this section](../basic/external.md). Then write the Numpy array to files via `numpy.savetxt`.
 
 A simple example:
 
