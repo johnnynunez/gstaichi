@@ -691,8 +691,8 @@ class ASTTransformer(Builder):
         ctx: ASTTransformerContext,
         annotation: Any,
         name: str,
-        arg_features: list[tuple[Any, ...]],
-        invoke_later_dict: dict[str, tuple[Any, str, Any]],
+        arg_features: tuple[tuple[Any, ...], ...],
+        invoke_later_dict: dict[str, tuple[Any, str, ...]],
         prefix_name: str,
         arg_depth: int
     ) -> tuple[bool, Any]:
@@ -705,8 +705,8 @@ class ASTTransformer(Builder):
             d = {}
             items_to_put_in_dict = []
             for j, (_name, anno) in enumerate(annotation.members.items()):
-                result, obj = decl_and_create_variable(
-                    anno, _name, arg_features[j], invoke_later_dict, full_name, arg_depth + 1
+                result, obj = ASTTransformer.decl_and_create_variable(
+                    ctx, anno, _name, arg_features[j], invoke_later_dict, full_name, arg_depth + 1
                 )
                 if not result:
                     d[_name] = None
@@ -773,16 +773,17 @@ class ASTTransformer(Builder):
         assert compiling_callable is not None
         compiling_callable.finalize_rets()
 
-        invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
+        invoke_later_dict: dict[str, tuple[Any, str, ...]] = dict()
         create_variable_later = dict()
         print("transform_as_kernel iterate args len(args.args)", len(args.args), "len(ctx.func.arguments)", len(ctx.func.arguments))
         for i, arg in enumerate(args.args):
+            argument = ctx.func.arguments[i]
             print(" arg i", i, "arg", ast.dump(arg), type(arg))
-            if isinstance(ctx.func.arguments[i].annotation, ArgPackType):
-                kernel_arguments.push_argpack_arg(ctx.func.arguments[i].name)
+            if isinstance(argument.annotation, ArgPackType):
+                kernel_arguments.push_argpack_arg(argument.name)
                 d = {}
                 items_to_put_in_dict: list[tuple[str, str, Any]] = []
-                for j, (name, anno) in enumerate(ctx.func.arguments[i].annotation.members.items()):
+                for j, (name, anno) in enumerate(argument.annotation.members.items()):
                     result, obj = ASTTransformer.decl_and_create_variable(
                         ctx, anno, name, ctx.arg_features[i][j], invoke_later_dict, "__argpack_" + name, 1
                     )
@@ -791,35 +792,34 @@ class ASTTransformer(Builder):
                         items_to_put_in_dict.append(("__argpack_" + name, name, obj))
                     else:
                         d[name] = obj
-                argpack = kernel_arguments.decl_argpack_arg(ctx.func.arguments[i].annotation, d)
+                argpack = kernel_arguments.decl_argpack_arg(argument.annotation, d)
                 for item in items_to_put_in_dict:
                     invoke_later_dict[item[0]] = argpack, item[1], *item[2]
                 create_variable_later[arg.arg] = argpack
-            elif dataclasses.is_dataclass(ctx.func.arguments[i].annotation):
+            elif dataclasses.is_dataclass(argument.annotation):
                 print("     transform_as_kernel got dataclass")
-                dataclass_type = ctx.func.arguments[i].annotation
+                dataclass_type = argument.annotation
                 arg_features = ctx.arg_features[i]
-                ctx.create_variable(ctx.func.arguments[i].name, dataclass_type)
+                ctx.create_variable(argument.name, dataclass_type)
                 for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                    field_name = field.name
-                    new_field_name = f"__ti_{ctx.func.arguments[i].name}_{field_name}"
-                    print("     transform_as_kernel   field_name", field_name, field.type, "new_field_name", new_field_name)
+                    flat_name = f"__ti_{argument.name}_{field.name}"
+                    print("     transform_as_kernel   field_name", field.name, field.type, "flat_name", flat_name)
                     # print("ctx.arg_features[i]", ctx.arg_features[i])
                     result, obj = ASTTransformer.decl_and_create_variable(
                         ctx,
                         field.type,
-                        new_field_name,
+                        flat_name,
                         arg_features[field_idx],
                         invoke_later_dict,
                         "",
                         0,
                     )
-                    print("     transform_as_kernel calling ctx.create_variable", new_field_name, str(obj)[:100])
-                    ctx.create_variable(new_field_name, obj if result else obj[0](*obj[1]))
+                    print("     transform_as_kernel calling ctx.create_variable", flat_name, str(obj)[:100])
+                    ctx.create_variable(flat_name, obj if result else obj[0](*obj[1]))
             else:
                 call_params = [
-                    ctx.func.arguments[i].annotation,
-                    ctx.func.arguments[i].name,
+                    argument.annotation,
+                    argument.name,
                     ctx.arg_features[i] if ctx.arg_features is not None else None,
                     invoke_later_dict,
                     "",
@@ -828,8 +828,8 @@ class ASTTransformer(Builder):
                 print("transform_as_kernel() calling decl_and_create_variable, params", call_params)
                 result, obj = ASTTransformer.decl_and_create_variable(
                     ctx,
-                    ctx.func.arguments[i].annotation,
-                    ctx.func.arguments[i].name,
+                    argument.annotation,
+                    argument.name,
                     ctx.arg_features[i] if ctx.arg_features is not None else None,
                     invoke_later_dict,
                     "",
@@ -839,7 +839,7 @@ class ASTTransformer(Builder):
                 print("transform_as_kernel() calling ctx.create_variable", arg.arg, obj)
                 ctx.create_variable(arg.arg, obj if result else obj[0](*obj[1]))
         for k, v in invoke_later_dict.items():
-            argpack, name, func, params = v
+            argpack, name, func, *params = v
             argpack[name] = func(*params)
         for k, v in create_variable_later.items():
             ctx.create_variable(k, v)
@@ -867,37 +867,23 @@ class ASTTransformer(Builder):
         args_offset = 0
         for data_i, data in enumerate(ctx.argument_data):
         # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
+            argument = ctx.func.arguments[data_i]
             print("  ti.func arg data_i", data_i, "data", str(data)[:100])
-            annotation = ctx.func.arguments[data_i].annotation
-            print("  annotation", annotation, type(annotation))
+            # annotation = argument.annotation
+            print("  annotation", argument.annotation, type(argument.annotation))
             # Template arguments are passed by reference.
-            if isinstance(ctx.func.arguments[data_i].annotation, annotations.template):
-                ctx.create_variable(ctx.func.arguments[data_i].name, data)
+            if isinstance(argument.annotation, annotations.template):
+                ctx.create_variable(argument.name, data)
                 continue
 
-            elif dataclasses.is_dataclass(ctx.func.arguments[data_i].annotation):
+            elif dataclasses.is_dataclass(argument.annotation):
                 print("got dataclass")
-                dataclass_type = ctx.func.arguments[data_i].annotation
-                # print("******* creating var name", ctx.func.arguments[data_i].name, "value", dataclass_type)
-                # ctx.create_variable(ctx.func.arguments[data_i].name, dataclass_type)
-                # asdasdf
-                # arg_features = ctx.arg_features[i]
+                dataclass_type = argument.annotation
+                # print("******* creating var name", argument.name, "value", dataclass_type)
                 for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                    field_name = field.name
-                    field_type = field.type
-                    new_field_name = f"__ti_{ctx.func.arguments[data_i].name}_{field_name}"
-                    print("field_name", field_name, field.type, "new_field_name", new_field_name)
-                    # print("ctx.arg_features[i]", ctx.arg_features[i])
-                    # result, obj = decl_and_create_variable(
-                    #     field.type,
-                    #     new_field_name,
-                    #     arg_features[field_idx],
-                    #     invoke_later_dict,
-                    #     "",
-                    #     0,
-                    # )
-                    # ctx.create_variable(new_field_name, obj if result else obj[0](*obj[1]))
-                    data_child = getattr(data, field_name)
+                    flat_name = f"__ti_{argument.name}_{field.name}"
+                    print("field_name", field.name, field.type, "new_field_name", flat_name)
+                    data_child = getattr(data, field.name)
                     if not isinstance(
                         data_child,
                         (
@@ -908,27 +894,17 @@ class ASTTransformer(Builder):
                         ),
                     ):
                         raise TaichiSyntaxError(
-                            f"Argument {field_name}: {field_type} of type {dataclass_type} {field_type} is not recognized."
+                            f"Argument {field.name}: {field.type} of type {dataclass_type} {field.type} is not recognized."
                         )
-                    field_type.check_matched(data_child.get_type(), field_name)
-                    var_name = f"__ti_{ctx.func.arguments[data_i].name}_{field_name}"
+                    field.type.check_matched(data_child.get_type(), field.name)
+                    var_name = f"__ti_{argument.name}_{field.name}"
                     print("    creating var", var_name, "=", str(data_child)[:50])
                     print("        ctx.arg_features", ctx.arg_features)
-                    data_child_anyarray = ASTTransformer.decl_and_create_variable(
-                        ctx,
-                        field_type,
-                        var_name,
-                        ctx.arg_features[data_i] if ctx.arg_features is not None else None,
-                        invoke_later_dict,
-                        "",
-                        0,
-                    )
-                    print("data_child_anyarray", data_child_anyarray)
                     ctx.create_variable(var_name, data_child)
                 continue
 
             # Ndarray arguments are passed by reference.
-            if isinstance(ctx.func.arguments[data_i].annotation, (ndarray_type.NdarrayType)):
+            if isinstance(argument.annotation, (ndarray_type.NdarrayType)):
                 if not isinstance(
                     data,
                     (
@@ -939,14 +915,14 @@ class ASTTransformer(Builder):
                     ),
                 ):
                     raise TaichiSyntaxError(
-                        f"Argument {ctx.func.arguments[data_i]} of type {ctx.func.arguments[data_i].annotation} is not recognized."
+                        f"Argument {argument} of type {argument.annotation} is not recognized."
                     )
-                ctx.func.arguments[data_i].annotation.check_matched(data.get_type(), ctx.func.arguments[data_i].name)
-                ctx.create_variable(ctx.func.arguments[data_i].name, data)
+                argument.annotation.check_matched(data.get_type(), argument.name)
+                ctx.create_variable(argument.name, data)
                 continue
 
             # Matrix arguments are passed by value.
-            if isinstance(ctx.func.arguments[data_i].annotation, (MatrixType)):
+            if isinstance(argument.annotation, (MatrixType)):
                 # "data" is expected to be an Expr here,
                 # so we simply call "impl.expr_init_func(data)" to perform:
                 #
@@ -956,42 +932,40 @@ class ASTTransformer(Builder):
                 # We created local variable "t" - a copy of the passed-in argument "data"
                 if not isinstance(data, expr.Expr) or not data.ptr.is_tensor():
                     raise TaichiSyntaxError(
-                        f"Argument {ctx.func.arguments[data_i]} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix, but got {type(data)}."
+                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix, but got {type(data)}."
                     )
 
                 element_shape = data.ptr.get_rvalue_type().shape()
-                if len(element_shape) != ctx.func.arguments[data_i].annotation.ndim:
+                if len(element_shape) != argument.annotation.ndim:
                     raise TaichiSyntaxError(
-                        f"Argument {ctx.func.arguments[data_i]} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with ndim {ctx.func.arguments[data_i].annotation.ndim}, but got {len(element_shape)}."
+                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with ndim {argument.annotation.ndim}, but got {len(element_shape)}."
                     )
 
-                assert ctx.func.arguments[data_i].annotation.ndim > 0
-                if element_shape[0] != ctx.func.arguments[data_i].annotation.n:
+                assert argument.annotation.ndim > 0
+                if element_shape[0] != argument.annotation.n:
                     raise TaichiSyntaxError(
-                        f"Argument {ctx.func.arguments[data_i]} of type {ctx.func.arguments[i].annotation} is expected to be a Matrix with n {ctx.func.arguments[data_i].annotation.n}, but got {element_shape[0]}."
+                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with n {argument.annotation.n}, but got {element_shape[0]}."
                     )
 
                 if (
-                    ctx.func.arguments[data_i].annotation.ndim == 2
-                    and element_shape[1] != ctx.func.arguments[data_i].annotation.m
+                    argument.annotation.ndim == 2
+                    and element_shape[1] != argument.annotation.m
                 ):
                     raise TaichiSyntaxError(
-                        f"Argument {ctx.func.arguments[data_i]} of type {ctx.func.arguments[data_i].annotation} is expected to be a Matrix with m {ctx.func.arguments[data_i].annotation.m}, but got {element_shape[0]}."
+                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with m {argument.annotation.m}, but got {element_shape[0]}."
                     )
 
-                var_name = ctx.func.arguments[data_i].name
-                # ctx.create_variable(arg.arg, impl.expr_init_func(data))
-                ctx.create_variable(var_name, impl.expr_init_func(data))
+                ctx.create_variable(argument.name, impl.expr_init_func(data))
                 continue
 
-            if id(ctx.func.arguments[data_i].annotation) in primitive_types.type_ids:
+            if id(argument.annotation) in primitive_types.type_ids:
                 ctx.create_variable(
-                    arg.arg, impl.expr_init_func(ti_ops.cast(data, ctx.func.arguments[data_i].annotation))
+                    argument.name, impl.expr_init_func(ti_ops.cast(data, argument.annotation))
                 )
                 continue
             # Create a copy for non-template arguments,
             # so that they are passed by value.
-            var_name = ctx.func.arguments[data_i].name
+            var_name = argument.name
             ctx.create_variable(var_name, impl.expr_init_func(data))
         # deal with dataclasses
         print("")
