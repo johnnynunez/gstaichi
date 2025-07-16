@@ -29,7 +29,8 @@ from taichi._lib.core.taichi_python import (
     KernelCxx,
     KernelLaunchContext,
 )
-from taichi.lang import impl, kernel_impl_dataclass, ops, runtime_ops
+from taichi.lang import _kernel_impl_dataclass, impl, ops, runtime_ops
+from taichi.lang._template_mapper import TemplateMapper
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
 from taichi.lang.any_array import AnyArray
 from taichi.lang.argpack import ArgPack, ArgPackType
@@ -52,7 +53,6 @@ from taichi.lang.kernel_arguments import KernelArgument
 from taichi.lang.matrix import MatrixType
 from taichi.lang.shell import _shell_pop_print
 from taichi.lang.struct import StructType
-from taichi.lang.template_mapper import TemplateMapper
 from taichi.lang.util import cook_dtype, has_paddle, has_pytorch
 from taichi.types import (
     ndarray_type,
@@ -226,7 +226,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
 
     if is_func:
         print("is func => expanding self.arguments")
-        self.arguments = kernel_impl_dataclass.expand_func_arguments(self.arguments)
+        self.arguments = _kernel_impl_dataclass.expand_func_arguments(self.arguments)
 
     # print("type(self)", type(self))
     # is_func = isinstance(self, Func)
@@ -344,7 +344,7 @@ class Func:
             is_real_function=self.is_real_function,
         )
 
-        struct_locals = kernel_impl_dataclass.populate_struct_locals(ctx)
+        struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
         # asdasdf
         # assert ctx.func is not None
         # sig = inspect.signature(ctx.func.func)
@@ -362,7 +362,7 @@ class Func:
         print("struct_locals", struct_locals)
         # print("ctx.func.func", ctx.func.func)
 
-        tree = kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
+        tree = _kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -724,10 +724,10 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
-                struct_locals = kernel_impl_dataclass.populate_struct_locals(ctx)
+                struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
                 print("struct_locals", struct_locals)
                 # asdfasdf
-                tree = kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
+                tree = _kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
