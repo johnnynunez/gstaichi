@@ -66,7 +66,7 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
-# from torch import P
+from taichi.lang import kernel_impl_dataclass
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
@@ -220,64 +220,6 @@ def _get_tree_and_ctx(
     )
 
 
-# def _expand_args_dataclasses(args: tuple[Any, ...]) -> tuple[Any, ...]:
-#     # print('params', params)
-#     print("expand_args_dataclasses() (runtime launch check)")
-#     new_args = []
-#     # arg_names = params.keys()
-#     # for i, arg_name in enumerate(arg_names):
-#     for i, arg in enumerate(args):
-#         # param = params[arg_name]
-#         # annotation = arg.annotation
-#         # print("arg", arg)
-#         if (
-#             # isinstance(arg, type(dataclasses.dataclass))
-#             hasattr(arg, "__dataclass_fields__")
-#         ):
-#             print("  expand_args_dataclasses() found dataclass")
-#             for field in dataclasses.fields(arg):
-#                 # Create a new inspect.Parameter for each dataclass field
-#                 # field_name = '__ti_' + field.name
-#                 # field_type = field.type
-#                 # field_value = field.
-#                 # new_param = inspect.Parameter(
-#                 #     name=field_name,
-#                 #     kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-#                 #     default=inspect.Parameter.empty,
-#                 #     annotation=field.type,
-#                 # )
-#                 field_value = getattr(arg, field.name)
-#                 new_args.append(field_value)
-#                 print("        ", str(field_value)[:50])
-#         else:
-#             new_args.append(arg)
-#     # print("new_args", new_args)
-#     return tuple(new_args)
-
-
-def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgument]:
-    new_arguments = []
-    for i, argument in enumerate(arguments):
-        print("i", i, "argument", argument, "annotation", argument.annotation)
-        if dataclasses.is_dataclass(argument.annotation):
-            print("found dataclass")
-            for field in dataclasses.fields(argument.annotation):
-                field_name = field.name
-                field_type = field.type
-                print("field_name", field_name, field_type)
-                # field_value = getattr(arg, field.name)
-                new_argument = KernelArgument(
-                    _annotation=field_type,
-                    _name=f"__ti_{argument.name}_{field_name}",
-                )
-                # print("new_argument", new_argument)
-                # asdfad
-                new_arguments.append(new_argument)
-        else:
-            new_arguments.append(argument)
-    return new_arguments
-
-
 def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
     """
     used for both Func and Kernel
@@ -287,7 +229,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
 
     if is_func:
         print("is func => expanding self.arguments")
-        self.arguments = expand_func_arguments(self.arguments)
+        self.arguments = kernel_impl_dataclass.expand_func_arguments(self.arguments)
 
     # print("type(self)", type(self))
     # is_func = isinstance(self, Func)
@@ -345,32 +287,6 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
     res = tuple(fused_args)
     print("2")
     return res
-
-
-def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
-    class AttributeToNameTransformer(ast.NodeTransformer):
-        def visit_Attribute(self, node):
-            if isinstance(node.value, ast.Attribute):
-                return node
-            if not isinstance(node.value, ast.Name):
-                return node
-            base_id = node.value.id
-            # print("base_id", base_id)
-            # if base_id in ["ti", "ops"]:
-            #     return node
-            attr_name = node.attr
-            # print("attr.name", attr.name)
-            new_id = "__ti_" + base_id + "_" + attr_name
-            # return node
-            if new_id not in struct_locals:
-                return node
-            print("updating ast for new_id", new_id)
-            # asdf
-            return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
-    transformer = AttributeToNameTransformer()
-    new_tree = transformer.visit(tree)
-    ast.fix_missing_locations(new_tree)
-    return new_tree
 
 
 class Func:
@@ -431,24 +347,25 @@ class Func:
             is_real_function=self.is_real_function,
         )
 
-        assert ctx.func is not None
-        sig = inspect.signature(ctx.func.func)
-        parameters = sig.parameters
-        struct_locals = set()
-        print("calculating struct locals")
-        for param_name, parameter in parameters.items():
-            print('param_name', param_name, "parameter.annotation", parameter.annotation)
-            if dataclasses.is_dataclass(parameter.annotation):
-                print("found dataclass")
-                for field in dataclasses.fields(parameter.annotation):
-                    field_name = field.name
-                    child_name = f"__ti_{param_name}_{field_name}"
-                    print("child_name", child_name)
-                    struct_locals.add(child_name)
+        struct_locals = kernel_impl_dataclass.populate_struct_locals(ctx)
+        # asdasdf
+        # assert ctx.func is not None
+        # sig = inspect.signature(ctx.func.func)
+        # parameters = sig.parameters
+        # print("calculating struct locals")
+        # for param_name, parameter in parameters.items():
+        #     print('param_name', param_name, "parameter.annotation", parameter.annotation)
+        #     if dataclasses.is_dataclass(parameter.annotation):
+        #         print("found dataclass")
+        #         for field in dataclasses.fields(parameter.annotation):
+        #             field_name = field.name
+        #             child_name = f"__ti_{param_name}_{field_name}"
+        #             print("child_name", child_name)
+        #             struct_locals.add(child_name)
         print("struct_locals", struct_locals)
-        print("ctx.func.func", ctx.func.func)
+        # print("ctx.func.func", ctx.func.func)
 
-        tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
+        tree = kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -910,7 +827,7 @@ class Kernel:
             #     asdfasdf
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
-    def materialize(self, key=None, args=None, arg_features=None):
+    def materialize(self, key, args: tuple[Any, ...], arg_features=None):
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
@@ -920,7 +837,6 @@ class Kernel:
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         _logging.trace(f"Compiling kernel {kernel_name} in {self.autodiff_mode}...")
-
         tree, ctx = _get_tree_and_ctx(
             self,
             args=args,
@@ -984,24 +900,10 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
-                assert ctx.func is not None
-                sig = inspect.signature(ctx.func.func)
-                parameters = sig.parameters
-                struct_locals = set()
-                print("calculating struct locals")
-                for param_name, parameter in parameters.items():
-                    print('param_name', param_name, "parameter.annotation", parameter.annotation)
-                    if dataclasses.is_dataclass(parameter.annotation):
-                        print("found dataclass")
-                        for field in dataclasses.fields(parameter.annotation):
-                            field_name = field.name
-                            child_name = f"__ti_{param_name}_{field_name}"
-                            print("child_name", child_name)
-                            struct_locals.add(child_name)
+                struct_locals = kernel_impl_dataclass.populate_struct_locals(ctx)
                 print("struct_locals", struct_locals)
-                print("ctx.func.func", ctx.func.func)
                 # asdfasdf
-                tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
+                tree = kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
