@@ -16,6 +16,7 @@ from taichi.lang.exception import (
     TaichiSyntaxError,
     handle_exception_from_cpp,
 )
+# from .ast_wrapper import PtrNode
 
 if TYPE_CHECKING:
     from taichi.lang.kernel_impl import (
@@ -36,6 +37,7 @@ class Builder:
                 raise TaichiSyntaxError(error_msg)
             info = ctx.get_pos_info(node) if isinstance(node, (ast.stmt, ast.expr)) else ""
             with impl.get_runtime().src_info_guard(info):
+                # wrapped = PtrNode(node)
                 return method(ctx, node)
         except Exception as e:
             if impl.get_runtime().print_full_traceback:

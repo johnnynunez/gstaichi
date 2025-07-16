@@ -865,8 +865,11 @@ class ASTTransformer(Builder):
         # we continue to process it as a normal attribute node.
         # print("build_attribute node", node, type(node), "node.value", node.value)
         # ast.At
-        node_value = cast(ast.Name, node.value)
+        # node_value = cast(ast.Name, node.value)
         # print("node_value fields", node_value._fields)
+        # from .ast_wrapper import PtrNode
+        # assert isinstance(node, PtrNode)
+        # assert isinstance(node.value, PtrNode)
         try:
             build_stmt(ctx, node.value)
         except Exception as e:
@@ -880,15 +883,19 @@ class ASTTransformer(Builder):
         if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx, node):
             return node.ptr
 
+        print("*** node", ast.dump(node))
+        print("*** node.value", ast.dump(node.value))
+        print("*** node.value.ptr", node.value.ptr)
         if isinstance(node.value.ptr, Expr) and not hasattr(node.value.ptr, node.attr):
             if node.attr in Matrix._swizzle_to_keygroup:
                 keygroup = Matrix._swizzle_to_keygroup[node.attr]
                 Matrix._keygroup_to_checker[keygroup](node.value.ptr, node.attr)
                 attr_len = len(node.attr)
                 if attr_len == 1:
+                    compiling_callable = impl.get_runtime().compiling_callable
+                    assert compiling_callable is not None
                     node.ptr = Expr(
-                        impl.get_runtime()
-                        .compiling_callable.ast_builder()
+                        compiling_callable.ast_builder()
                         .expr_subscript(
                             node.value.ptr.ptr,
                             make_expr_group(keygroup.index(node.attr)),
@@ -911,6 +918,13 @@ class ASTTransformer(Builder):
 
                 node.ptr = getattr(tensor_ops, node.attr)
                 setattr(node, "caller", node.value.ptr)
+        elif dataclasses.is_dataclass(node.value.ptr):
+            # its a dataclass type, so we should get the subtype probably...
+            type_by_name = {field.name: field.type for field in dataclasses.fields(node.value.ptr)}
+            child_type = type_by_name[node.attr]
+            print("child_type", child_type)
+            # setattr(node, "caller", child_type)
+            node.ptr = child_type
         else:
             # if dataclasses.is_dataclass(node.value.ptr):
             #     print("got dataclass")
