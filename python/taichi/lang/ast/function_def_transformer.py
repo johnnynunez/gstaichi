@@ -136,7 +136,6 @@ class FunctionDefTransformer:
         ctx: ASTTransformerContext,
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]],
         create_variable_later: dict[str, Any],
-        arg: ast.arg,
         argument: kernel_arguments.KernelArgument,
         this_arg_features: tuple[Any, ...],
     ) -> None:
@@ -158,7 +157,7 @@ class FunctionDefTransformer:
             argpack = kernel_arguments.decl_argpack_arg(argument.annotation, d)
             for item in items_to_put_in_dict:
                 invoke_later_dict[item[0]] = argpack, item[1], *item[2]
-            create_variable_later[arg.arg] = argpack
+            create_variable_later[argument.name] = argpack
         elif dataclasses.is_dataclass(argument.annotation):
             print("     transform_as_kernel got dataclass")
             dataclass_type = argument.annotation
@@ -211,8 +210,8 @@ class FunctionDefTransformer:
                 0,
             )
             print("obj returned by decl_and_create_variable obj", obj)
-            print("transform_as_kernel() calling ctx.create_variable", arg.arg, obj)
-            ctx.create_variable(arg.arg, obj if result else obj[0](*obj[1]))
+            print("transform_as_kernel() calling ctx.create_variable", argument.name, obj)
+            ctx.create_variable(argument.name, obj if result else obj[0](*obj[1]))
 
     @staticmethod
     def _transform_as_kernel(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
@@ -237,7 +236,6 @@ class FunctionDefTransformer:
                 ctx,
                 invoke_later_dict,
                 create_variable_later,
-                arg,
                 argument,
                 ctx.arg_features[i] if ctx.arg_features is not None else ()
             )
