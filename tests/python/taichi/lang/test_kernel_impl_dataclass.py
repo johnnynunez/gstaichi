@@ -62,8 +62,8 @@ __all__ = [
     ]
 )
 @test_utils.test()
-def test_unpack_ndarray_struct(ast_in: str, struct_locals: set[str], expected_ast: str) -> None:  # really need better names for the underlying functions...
+def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], expected_ast: str) -> None:
     ast_in_obj = eval(ast_in.strip())
     expected_ast_obj = eval(expected_ast.strip())
-    new_ast_obj = _kernel_impl_dataclass.unpack_ndarray_struct(ast_in_obj, struct_locals)
+    new_ast_obj = _kernel_impl_dataclass.unpack_ast_struct_expressions(ast_in_obj, struct_locals)
     assert ast.dump(new_ast_obj) == ast.dump(expected_ast_obj)

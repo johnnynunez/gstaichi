@@ -362,7 +362,7 @@ class Func:
         print("struct_locals", struct_locals)
         # print("ctx.func.func", ctx.func.func)
 
-        tree = _kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
+        tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
         ret = transform_tree(tree, ctx)
         if not self.is_real_function:
             if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
@@ -727,7 +727,7 @@ class Kernel:
                 struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
                 print("struct_locals", struct_locals)
                 # asdfasdf
-                tree = _kernel_impl_dataclass.unpack_ndarray_struct(tree, struct_locals=struct_locals)
+                tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:

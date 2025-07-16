@@ -123,7 +123,7 @@ def _flatten_attribute_name(node: ast.Attribute) -> str | None:
     return None
 
 
-def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
+def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
     """
     Transform nodes in AST, to flatten access to struct members
 
