@@ -155,12 +155,18 @@ def test_ndarray_struct_l4():
         c: ti.types.NDArray[ti.i32, 1]
 
     @ti.func
+    def s4(a: ti.types.NDArray[ti.i32, 1], b: ti.types.NDArray[ti.i32, 1]) -> None:
+        a[1] += 888
+        b[2] += 999
+
+    @ti.func
     def s3(z3: ti.types.NDArray[ti.i32, 1], my_struct3: MyStruct, bar3: ti.types.NDArray[ti.i32, 1]) -> None:
         z3[25] += 90
         my_struct3.a[47] += 42
         my_struct3.b[49] += 43
         my_struct3.c[43] += 44
         bar3[113] += 125
+        s4(my_struct3.a, my_struct3.b)
 
     @ti.func
     def s2(z3: ti.types.NDArray[ti.i32, 1], my_struct3: MyStruct, bar3: ti.types.NDArray[ti.i32, 1]) -> None:
@@ -213,3 +219,6 @@ def test_ndarray_struct_l4():
     assert b[49] == 43
     assert c[43] == 44
     assert e[113] == 125
+
+    assert a[1] == 888
+    assert b[2] == 999
