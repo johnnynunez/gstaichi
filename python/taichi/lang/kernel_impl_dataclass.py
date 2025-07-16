@@ -106,29 +106,73 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
     return new_arguments
 
 
+def flatten_attribute_name(node: ast.Attribute) -> str | None:
+    """
+    see unpack_ndarray_struct docstring for more explanation
+    """
+    if isinstance(node.value, ast.Name):
+        return f"__ti_{node.value.id}__ti_{node.attr}"
+    if isinstance(node.value, ast.Attribute):
+        child_flat_name = flatten_attribute_name(node.value)
+        integrated_flat_name = f"{child_flat_name}__ti_{node.attr}"
+        return integrated_flat_name
+
+
 def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
-    print("struct_locals", struct_locals)
+    """
+    Examples of things we will transform:
+
+    # my_struct_ab.a
+    # Attribute(value=Name())
+    Attribute(
+        value=Name(id='my_struct_ab', ctx=Load()),
+        attr='a',
+        ctx=Load())
+    => 
+    # __ti_my_struct_ab__ti_a
+    Name(id='__ti_my_struct_ab__ti_a', ctx=Load()
+
+    # my_struct_ab.struct_cd.d
+    # Attribute(value=Attribute(value=Name()))
+    Attribute(
+        value=Attribute(
+            value=Name(id='my_struct_ab', ctx=Load()),
+            attr='struct_cd',
+            ctx=Load()),
+        attr='d',
+        ctx=Load())
+        visit_attribute
+    =>
+    # __ti_my_struct_ab__ti_struct_cd__ti_d
+    Name(id='__ti_my_struct_ab__ti_struct_cd__ti_d', ctx=Load()
+
+    # my_struct_ab.struct_cd.struct_ef.f
+    # Attribute(value=Attribute(value=Name()))
+    Attribute(
+        value=Attribute(
+            value=Attribute(
+            value=Name(id='my_struct_ab', ctx=Load()),
+            attr='struct_cd',
+            ctx=Load()),
+            attr='struct_ef',
+            ctx=Load()),
+        attr='f',
+        ctx=Load())
+    => 
+    # __ti_my_struct_ab__ti_struct_cd__ti_struct_ef__ti_f
+    Name(id='__ti_my_struct_ab__ti_struct_cd__ti_struct_ef__ti_f', ctx=Load()
+    """
     class AttributeToNameTransformer(ast.NodeTransformer):
         def visit_Attribute(self, node):
-            if isinstance(node.value, ast.Attribute):
+            ctx = node.ctx
+            flat_name = flatten_attribute_name(node)
+            if not flat_name:
                 return node
-            if not isinstance(node.value, ast.Name):
+            if flat_name not in struct_locals:
                 return node
-            base_id = node.value.id
-            print("base_id", base_id)
-            # if base_id in ["ti", "ops"]:
-            #     return node
-            attr_name = node.attr
-            # print("attr.name", attr.name)
-            new_id = "__ti_" + base_id + "_" + attr_name
-            # return node
-            if new_id not in struct_locals:
-                return node
-            print("updating ast for new_id", new_id)
-            # asdf
-            return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+            print("updating ast for new_id", flat_name)
+            return ast.copy_location(ast.Name(id=flat_name, ctx=node.ctx), node)
     transformer = AttributeToNameTransformer()
     new_tree = transformer.visit(tree)
     ast.fix_missing_locations(new_tree)
-    # asddf
     return new_tree
