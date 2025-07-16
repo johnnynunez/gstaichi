@@ -137,7 +137,7 @@ class FunctionDefTransformer:
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]],
         create_variable_later: dict[str, Any],
         argument_name: str,
-        argument_type: Type,
+        argument_type: Any,
         this_arg_features: tuple[Any, ...],
     ) -> None:
         # assert ctx.arg_features is not None
@@ -166,20 +166,25 @@ class FunctionDefTransformer:
             # arg_features = ctx.arg_features[i]
             ctx.create_variable(argument_name, dataclass_type)
             for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                flat_name = f"__ti_{argument_name}_{field.name}"
+                # TODO: change names to add __ti_ before field.name
+                flat_name = f"{argument_name}_{field.name}"
+                if not flat_name.startswith("__ti_"):
+                    flat_name = f"__ti_{flat_name}"
                 print("     transform_as_kernel   field_name", field.name, field.type, "flat_name", flat_name)
                 # print("ctx.arg_features[i]", ctx.arg_features[i])
                 # if a field is a dataclass, then feed back into process_kernel_arg recursively
                 # and see what happens
-                # if dataclasses.is_dataclass(field.type):
-                #     FunctionDefTransformer.process_kernel_arg(
-                #         ctx,
-                #         invoke_later_dict,
-                #         create_variable_later,
-
-                #     )
-                # else:
-                if True:
+                if dataclasses.is_dataclass(field.type):
+                    # child_name = flat_name
+                    FunctionDefTransformer._process_kernel_arg(
+                        ctx,
+                        invoke_later_dict,
+                        create_variable_later,
+                        flat_name,
+                        field.type,
+                        this_arg_features[field_idx],
+                    )
+                else:
                     result, obj = FunctionDefTransformer._decl_and_create_variable(
                         ctx,
                         field.type,
@@ -248,7 +253,6 @@ class FunctionDefTransformer:
             argpack[name] = func(*params)
         for k, v in create_variable_later.items():
             ctx.create_variable(k, v)
-
         compiling_callable.finalize_params()
         # remove original args
         node.args.args = []
