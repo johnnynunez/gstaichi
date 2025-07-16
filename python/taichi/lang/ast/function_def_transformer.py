@@ -1,6 +1,6 @@
 import ast
-from typing import Any, Callable, Type
 import dataclasses
+from typing import Any, Callable
 
 from taichi.lang import (
     _ndarray,
@@ -33,7 +33,7 @@ class FunctionDefTransformer:
         this_arg_features: tuple[tuple[Any, ...], ...] | None,
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]],
         prefix_name: str,
-        arg_depth: int
+        arg_depth: int,
     ) -> tuple[bool, Any]:
         full_name = prefix_name + "_" + name
         print("decl_and_create_variable fullname", full_name, "prefix_name", prefix_name, "annotation", annotation)
@@ -77,7 +77,11 @@ class FunctionDefTransformer:
                 this_arg_features[2],
                 this_arg_features[3],
             ]
-            print("    decl_and_create_variable is_ndarray_type returning ", kernel_arguments.decl_ndarray_arg, call_params)
+            print(
+                "    decl_and_create_variable is_ndarray_type returning ",
+                kernel_arguments.decl_ndarray_arg,
+                call_params,
+            )
             return False, (
                 kernel_arguments.decl_ndarray_arg,
                 (
@@ -112,7 +116,7 @@ class FunctionDefTransformer:
             class SomeStruct:
                 a: ti.types.NDArray[ti.32, 1]
                 child: ChildStruct
-            
+
             and ChildStruct is:
             @datatclasses.dataclass
             class ChildStruct:
@@ -123,7 +127,7 @@ class FunctionDefTransformer:
             - __ti_some_struct__ti_child__ti_b: ti.types.NDArray[ti.32, 1]
             (or sometihng smilar ish)
 
-            So... we'll loop over the fields, and send those each to 
+            So... we'll loop over the fields, and send those each to
             """
         if isinstance(annotation, MatrixType):
             return True, kernel_arguments.decl_matrix_arg(annotation, name, arg_depth)
@@ -234,7 +238,12 @@ class FunctionDefTransformer:
 
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]] = dict()
         create_variable_later: dict[str, Any] = dict()
-        print("transform_as_kernel iterate args len(args.args)", len(args.args), "len(ctx.func.arguments)", len(ctx.func.arguments))
+        print(
+            "transform_as_kernel iterate args len(args.args)",
+            len(args.args),
+            "len(ctx.func.arguments)",
+            len(ctx.func.arguments),
+        )
         for i, arg in enumerate(args.args):
             argument = ctx.func.arguments[i]
             print(" arg i", i, "arg", ast.dump(arg), type(arg))
@@ -244,7 +253,7 @@ class FunctionDefTransformer:
                 create_variable_later,
                 argument.name,
                 argument.annotation,
-                ctx.arg_features[i] if ctx.arg_features is not None else ()
+                ctx.arg_features[i] if ctx.arg_features is not None else (),
             )
         for k, v in invoke_later_dict.items():
             argpack, name, func, params = v
@@ -275,7 +284,7 @@ class FunctionDefTransformer:
         print("ti.func iterate args")
         args_offset = 0
         for data_i, data in enumerate(ctx.argument_data):
-        # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
+            # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
             argument = ctx.func.arguments[data_i]
             print("  ti.func arg data_i", data_i, "data", str(data)[:100])
             # annotation = argument.annotation
@@ -323,9 +332,7 @@ class FunctionDefTransformer:
                         any_array.AnyArray,
                     ),
                 ):
-                    raise TaichiSyntaxError(
-                        f"Argument {argument} of type {argument.annotation} is not recognized."
-                    )
+                    raise TaichiSyntaxError(f"Argument {argument} of type {argument.annotation} is not recognized.")
                 argument.annotation.check_matched(data.get_type(), argument.name)
                 ctx.create_variable(argument.name, data)
                 continue
@@ -356,10 +363,7 @@ class FunctionDefTransformer:
                         f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with n {argument.annotation.n}, but got {element_shape[0]}."
                     )
 
-                if (
-                    argument.annotation.ndim == 2
-                    and element_shape[1] != argument.annotation.m
-                ):
+                if argument.annotation.ndim == 2 and element_shape[1] != argument.annotation.m:
                     raise TaichiSyntaxError(
                         f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with m {argument.annotation.m}, but got {element_shape[0]}."
                     )
@@ -368,9 +372,7 @@ class FunctionDefTransformer:
                 continue
 
             if id(argument.annotation) in primitive_types.type_ids:
-                ctx.create_variable(
-                    argument.name, impl.expr_init_func(ti_ops.cast(data, argument.annotation))
-                )
+                ctx.create_variable(argument.name, impl.expr_init_func(ti_ops.cast(data, argument.annotation)))
                 continue
             # Create a copy for non-template arguments,
             # so that they are passed by value.
@@ -381,7 +383,11 @@ class FunctionDefTransformer:
         print("********* iterate over args.args")
         # sig = inspect.signature(ctx.func.func)
         # for k, v in sig.parameters.items():
-        from taichi.lang.kernel_impl import Func
+        # pylint: disable=import-outside-toplevel
+        from taichi.lang.kernel_impl import (
+            Func,
+        )
+
         assert isinstance(ctx.func, Func)
         for v in ctx.func.orig_arguments:
             # k = arg.name
@@ -396,11 +402,15 @@ class FunctionDefTransformer:
         for arg in args.args:
             # val = arg.ptr
             val = ctx.get_var_by_name(arg.arg)
-            print('  arg', ast.dump(arg), "val", val)
+            print("  arg", ast.dump(arg), "val", val)
         # asdfdf
 
     @staticmethod
-    def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef, build_stmts: Callable[[ASTTransformerContext, list[ast.stmt]], None]) -> None:
+    def build_FunctionDef(
+        ctx: ASTTransformerContext,
+        node: ast.FunctionDef,
+        build_stmts: Callable[[ASTTransformerContext, list[ast.stmt]], None],
+    ) -> None:
         print("build_FunctionDef node", ast.dump(node))
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(

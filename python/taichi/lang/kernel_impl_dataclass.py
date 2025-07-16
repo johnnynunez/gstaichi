@@ -1,6 +1,7 @@
 import ast
 import dataclasses
 import inspect
+
 from taichi.lang.ast import (
     ASTTransformerContext,
 )
@@ -32,7 +33,7 @@ def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struc
         f:
 
     ... and the function parameters look like: `def foo(struct_ab: StructAB)`
-        
+
     then all possible variables we could form from this are:
     - struct_ab.a
     - struct_ab.b
@@ -53,7 +54,7 @@ def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struc
     """
     print("_populate_struct_locals_from_params_dict struct_type", struct_type)
     for field in dataclasses.fields(struct_type):
-        print('field.name', field.name, "field.type", field.type)
+        print("field.name", field.name, "field.type", field.type)
         child_name = f"{basename}__ti_{field.name}"
         if dataclasses.is_dataclass(field.type):
             print("found dataclass")
@@ -113,6 +114,7 @@ def flatten_attribute_name(node: ast.Attribute) -> str | None:
         child_flat_name = flatten_attribute_name(node.value)
         integrated_flat_name = f"{child_flat_name}__ti_{node.attr}"
         return integrated_flat_name
+    return None
 
 
 def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
@@ -125,7 +127,7 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
         value=Name(id='my_struct_ab', ctx=Load()),
         attr='a',
         ctx=Load())
-    => 
+    =>
     # __ti_my_struct_ab__ti_a
     Name(id='__ti_my_struct_ab__ti_a', ctx=Load()
 
@@ -155,10 +157,11 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
             ctx=Load()),
         attr='f',
         ctx=Load())
-    => 
+    =>
     # __ti_my_struct_ab__ti_struct_cd__ti_struct_ef__ti_f
     Name(id='__ti_my_struct_ab__ti_struct_cd__ti_struct_ef__ti_f', ctx=Load()
     """
+
     class AttributeToNameTransformer(ast.NodeTransformer):
         def visit_Attribute(self, node):
             ctx = node.ctx
@@ -169,6 +172,7 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
                 return node
             print("updating ast for new_id", flat_name)
             return ast.copy_location(ast.Name(id=flat_name, ctx=node.ctx), node)
+
     transformer = AttributeToNameTransformer()
     new_tree = transformer.visit(tree)
     ast.fix_missing_locations(new_tree)

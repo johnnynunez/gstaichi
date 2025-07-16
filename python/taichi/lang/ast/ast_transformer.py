@@ -1,5 +1,6 @@
 import ast
 import collections.abc
+import dataclasses
 import inspect
 import itertools
 import math
@@ -8,8 +9,7 @@ import re
 import warnings
 from ast import unparse
 from collections import ChainMap
-from typing import Any, Type, cast
-import dataclasses
+from typing import Any, Type
 
 import numpy as np
 
@@ -28,6 +28,7 @@ from taichi.lang.ast.ast_transformer_utils import (
     LoopStatus,
     ReturnStatus,
 )
+from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 from taichi.lang.ast.symbol_resolver import ASTResolver
 from taichi.lang.exception import (
     TaichiIndexError,
@@ -41,10 +42,9 @@ from taichi.lang.field import Field
 from taichi.lang.matrix import Matrix, MatrixType, Vector
 from taichi.lang.snode import append, deactivate, length
 from taichi.lang.struct import Struct, StructType
-from taichi.lang.util import is_taichi_class, to_taichi_type
+from taichi.lang.util import is_taichi_class
 from taichi.types import primitive_types
 from taichi.types.utils import is_integral
-from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 
 
 def reshape_list(flat_list: list[Any], target_shape: tuple[int, ...]) -> list[Any]:
@@ -584,7 +584,7 @@ class ASTTransformer(Builder):
                         col_offset=arg.col_offset,
                         end_col_offset=arg.end_col_offset,
                     )
-                    print('arg_node', ast.dump(arg_node), arg_node.__dict__)
+                    print("arg_node", ast.dump(arg_node), arg_node.__dict__)
                     # ast_str = ast.dump(arg_node)
                     # print("ast_str", ast_str)
                     args_new.append(arg_node)
@@ -597,9 +597,9 @@ class ASTTransformer(Builder):
     @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call):
         print("build_Call", ast.dump(node))
-        print('ctx.local_scopes:')
+        print("ctx.local_scopes:")
         for scope in ctx.local_scopes:
-            print('  ', scope)
+            print("  ", scope)
         if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
@@ -620,7 +620,7 @@ class ASTTransformer(Builder):
         args = []
         print("  build_Call iterate node.args len(node.args)", len(node.args))
         for i, arg in enumerate(node.args):
-            print("    i", i, "arg", ast.dump(arg), 'arg.ptr', arg.ptr, type(arg.ptr))
+            print("    i", i, "arg", ast.dump(arg), "arg.ptr", arg.ptr, type(arg.ptr))
             if isinstance(arg, ast.Starred):
                 arg_list = arg.ptr
                 if isinstance(arg_list, Expr) and arg_list.is_tensor():
@@ -895,8 +895,7 @@ class ASTTransformer(Builder):
                     compiling_callable = impl.get_runtime().compiling_callable
                     assert compiling_callable is not None
                     node.ptr = Expr(
-                        compiling_callable.ast_builder()
-                        .expr_subscript(
+                        compiling_callable.ast_builder().expr_subscript(
                             node.value.ptr.ptr,
                             make_expr_group(keygroup.index(node.attr)),
                             _ti_core.DebugInfo(impl.get_runtime().get_current_src_info()),

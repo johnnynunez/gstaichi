@@ -2,8 +2,6 @@
 
 import ast
 import builtins
-import dataclasses
-import traceback
 from enum import Enum
 from textwrap import TextWrapper
 from typing import TYPE_CHECKING, Any, List
@@ -11,12 +9,9 @@ from typing import TYPE_CHECKING, Any, List
 from taichi._lib.core.taichi_python import ASTBuilder
 from taichi.lang import impl
 from taichi.lang.exception import (
-    TaichiCompilationError,
     TaichiNameError,
     TaichiSyntaxError,
-    handle_exception_from_cpp,
 )
-# from .ast_wrapper import PtrNode
 
 if TYPE_CHECKING:
     from taichi.lang.kernel_impl import (
