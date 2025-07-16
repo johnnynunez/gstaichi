@@ -44,7 +44,7 @@ from taichi.lang.struct import Struct, StructType
 from taichi.lang.util import is_taichi_class, to_taichi_type
 from taichi.types import primitive_types
 from taichi.types.utils import is_integral
-from taichi.lang.ast.functiondef_transformer import FunctionDefTransformer
+from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 
 
 def reshape_list(flat_list: list[Any], target_shape: tuple[int, ...]) -> list[Any]:

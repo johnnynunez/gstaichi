@@ -97,6 +97,34 @@ class FunctionDefTransformer:
                 kernel_arguments.decl_rw_texture_arg,
                 (this_arg_features[0], this_arg_features[1], this_arg_features[2], full_name),
             )
+        if dataclasses.is_dataclass(annotation):
+            print("found dataclass argument!")
+            """
+            So, what needs to happen now is ...
+            - we'll need to expand out the nested struct too
+            - eg if we have:
+            @ti.kernel
+            def f1(some_struct: SomeStruct):
+                ...
+
+            and SomeStruct is:
+            @dataclasses.dataclass
+            class SomeStruct:
+                a: ti.types.NDArray[ti.32, 1]
+                child: ChildStruct
+            
+            and ChildStruct is:
+            @datatclasses.dataclass
+            class ChildStruct:
+                b: ti.types.NDArray[ti.32, 1]
+
+            ... so we'll expand the paramters to:
+            - __ti_some_struct_a: ti.types.NDArray[ti.32, 1]
+            - __ti_some_struct__ti_child__ti_b: ti.types.NDArray[ti.32, 1]
+            (or sometihng smilar ish)
+
+            So... we'll loop over the fields, and send those each to 
+            """
         if isinstance(annotation, MatrixType):
             return True, kernel_arguments.decl_matrix_arg(annotation, name, arg_depth)
         if isinstance(annotation, StructType):
