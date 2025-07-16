@@ -7,6 +7,61 @@ from taichi.lang.ast import (
 from taichi.lang.kernel_arguments import KernelArgument
 
 
+def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struct_type) -> None:
+    """
+    We are populating struct locals from a type included in function parameters, or one of their subtypes
+
+    struct_locals will be a list of all possible unpacked variable names we can form from the struct.
+    basename is used to take into account the parent struct's name. For example, lets say we have:
+
+    @dataclasses.dataclass
+    class StructAB:
+        a:
+        b:
+        struct_cd: StructCD
+
+    @dataclasses.dataclass
+    class StructCD:
+        c:
+        d:
+        struct_ef: StructEF
+
+    @dataclasses.dataclass
+    class StructEF:
+        e:
+        f:
+
+    ... and the function parameters look like: `def foo(struct_ab: StructAB)`
+        
+    then all possible variables we could form from this are:
+    - struct_ab.a
+    - struct_ab.b
+    - struct_ab.struct_cd.c
+    - struct_ab.struct_cd.d
+    - struct_ab.struct_cd.strucdt_ef.e
+    - struct_ab.struct_cd.strucdt_ef.f
+
+    And the members of struct_locals should be:
+    - __ti_struct_ab__ti_a
+    - __ti_struct_ab__ti_b
+    - __ti_struct_ab__ti_struct_cd__ti_c
+    - __ti_struct_ab__ti_struct_cd__ti_d
+    - __ti_struct_ab__ti_struct_cd__ti_struct_ef__ti_e
+    - __ti_struct_ab__ti_struct_cd__ti_struct_ef__ti_f
+
+
+    """
+    print("_populate_struct_locals_from_params_dict struct_type", struct_type)
+    for field in dataclasses.fields(struct_type):
+        print('field.name', field.name, "field.type", field.type)
+        child_name = f"{basename}__ti_{field.name}"
+        if dataclasses.is_dataclass(field.type):
+            print("found dataclass")
+            _populate_struct_locals_from_params_dict(child_name, struct_locals, field.type)
+        else:
+            struct_locals.add(child_name)
+    print("struct_locals", struct_locals)
+
 def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
     struct_locals = set()
     assert ctx.func is not None
@@ -18,10 +73,13 @@ def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
         if dataclasses.is_dataclass(parameter.annotation):
             print("found dataclass")
             for field in dataclasses.fields(parameter.annotation):
-                field_name = field.name
-                child_name = f"__ti_{param_name}_{field_name}"
+                child_name = f"__ti_{param_name}__ti_{field.name}"
+                if dataclasses.is_dataclass(field.type):
+                    _populate_struct_locals_from_params_dict(child_name, struct_locals, field.type)
+                    continue
                 print("child_name", child_name)
                 struct_locals.add(child_name)
+    print("struct_locals", struct_locals)
     return struct_locals
 
 

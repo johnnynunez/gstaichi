@@ -566,9 +566,12 @@ class TaichiCallableTemplateMapper:
                 field_name = field.name
                 field_type = field.type
                 field_value = getattr(arg, field_name)
-                arg_name = f"__ti_{arg_name}_{field_name}"
+                child_name = arg_name
+                if not child_name.startswith("__ti_"):
+                    child_name = f"__ti_{child_name}"
+                child_name = f"{child_name}__ti_{field_name}"
                 field_extracted = TaichiCallableTemplateMapper.extract_arg(
-                    field_value, field_type, arg_name
+                    field_value, field_type, child_name
                 )
                 _res_l.append(field_extracted)
             print("extract_arg res", _res_l, _res_l[0][0].element_type())
