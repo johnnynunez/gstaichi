@@ -571,7 +571,7 @@ class ASTTransformer(Builder):
                     field_name = field.name
                     field_type = field.type
                     # field_val = getattr(val, field_name)
-                    child_name = f"__ti_{arg.id}_{field_name}"
+                    child_name = f"__ti_{arg.id}__ti_{field_name}"
                     print("child_name", child_name)
                     load_ctx = ast.Load()
                     # module = ast.parse(f"def func({child_name}):\n    pass")
