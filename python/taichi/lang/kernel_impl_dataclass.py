@@ -62,22 +62,19 @@ def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struc
             struct_locals.add(child_name)
     print("struct_locals", struct_locals)
 
+
 def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
     struct_locals = set()
     assert ctx.func is not None
     sig = inspect.signature(ctx.func.func)
     parameters = sig.parameters
-    print("calculating struct locals")
     for param_name, parameter in parameters.items():
-        print('param_name', param_name, "parameter.annotation", parameter.annotation)
         if dataclasses.is_dataclass(parameter.annotation):
-            print("found dataclass")
             for field in dataclasses.fields(parameter.annotation):
                 child_name = f"__ti_{param_name}__ti_{field.name}"
                 if dataclasses.is_dataclass(field.type):
                     _populate_struct_locals_from_params_dict(child_name, struct_locals, field.type)
                     continue
-                print("child_name", child_name)
                 struct_locals.add(child_name)
     print("struct_locals", struct_locals)
     return struct_locals
