@@ -171,7 +171,7 @@ class FunctionDefTransformer:
             ctx.create_variable(argument_name, dataclass_type)
             for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
                 # TODO: change names to add __ti_ before field.name
-                flat_name = f"{argument_name}_{field.name}"
+                flat_name = f"{argument_name}__ti_{field.name}"
                 if not flat_name.startswith("__ti_"):
                     flat_name = f"__ti_{flat_name}"
                 print("     transform_as_kernel   field_name", field.name, field.type, "flat_name", flat_name)
@@ -282,7 +282,7 @@ class FunctionDefTransformer:
             print("    ", arg, arg.annotation, arg.name)
         # assert len(args.args) == len(ctx.argument_data)
         print("ti.func iterate args")
-        args_offset = 0
+        # args_offset = 0
         for data_i, data in enumerate(ctx.argument_data):
             # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
             argument = ctx.func.arguments[data_i]
@@ -298,7 +298,7 @@ class FunctionDefTransformer:
                 print("got dataclass")
                 dataclass_type = argument.annotation
                 # print("******* creating var name", argument.name, "value", dataclass_type)
-                for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
+                for field in dataclasses.fields(dataclass_type):
                     flat_name = f"__ti_{argument.name}_{field.name}"
                     print("field_name", field.name, field.type, "new_field_name", flat_name)
                     data_child = getattr(data, field.name)

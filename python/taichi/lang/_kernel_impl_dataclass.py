@@ -65,6 +65,9 @@ def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struc
 
 
 def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
+    """
+    Provides meta information for later tarnsformation of nodes in AST
+    """
     struct_locals = set()
     assert ctx.func is not None
     sig = inspect.signature(ctx.func.func)
@@ -82,6 +85,9 @@ def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
 
 
 def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgument]:
+    """
+    Used to expand arguments for @ti.func
+    """
     new_arguments = []
     for i, argument in enumerate(arguments):
         print("i", i, "argument", argument, "annotation", argument.annotation)
@@ -94,7 +100,7 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
                 # field_value = getattr(arg, field.name)
                 new_argument = KernelArgument(
                     _annotation=field_type,
-                    _name=f"__ti_{argument.name}_{field_name}",
+                    _name=f"__ti_{argument.name}__ti_{field_name}",
                 )
                 # print("new_argument", new_argument)
                 # asdfad
@@ -104,14 +110,14 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
     return new_arguments
 
 
-def flatten_attribute_name(node: ast.Attribute) -> str | None:
+def _flatten_attribute_name(node: ast.Attribute) -> str | None:
     """
     see unpack_ndarray_struct docstring for more explanation
     """
     if isinstance(node.value, ast.Name):
         return f"__ti_{node.value.id}__ti_{node.attr}"
     if isinstance(node.value, ast.Attribute):
-        child_flat_name = flatten_attribute_name(node.value)
+        child_flat_name = _flatten_attribute_name(node.value)
         integrated_flat_name = f"{child_flat_name}__ti_{node.attr}"
         return integrated_flat_name
     return None
@@ -119,7 +125,9 @@ def flatten_attribute_name(node: ast.Attribute) -> str | None:
 
 def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
     """
-    Examples of things we will transform:
+    Transform nodes in AST, to flatten access to struct members
+
+    Examples of things we will transform/flatten:
 
     # my_struct_ab.a
     # Attribute(value=Name())
@@ -165,7 +173,7 @@ def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Modu
     class AttributeToNameTransformer(ast.NodeTransformer):
         def visit_Attribute(self, node):
             ctx = node.ctx
-            flat_name = flatten_attribute_name(node)
+            flat_name = _flatten_attribute_name(node)
             if not flat_name:
                 return node
             if flat_name not in struct_locals:
