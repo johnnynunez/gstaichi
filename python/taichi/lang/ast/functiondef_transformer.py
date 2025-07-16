@@ -26,7 +26,7 @@ from taichi.types import annotations, ndarray_type, primitive_types, texture_typ
 
 class FunctionDefTransformer:
     @staticmethod
-    def decl_and_create_variable(
+    def _decl_and_create_variable(
         ctx: ASTTransformerContext,
         annotation: Any,
         name: str,
@@ -45,7 +45,7 @@ class FunctionDefTransformer:
             d = {}
             items_to_put_in_dict = []
             for j, (_name, anno) in enumerate(annotation.members.items()):
-                result, obj = FunctionDefTransformer.decl_and_create_variable(
+                result, obj = FunctionDefTransformer._decl_and_create_variable(
                     ctx, anno, _name, this_arg_features[j], invoke_later_dict, full_name, arg_depth + 1
                 )
                 if not result:
@@ -104,7 +104,7 @@ class FunctionDefTransformer:
         return True, kernel_arguments.decl_scalar_arg(annotation, name, arg_depth)
 
     @staticmethod
-    def process_kernel_arg(
+    def _process_kernel_arg(
         ctx: ASTTransformerContext,
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]],
         create_variable_later: dict[str, Any],
@@ -118,7 +118,7 @@ class FunctionDefTransformer:
             d = {}
             items_to_put_in_dict: list[tuple[str, str, Any]] = []
             for j, (name, anno) in enumerate(argument.annotation.members.items()):
-                result, obj = FunctionDefTransformer.decl_and_create_variable(
+                result, obj = FunctionDefTransformer._decl_and_create_variable(
                     ctx, anno, name, this_arg_features[j], invoke_later_dict, "__argpack_" + name, 1
                 )
                 if not result:
@@ -139,17 +139,28 @@ class FunctionDefTransformer:
                 flat_name = f"__ti_{argument.name}_{field.name}"
                 print("     transform_as_kernel   field_name", field.name, field.type, "flat_name", flat_name)
                 # print("ctx.arg_features[i]", ctx.arg_features[i])
-                result, obj = FunctionDefTransformer.decl_and_create_variable(
-                    ctx,
-                    field.type,
-                    flat_name,
-                    this_arg_features[field_idx],
-                    invoke_later_dict,
-                    "",
-                    0,
-                )
-                print("     transform_as_kernel calling ctx.create_variable", flat_name, str(obj)[:100])
-                ctx.create_variable(flat_name, obj if result else obj[0](*obj[1]))
+                # if a field is a dataclass, then feed back into process_kernel_arg recursively
+                # and see what happens
+                # if dataclasses.is_dataclass(field.type):
+                #     FunctionDefTransformer.process_kernel_arg(
+                #         ctx,
+                #         invoke_later_dict,
+                #         create_variable_later,
+
+                #     )
+                # else:
+                if True:
+                    result, obj = FunctionDefTransformer._decl_and_create_variable(
+                        ctx,
+                        field.type,
+                        flat_name,
+                        this_arg_features[field_idx],
+                        invoke_later_dict,
+                        "",
+                        0,
+                    )
+                    print("     transform_as_kernel calling ctx.create_variable", flat_name, str(obj)[:100])
+                    ctx.create_variable(flat_name, obj if result else obj[0](*obj[1]))
         else:
             call_params = [
                 argument.annotation,
@@ -160,7 +171,7 @@ class FunctionDefTransformer:
                 0,
             ]
             print("transform_as_kernel() calling decl_and_create_variable, params", call_params)
-            result, obj = FunctionDefTransformer.decl_and_create_variable(
+            result, obj = FunctionDefTransformer._decl_and_create_variable(
                 ctx,
                 argument.annotation,
                 argument.name,
@@ -174,7 +185,7 @@ class FunctionDefTransformer:
             ctx.create_variable(arg.arg, obj if result else obj[0](*obj[1]))
 
     @staticmethod
-    def transform_as_kernel(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
+    def _transform_as_kernel(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
         assert ctx.func is not None
         assert ctx.arg_features is not None
         if node.returns is not None:
@@ -192,7 +203,7 @@ class FunctionDefTransformer:
         for i, arg in enumerate(args.args):
             argument = ctx.func.arguments[i]
             print(" arg i", i, "arg", ast.dump(arg), type(arg))
-            FunctionDefTransformer.process_kernel_arg(
+            FunctionDefTransformer._process_kernel_arg(
                 ctx,
                 invoke_later_dict,
                 create_variable_later,
@@ -213,7 +224,7 @@ class FunctionDefTransformer:
         node.args.args = []
 
     @staticmethod
-    def transform_as_func(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
+    def _transform_as_func(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
         print("  build_FunctionDef args.args", args.args, "ctx.argument_data", ctx.argument_data)
         print("args. args:")
         assert ctx.argument_data is not None
@@ -371,15 +382,15 @@ class FunctionDefTransformer:
         assert args.kwarg is None
 
         if ctx.is_kernel:  # ti.kernel
-            FunctionDefTransformer.transform_as_kernel(ctx, node, args)
+            FunctionDefTransformer._transform_as_kernel(ctx, node, args)
 
         else:  # ti.func
             assert ctx.argument_data is not None
             assert ctx.func is not None
             if ctx.is_real_function:
-                FunctionDefTransformer.transform_as_kernel(ctx, node, args)
+                FunctionDefTransformer._transform_as_kernel(ctx, node, args)
             else:
-                FunctionDefTransformer.transform_as_func(ctx, node, args)
+                FunctionDefTransformer._transform_as_func(ctx, node, args)
 
         with ctx.variable_scope_guard():
             build_stmts(ctx, node.body)
