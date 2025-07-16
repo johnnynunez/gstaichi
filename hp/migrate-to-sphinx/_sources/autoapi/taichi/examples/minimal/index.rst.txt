@@ -16,7 +16,7 @@ Functions
 Module Contents
 ---------------
 
-.. py:function:: lcg_ti(B: int, lcg_its: int, a: taichi.types.NDArray[taichi.i32, 1]) -> None
+.. py:function:: lcg_ti(B: int, lcg_its: int, a: ti.types.ndarray(ti.i32, 1)) -> None
 
 .. py:function:: main() -> None
 
