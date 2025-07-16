@@ -308,7 +308,7 @@ class Func:
         for i, arg in enumerate(self.arguments):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
-        self.mapper = TaichiCallableTemplateMapper(self.arguments, self.template_slot_locations)
+        self.mapper = TemplateMapper(self.arguments, self.template_slot_locations)
         self.taichi_functions = {}  # The |Function| class in C++
         self.has_print = False
 
@@ -514,7 +514,7 @@ AnnotationType = Union[
 ]
 
 
-class TaichiCallableTemplateMapper:
+class TemplateMapper:
     def __init__(self, arguments: list[KernelArgument], template_slot_locations: list[int]) -> None:
         self.arguments: list[KernelArgument] = arguments
         self.num_args: int = len(arguments)
@@ -532,7 +532,7 @@ class TaichiCallableTemplateMapper:
             if isinstance(arg, _ti_core.ExprCxx):
                 return arg.get_underlying_ptr_address()
             if isinstance(arg, tuple):
-                return tuple(TaichiCallableTemplateMapper.extract_arg(item, anno, arg_name) for item in arg)
+                return tuple(TemplateMapper.extract_arg(item, anno, arg_name) for item in arg)
             if isinstance(arg, taichi.lang._ndarray.Ndarray):
                 raise TaichiRuntimeTypeError(
                     "Ndarray shouldn't be passed in via `ti.template()`, please annotate your kernel using `ti.types.ndarray(...)` instead"
@@ -555,7 +555,7 @@ class TaichiCallableTemplateMapper:
             if not isinstance(arg, ArgPack):
                 raise TaichiRuntimeTypeError(f"Argument {arg_name} must be a argument pack, got {type(arg)}")
             return tuple(
-                TaichiCallableTemplateMapper.extract_arg(arg[name], dtype, arg_name)
+                TemplateMapper.extract_arg(arg[name], dtype, arg_name)
                 for index, (name, dtype) in enumerate(anno.members.items())
             )
         if dataclasses.is_dataclass(anno):
@@ -570,7 +570,7 @@ class TaichiCallableTemplateMapper:
                 if not child_name.startswith("__ti_"):
                     child_name = f"__ti_{child_name}"
                 child_name = f"{child_name}__ti_{field_name}"
-                field_extracted = TaichiCallableTemplateMapper.extract_arg(
+                field_extracted = TemplateMapper.extract_arg(
                     field_value, field_type, child_name
                 )
                 _res_l.append(field_extracted)
@@ -716,7 +716,7 @@ class Kernel:
         for i, arg in enumerate(self.arguments):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
-        self.mapper = TaichiCallableTemplateMapper(self.arguments, self.template_slot_locations)
+        self.mapper = TemplateMapper(self.arguments, self.template_slot_locations)
         impl.get_runtime().kernels.append(self)
         self.reset()
         self.kernel_cpp = None
@@ -1168,7 +1168,7 @@ class Kernel:
                     field_value = getattr(v, field_name)
                     # arg_name = f"__ti_{arg_name}_{field_name}"
                     recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
-                    # field_extracted = TaichiCallableTemplateMapper.extract_arg(
+                    # field_extracted = TemplateMapper.extract_arg(
                     #     field_value, field_type, arg_name
                     # )
                 return len(dataclasses.fields(dataclass_type))
