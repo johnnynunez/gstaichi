@@ -138,11 +138,11 @@ class FunctionDefTransformer:
         create_variable_later: dict[str, Any],
         arg: ast.arg,
         argument: kernel_arguments.KernelArgument,
-        this_arg_features: tuple[Any, ...] | None,
+        this_arg_features: tuple[Any, ...],
     ) -> None:
         # assert ctx.arg_features is not None
         if isinstance(argument.annotation, ArgPackType):
-            assert this_arg_features is not None
+            # assert this_arg_features is not None
             kernel_arguments.push_argpack_arg(argument.name)
             d = {}
             items_to_put_in_dict: list[tuple[str, str, Any]] = []
@@ -162,7 +162,7 @@ class FunctionDefTransformer:
         elif dataclasses.is_dataclass(argument.annotation):
             print("     transform_as_kernel got dataclass")
             dataclass_type = argument.annotation
-            assert this_arg_features is not None
+            # assert this_arg_features is not None
             # arg_features = ctx.arg_features[i]
             ctx.create_variable(argument.name, dataclass_type)
             for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
@@ -239,7 +239,7 @@ class FunctionDefTransformer:
                 create_variable_later,
                 arg,
                 argument,
-                ctx.arg_features[i] if ctx.arg_features is not None else None
+                ctx.arg_features[i] if ctx.arg_features is not None else ()
             )
         for k, v in invoke_later_dict.items():
             argpack, name, func, params = v
