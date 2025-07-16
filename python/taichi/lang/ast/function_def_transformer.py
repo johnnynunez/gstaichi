@@ -1,5 +1,5 @@
 import ast
-from typing import Any, Callable
+from typing import Any, Callable, Type
 import dataclasses
 
 from taichi.lang import (
@@ -136,16 +136,17 @@ class FunctionDefTransformer:
         ctx: ASTTransformerContext,
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]],
         create_variable_later: dict[str, Any],
-        argument: kernel_arguments.KernelArgument,
+        argument_name: str,
+        argument_type: Type,
         this_arg_features: tuple[Any, ...],
     ) -> None:
         # assert ctx.arg_features is not None
-        if isinstance(argument.annotation, ArgPackType):
+        if isinstance(argument_type, ArgPackType):
             # assert this_arg_features is not None
-            kernel_arguments.push_argpack_arg(argument.name)
+            kernel_arguments.push_argpack_arg(argument_name)
             d = {}
             items_to_put_in_dict: list[tuple[str, str, Any]] = []
-            for j, (name, anno) in enumerate(argument.annotation.members.items()):
+            for j, (name, anno) in enumerate(argument_type.members.items()):
                 result, obj = FunctionDefTransformer._decl_and_create_variable(
                     ctx, anno, name, this_arg_features[j], invoke_later_dict, "__argpack_" + name, 1
                 )
@@ -154,18 +155,18 @@ class FunctionDefTransformer:
                     items_to_put_in_dict.append(("__argpack_" + name, name, obj))
                 else:
                     d[name] = obj
-            argpack = kernel_arguments.decl_argpack_arg(argument.annotation, d)
+            argpack = kernel_arguments.decl_argpack_arg(argument_type, d)
             for item in items_to_put_in_dict:
                 invoke_later_dict[item[0]] = argpack, item[1], *item[2]
-            create_variable_later[argument.name] = argpack
-        elif dataclasses.is_dataclass(argument.annotation):
+            create_variable_later[argument_name] = argpack
+        elif dataclasses.is_dataclass(argument_type):
             print("     transform_as_kernel got dataclass")
-            dataclass_type = argument.annotation
+            dataclass_type = argument_type
             # assert this_arg_features is not None
             # arg_features = ctx.arg_features[i]
-            ctx.create_variable(argument.name, dataclass_type)
+            ctx.create_variable(argument_name, dataclass_type)
             for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                flat_name = f"__ti_{argument.name}_{field.name}"
+                flat_name = f"__ti_{argument_name}_{field.name}"
                 print("     transform_as_kernel   field_name", field.name, field.type, "flat_name", flat_name)
                 # print("ctx.arg_features[i]", ctx.arg_features[i])
                 # if a field is a dataclass, then feed back into process_kernel_arg recursively
@@ -192,8 +193,8 @@ class FunctionDefTransformer:
                     ctx.create_variable(flat_name, obj if result else obj[0](*obj[1]))
         else:
             call_params = [
-                argument.annotation,
-                argument.name,
+                argument_type,
+                argument_name,
                 this_arg_features,
                 invoke_later_dict,
                 "",
@@ -202,16 +203,16 @@ class FunctionDefTransformer:
             print("transform_as_kernel() calling decl_and_create_variable, params", call_params)
             result, obj = FunctionDefTransformer._decl_and_create_variable(
                 ctx,
-                argument.annotation,
-                argument.name,
+                argument_type,
+                argument_name,
                 this_arg_features,
                 invoke_later_dict,
                 "",
                 0,
             )
             print("obj returned by decl_and_create_variable obj", obj)
-            print("transform_as_kernel() calling ctx.create_variable", argument.name, obj)
-            ctx.create_variable(argument.name, obj if result else obj[0](*obj[1]))
+            print("transform_as_kernel() calling ctx.create_variable", argument_name, obj)
+            ctx.create_variable(argument_name, obj if result else obj[0](*obj[1]))
 
     @staticmethod
     def _transform_as_kernel(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
@@ -236,7 +237,8 @@ class FunctionDefTransformer:
                 ctx,
                 invoke_later_dict,
                 create_variable_later,
-                argument,
+                argument.name,
+                argument.annotation,
                 ctx.arg_features[i] if ctx.arg_features is not None else ()
             )
         for k, v in invoke_later_dict.items():
