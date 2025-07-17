@@ -430,59 +430,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    # Parses a formatted string and extracts format specifiers from it, along with positional and keyword arguments.
-    # This function produces a canonicalized formatted string that includes solely empty replacement fields, e.g. 'qwerty {} {} {} {} {}'.
-    # Note that the arguments can be used multiple times in the string.
-    # e.g.:
-    # origin input: 'qwerty {1} {} {1:.3f} {k:.4f} {k:}'.format(1.0, 2.0, k=k)
-    # raw_string: 'qwerty {1} {} {1:.3f} {k:.4f} {k:}'
-    # raw_args: [1.0, 2.0]
-    # raw_keywords: {'k': <ti.Expr>}
-    # return value: ['qwerty {} {} {} {} {}', 2.0, 1.0, ['__ti_fmt_value__', 2.0, '.3f'], ['__ti_fmt_value__', <ti.Expr>, '.4f'], <ti.Expr>]
-    def canonicalize_formatted_string(raw_string: str, *raw_args: list, **raw_keywords: dict):
-        raw_brackets = re.findall(r"{(.*?)}", raw_string)
-        brackets = []
-        unnamed = 0
-        for bracket in raw_brackets:
-            item, spec = bracket.split(":") if ":" in bracket else (bracket, None)
-            if item.isdigit():
-                item = int(item)
-            # handle unnamed positional args
-            if item == "":
-                item = unnamed
-                unnamed += 1
-            # handle empty spec
-            if spec == "":
-                spec = None
-            brackets.append((item, spec))
-
-        # check for errors in the arguments
-        max_args_index = max([t[0] for t in brackets if isinstance(t[0], int)], default=-1)
-        if max_args_index + 1 != len(raw_args):
-            raise TaichiSyntaxError(
-                f"Expected {max_args_index + 1} positional argument(s), but received {len(raw_args)} instead."
-            )
-        brackets_keywords = [t[0] for t in brackets if isinstance(t[0], str)]
-        for item in brackets_keywords:
-            if item not in raw_keywords:
-                raise TaichiSyntaxError(f"Keyword '{item}' not found.")
-        for item in raw_keywords:
-            if item not in brackets_keywords:
-                raise TaichiSyntaxError(f"Keyword '{item}' not used.")
-
-        # reorganize the arguments based on their positions, keywords, and format specifiers
-        args = []
-        for item, spec in brackets:
-            new_arg = raw_args[item] if isinstance(item, int) else raw_keywords[item]
-            if spec is not None:
-                args.append(["__ti_fmt_value__", new_arg, spec])
-            else:
-                args.append(new_arg)
-        # put the formatted string as the first argument to make ti.format() happy
-        args.insert(0, re.sub(r"{.*?}", "{}", raw_string))
-        return args
-
-    @staticmethod
     def expand_node_args_dataclasses(args: tuple[ast.AST]) -> tuple[ast.AST]:
         # TODO: need to implement this
         args_new = []
@@ -564,7 +511,7 @@ class ASTTransformer(Builder):
 
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value.ptr, str) and node.func.attr == "format":
             raw_string = node.func.value.ptr
-            args = ASTTransformer.canonicalize_formatted_string(raw_string, *args, **keywords)
+            args = CallTransformer.canonicalize_formatted_string(raw_string, *args, **keywords)
             node.ptr = impl.ti_format(*args)
             return node.ptr
 
