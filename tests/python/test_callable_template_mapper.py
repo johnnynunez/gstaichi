@@ -1,5 +1,5 @@
 import taichi as ti
-from taichi.lang.kernel_arguments import KernelArgument
+from taichi.lang.kernel_arguments import ArgMetadata
 from taichi.lang.kernel_impl import TemplateMapper
 from tests import test_utils
 
@@ -13,9 +13,9 @@ def test_callable_template_mapper():
 
     mapper = TemplateMapper(
         (
-            KernelArgument(ti.template(), ti.template()),
-            KernelArgument(ti.template(), ti.template()),
-            KernelArgument(ti.template(), ti.template()),
+            ArgMetadata(ti.template(), ti.template()),
+            ArgMetadata(ti.template(), ti.template()),
+            ArgMetadata(ti.template(), ti.template()),
         ),
         template_slot_locations=(0, 1, 2),
     )
@@ -27,9 +27,9 @@ def test_callable_template_mapper():
 
     mapper = TemplateMapper(
         (
-            KernelArgument(ti.i32, ti.i32),
-            KernelArgument(ti.i32, ti.i32),
-            KernelArgument(ti.i32, ti.i32),
+            ArgMetadata(ti.i32, ti.i32),
+            ArgMetadata(ti.i32, ti.i32),
+            ArgMetadata(ti.i32, ti.i32),
         ),
         (),
     )
@@ -41,9 +41,9 @@ def test_callable_template_mapper():
 
     mapper = TemplateMapper(
         (
-            KernelArgument(ti.i32, ti.i32),
-            KernelArgument(ti.template(), ti.template()),
-            KernelArgument(ti.i32, ti.i32),
+            ArgMetadata(ti.i32, ti.i32),
+            ArgMetadata(ti.template(), ti.template()),
+            ArgMetadata(ti.i32, ti.i32),
         ),
         (1,),
     )
@@ -60,9 +60,9 @@ def test_callable_template_mapper_numpy():
     ti.root.place(x, y)
 
     annotations = (
-        KernelArgument(ti.template(), ti.template()),
-        KernelArgument(ti.template(), ti.template()),
-        KernelArgument(ti.types.ndarray(), ti.types.ndarray()),
+        ArgMetadata(ti.template(), ti.template()),
+        ArgMetadata(ti.template(), ti.template()),
+        ArgMetadata(ti.types.ndarray(), ti.types.ndarray()),
     )
 
     import numpy as np
