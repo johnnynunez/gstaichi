@@ -19,6 +19,13 @@ class MyStructCD:
     my_struct_ab: MyStructAB
 
 
+@dataclasses.dataclass
+class MyStructEF:
+    e: ti.types.NDArray[ti.i32, 1]
+    f: ti.types.NDArray[ti.i32, 1]
+    my_struct_cd: MyStructCD
+
+
 def dump_ast_list(nodes: list[ast.AST]) -> str:
     res_l = []
     for node in nodes:
@@ -46,6 +53,19 @@ def dump_ast_list(nodes: list[ast.AST]) -> str:
                 ast.Name(id='__ti_my_struct_cd__ti_d', ctx=ast.Load()),
                 ast.Name(id='__ti_my_struct_cd__ti_my_struct_ab__ti_a', ctx=ast.Load()),
                 ast.Name(id='__ti_my_struct_cd__ti_my_struct_ab__ti_b', ctx=ast.Load()),
+            ]
+        ),
+        (
+            [
+                ast.Name(id='my_struct_ef', ctx=ast.Load(), ptr=MyStructEF)
+            ],
+            [
+                ast.Name(id='__ti_my_struct_ef__ti_e', ctx=ast.Load()),
+                ast.Name(id='__ti_my_struct_ef__ti_f', ctx=ast.Load()),
+                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_c', ctx=ast.Load()),
+                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_d', ctx=ast.Load()),
+                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_a', ctx=ast.Load()),
+                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_b', ctx=ast.Load()),
             ]
         ),
     ]
