@@ -284,10 +284,12 @@ class FunctionDefTransformer:
             # dataclass_type = argument_type
             print("******* creating var name", argument_name, "value", argument_type)
             for field in dataclasses.fields(argument_type):
-                flat_name = f"__ti_{argument_name}__ti_{field.name}"
+                flat_name = f"{argument_name}__ti_{field.name}"
+                if not flat_name.startswith("__ti_"):
+                    flat_name = f"__ti_{flat_name}"
                 print("field_name", field.name, field.type, "new_field_name", flat_name)
                 data_child = getattr(data, field.name)
-                if not isinstance(
+                if isinstance(
                     data_child,
                     (
                         _ndarray.ScalarNdarray,
@@ -296,14 +298,22 @@ class FunctionDefTransformer:
                         any_array.AnyArray,
                     ),
                 ):
+                    field.type.check_matched(data_child.get_type(), field.name)
+                    # var_name = f"__ti_{argument_name}_{field.name}"
+                    print("    creating var", flat_name, "=", str(data_child)[:50])
+                    # print("        ctx.arg_features", ctx.arg_features)
+                    ctx.create_variable(flat_name, data_child)
+                elif dataclasses.is_dataclass(data_child):
+                    FunctionDefTransformer._process_func_arg(
+                        ctx,
+                        flat_name,
+                        field.type,
+                        getattr(data, field.name),
+                    )
+                else:
                     raise TaichiSyntaxError(
                         f"Argument {field.name}: {field.type} of type {argument_type} {field.type} is not recognized."
                     )
-                field.type.check_matched(data_child.get_type(), field.name)
-                # var_name = f"__ti_{argument_name}_{field.name}"
-                print("    creating var", flat_name, "=", str(data_child)[:50])
-                # print("        ctx.arg_features", ctx.arg_features)
-                ctx.create_variable(flat_name, data_child)
             return
 
         # Ndarray arguments are passed by reference.
