@@ -34,7 +34,7 @@ from taichi.types import primitive_types
 class CallTransformer:
 
     @staticmethod
-    def build_call_if_is_builtin(ctx: ASTTransformerContext, node, args, keywords):
+    def _build_call_if_is_builtin(ctx: ASTTransformerContext, node, args, keywords):
         from taichi.lang import matrix_ops  # pylint: disable=C0415
 
         func = node.func.ptr
@@ -64,7 +64,7 @@ class CallTransformer:
         return False
 
     @staticmethod
-    def build_call_if_is_type(ctx: ASTTransformerContext, node, args, keywords):
+    def _build_call_if_is_type(ctx: ASTTransformerContext, node, args, keywords):
         func = node.func.ptr
         if id(func) in primitive_types.type_ids:
             if len(args) != 1 or keywords:
@@ -82,7 +82,7 @@ class CallTransformer:
         return False
 
     @staticmethod
-    def is_external_func(ctx: ASTTransformerContext, func) -> bool:
+    def _is_external_func(ctx: ASTTransformerContext, func) -> bool:
         if ctx.is_in_static_scope():  # allow external function in static scope
             return False
         if hasattr(func, "_is_taichi_function") or hasattr(func, "_is_wrapped_kernel"):  # taichi func/kernel
@@ -92,9 +92,9 @@ class CallTransformer:
         return True
 
     @staticmethod
-    def warn_if_is_external_func(ctx: ASTTransformerContext, node):
+    def _warn_if_is_external_func(ctx: ASTTransformerContext, node):
         func = node.func.ptr
-        if not CallTransformer.is_external_func(ctx, func):
+        if not CallTransformer._is_external_func(ctx, func):
             return
         name = unparse(node.func).strip()
         warnings.warn_explicit(
@@ -120,7 +120,7 @@ class CallTransformer:
     # raw_args: [1.0, 2.0]
     # raw_keywords: {'k': <ti.Expr>}
     # return value: ['qwerty {} {} {} {} {}', 2.0, 1.0, ['__ti_fmt_value__', 2.0, '.3f'], ['__ti_fmt_value__', <ti.Expr>, '.4f'], <ti.Expr>]
-    def canonicalize_formatted_string(raw_string: str, *raw_args: list, **raw_keywords: dict):
+    def _canonicalize_formatted_string(raw_string: str, *raw_args: list, **raw_keywords: dict):
         raw_brackets = re.findall(r"{(.*?)}", raw_string)
         brackets = []
         unnamed = 0
@@ -164,7 +164,7 @@ class CallTransformer:
         return args
 
     @staticmethod
-    def expand_Call_dataclass_args(args: tuple[ast.AST]) -> tuple[ast.AST]:
+    def _expand_Call_dataclass_args(args: tuple[ast.AST]) -> tuple[ast.AST]:
         args_new = []
         for i, arg in enumerate(args):
             val = arg.ptr
@@ -216,7 +216,7 @@ class CallTransformer:
             print("  build_stmts over args...")
             build_stmts(ctx, node.args)
             print("  ... build_stmts over args done")
-            node.args = CallTransformer.expand_Call_dataclass_args(node.args)
+            node.args = CallTransformer._expand_Call_dataclass_args(node.args)
             build_stmts(ctx, node.args)
             build_stmts(ctx, node.keywords)
 
@@ -242,7 +242,7 @@ class CallTransformer:
 
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value.ptr, str) and node.func.attr == "format":
             raw_string = node.func.value.ptr
-            args = CallTransformer.canonicalize_formatted_string(raw_string, *args, **keywords)
+            args = CallTransformer._canonicalize_formatted_string(raw_string, *args, **keywords)
             node.ptr = impl.ti_format(*args)
             return node.ptr
 
@@ -250,17 +250,17 @@ class CallTransformer:
             node.ptr = matrix.make_matrix(*args, **keywords)
             return node.ptr
 
-        if CallTransformer.build_call_if_is_builtin(ctx, node, args, keywords):
+        if CallTransformer._build_call_if_is_builtin(ctx, node, args, keywords):
             return node.ptr
 
-        if CallTransformer.build_call_if_is_type(ctx, node, args, keywords):
+        if CallTransformer._build_call_if_is_type(ctx, node, args, keywords):
             return node.ptr
 
         if hasattr(node.func, "caller"):
             node.ptr = func(node.func.caller, *args, **keywords)
             return node.ptr
 
-        CallTransformer.warn_if_is_external_func(ctx, node)
+        CallTransformer._warn_if_is_external_func(ctx, node)
         try:
             print(". build_Call calling function", func)
             node.ptr = func(*args, **keywords)
@@ -269,7 +269,7 @@ class CallTransformer:
             error_msg = re.sub(r"\bExpr\b", "Taichi Expression", str(e))
             func_name = getattr(func, "__name__", func.__class__.__name__)
             msg = f"TypeError when calling `{func_name}`: {error_msg}."
-            if CallTransformer.is_external_func(ctx, node.func.ptr):
+            if CallTransformer._is_external_func(ctx, node.func.ptr):
                 args_has_expr = any([isinstance(arg, Expr) for arg in args])
                 if args_has_expr and (module == math or module == np):
                     exec_str = f"from taichi import {func.__name__}"
