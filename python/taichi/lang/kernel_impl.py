@@ -243,7 +243,6 @@ class Func:
         current_kernel = impl.get_runtime().current_kernel
         assert current_kernel is not None
         if self.is_real_function:
-            current_kernel = impl.get_runtime().current_kernel
             assert current_kernel is not None
             if current_kernel.autodiff_mode != AutodiffMode.NONE:
                 raise TaichiSyntaxError("Real function in gradient kernels unsupported.")
@@ -252,8 +251,6 @@ class Func:
             if key.instance_id not in self.compiled:
                 self.do_compile(key=key, args=args, arg_features=arg_features)
             return self.func_call_rvalue(key=key, args=args)
-        current_kernel = impl.get_runtime().current_kernel
-        assert current_kernel is not None
         tree, ctx = _get_tree_and_ctx(
             self,
             is_kernel=False,
@@ -1025,7 +1022,6 @@ class Kernel:
 
         try:
             prog = impl.get_runtime().prog
-            assert prog is not None
             # Compile kernel (& Online Cache & Offline Cache)
             compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
             # Launch kernel
