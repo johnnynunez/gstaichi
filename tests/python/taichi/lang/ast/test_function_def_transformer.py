@@ -75,6 +75,18 @@ def build_struct(struct_type: Any) -> Any:
                 "__ti_my_struct_2__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
             }
         ),
+        (
+            "my_struct_3",
+            MyStructEF,
+            {
+                "__ti_my_struct_3__ti_e": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_3__ti_f": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_3__ti_my_struct_cd__ti_c": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_3__ti_my_struct_cd__ti_d": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_3__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_3__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
+            }
+        ),
     ]
 )
 @test_utils.test()
