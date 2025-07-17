@@ -241,9 +241,7 @@ class Func:
             return self.func(*args)
 
         current_kernel = impl.get_runtime().current_kernel
-        assert current_kernel is not None
         if self.is_real_function:
-            assert current_kernel is not None
             if current_kernel.autodiff_mode != AutodiffMode.NONE:
                 raise TaichiSyntaxError("Real function in gradient kernels unsupported.")
             instance_id, arg_features = self.mapper.lookup(args)
