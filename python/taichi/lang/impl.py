@@ -365,7 +365,9 @@ class PyTaichi:
     @property
     def current_kernel(self) -> Kernel:
         if self._current_kernel is None:
-            raise TaichiRuntimeError("_pr_current_kernelog attribute not initialized. Maybe you forgot to call `ti.init()` first?")
+            raise TaichiRuntimeError(
+                "_pr_current_kernelog attribute not initialized. Maybe you forgot to call `ti.init()` first?"
+            )
         return self._current_kernel
 
     def initialize_fields_builder(self, builder):
