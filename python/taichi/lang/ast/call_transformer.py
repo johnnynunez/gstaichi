@@ -192,3 +192,91 @@ class CallTransformer:
             else:
                 args_new.append(arg)
         return tuple(args_new)
+    @staticmethod
+    def build_Call(ctx: ASTTransformerContext, node: ast.Call):
+        print("build_Call", ast.dump(node))
+        print("ctx.local_scopes:")
+        for scope in ctx.local_scopes:
+            print("  ", scope)
+        if get_decorator(ctx, node) in ["static", "static_assert"]:
+            with ctx.static_scope_guard():
+                build_stmt(ctx, node.func)
+                build_stmts(ctx, node.args)
+                build_stmts(ctx, node.keywords)
+        else:
+            build_stmt(ctx, node.func)
+            print("   iterate args")
+            for i, arg in enumerate(node.args):
+                print("      i", i, "arg", ast.dump(arg))
+            print("  build_stmts over args...")
+            build_stmts(ctx, node.args)
+            print("  ... build_stmts over args done")
+            node.args = CallTransformer.expand_Call_dataclass_args(node.args)
+            build_stmts(ctx, node.args)
+            build_stmts(ctx, node.keywords)
+
+        args = []
+        print("  build_Call iterate node.args len(node.args)", len(node.args))
+        for i, arg in enumerate(node.args):
+            print("    i", i, "arg", ast.dump(arg), "arg.ptr", arg.ptr, type(arg.ptr))
+            if isinstance(arg, ast.Starred):
+                arg_list = arg.ptr
+                if isinstance(arg_list, Expr) and arg_list.is_tensor():
+                    # Expand Expr with Matrix-type return into list of Exprs
+                    arg_list = [Expr(x) for x in ctx.ast_builder.expand_exprs([arg_list.ptr])]
+
+                for i in arg_list:
+                    args.append(i)
+            else:
+                args.append(arg.ptr)
+        keywords = dict(ChainMap(*[keyword.ptr for keyword in node.keywords]))
+        func = node.func.ptr
+
+        if id(func) in [id(print), id(impl.ti_print)]:
+            ctx.func.has_print = True
+
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value.ptr, str) and node.func.attr == "format":
+            raw_string = node.func.value.ptr
+            args = CallTransformer.canonicalize_formatted_string(raw_string, *args, **keywords)
+            node.ptr = impl.ti_format(*args)
+            return node.ptr
+
+        if id(func) == id(Matrix) or id(func) == id(Vector):
+            node.ptr = matrix.make_matrix(*args, **keywords)
+            return node.ptr
+
+        if CallTransformer.build_call_if_is_builtin(ctx, node, args, keywords):
+            return node.ptr
+
+        if CallTransformer.build_call_if_is_type(ctx, node, args, keywords):
+            return node.ptr
+
+        if hasattr(node.func, "caller"):
+            node.ptr = func(node.func.caller, *args, **keywords)
+            return node.ptr
+
+        CallTransformer.warn_if_is_external_func(ctx, node)
+        try:
+            print(". build_Call calling function", func)
+            node.ptr = func(*args, **keywords)
+        except TypeError as e:
+            module = inspect.getmodule(func)
+            error_msg = re.sub(r"\bExpr\b", "Taichi Expression", str(e))
+            func_name = getattr(func, "__name__", func.__class__.__name__)
+            msg = f"TypeError when calling `{func_name}`: {error_msg}."
+            if CallTransformer.is_external_func(ctx, node.func.ptr):
+                args_has_expr = any([isinstance(arg, Expr) for arg in args])
+                if args_has_expr and (module == math or module == np):
+                    exec_str = f"from taichi import {func.__name__}"
+                    try:
+                        exec(exec_str, {})
+                    except:
+                        pass
+                    else:
+                        msg += f"\nDid you mean to use `ti.{func.__name__}` instead of `{module.__name__}.{func.__name__}`?"
+            raise TaichiTypeError(msg)
+
+        if getattr(func, "_is_taichi_function", False):
+            ctx.func.has_print |= func.wrapper.has_print
+
+        return node.ptr

@@ -430,7 +430,11 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_Call(ctx: ASTTransformerContext, node: ast.Call):
+    def build_Call(ctx: ASTTransformerContext, node: ast.Call) -> None:
+	    return ASTTransformer.build_Call_(ctx, node, build_stmt, build_stmts)
+
+    @staticmethod
+    def build_Call_(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts) -> None:
         print("build_Call", ast.dump(node))
         print("ctx.local_scopes:")
         for scope in ctx.local_scopes:
