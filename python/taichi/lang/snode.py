@@ -3,12 +3,8 @@
 import numbers
 
 from taichi._lib import core as _ti_core
-from taichi._lib.core.taichi_python import (
-    Axis,
-)
-from taichi._lib.core.taichi_python import (
-    SNode as SNodeCxx,
-)
+from taichi._lib.core.taichi_python import Axis
+from taichi._lib.core.taichi_python import SNode as SNodeCxx
 from taichi.lang import expr, impl, matrix
 from taichi.lang.exception import TaichiRuntimeError
 from taichi.lang.field import BitpackedFields, Field

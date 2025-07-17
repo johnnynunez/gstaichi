@@ -60,10 +60,12 @@ def test_quant_store_fusion() -> None:
         assert y[i] == i + 1
 
 
+@pytest.mark.xfail(
+    reason="Bug in store fusion. TODO: fix this. Logged at https://linear.app/genesis-ai-company/issue/CMP-57/fuse-store-bug-for-16-bit-quantization"
+)
 @test_utils.test(
     require=ti.extension.quant_basic,
 )
-@pytest.mark.xfail
 def test_quant_store_no_fusion() -> None:
     x = ti.field(dtype=ti.types.quant.int(16, True))
     y = ti.field(dtype=ti.types.quant.int(16, True))

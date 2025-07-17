@@ -287,9 +287,8 @@ class Func:
                 raise TaichiSyntaxError("Taichi functions cannot be called from Python-scope.")
             return self.func(*args)
 
+        current_kernel = impl.get_runtime().current_kernel
         if self.is_real_function:
-            current_kernel = impl.get_runtime().current_kernel
-            assert current_kernel is not None
             if current_kernel.autodiff_mode != AutodiffMode.NONE:
                 raise TaichiSyntaxError("Real function in gradient kernels unsupported.")
             instance_id, arg_features = self.mapper.lookup(args)
@@ -297,8 +296,6 @@ class Func:
             if key.instance_id not in self.compiled:
                 self.do_compile(key=key, args=args, arg_features=arg_features)
             return self.func_call_rvalue(key=key, args=args)
-        current_kernel = impl.get_runtime().current_kernel
-        assert current_kernel is not None
         tree, ctx = _get_tree_and_ctx(
             self,
             is_kernel=False,
@@ -364,9 +361,7 @@ class Func:
         tree, ctx = _get_tree_and_ctx(
             self, is_kernel=False, args=args, arg_features=arg_features, is_real_function=self.is_real_function
         )
-        prog = impl.get_runtime().prog
-        assert prog is not None
-        fn = prog.create_function(key)
+        fn = impl.get_runtime().prog.create_function(key)
 
         def func_body():
             old_callable = impl.get_runtime().compiling_callable
@@ -738,7 +733,7 @@ class Kernel:
                 )
             self.kernel_cpp = kernel_cxx
             self.runtime.inside_kernel = True
-            self.runtime.current_kernel = self
+            self.runtime._current_kernel = self
             assert self.runtime.compiling_callable is None
             self.runtime.compiling_callable = kernel_cxx
             try:
@@ -783,12 +778,10 @@ class Kernel:
                         raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
             finally:
                 self.runtime.inside_kernel = False
-                self.runtime.current_kernel = None
+                self.runtime._current_kernel = None
                 self.runtime.compiling_callable = None
 
-        prog = impl.get_runtime().prog
-        assert prog is not None
-        taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
+        taichi_kernel = impl.get_runtime().prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
@@ -864,9 +857,7 @@ class Kernel:
                             "Non contiguous tensors are not supported, please call tensor.contiguous() before "
                             "passing it into taichi kernel."
                         )
-                    prog = self.runtime.prog
-                    assert prog is not None
-                    taichi_arch = prog.config().arch
+                    taichi_arch = self.runtime.prog.config().arch
 
                     def get_call_back(u, v):
                         def call_back():
@@ -921,9 +912,7 @@ class Kernel:
                         return call_back
 
                     tmp = v.value().get_tensor()
-                    prog = self.runtime.prog
-                    assert prog is not None
-                    taichi_arch = prog.config().arch
+                    taichi_arch = self.runtime.prog.config().arch
                     if v.place.is_gpu_place():
                         if taichi_arch != _ti_core.Arch.cuda:
                             # Paddle cuda tensor on Taichi non-cuda arch
@@ -1078,7 +1067,6 @@ class Kernel:
 
         try:
             prog = impl.get_runtime().prog
-            assert prog is not None
             # Compile kernel (& Online Cache & Offline Cache)
             compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
             # Launch kernel
