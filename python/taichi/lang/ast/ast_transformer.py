@@ -39,6 +39,7 @@ from taichi.lang.snode import append, deactivate, length
 from taichi.lang.struct import Struct, StructType
 from taichi.types import primitive_types
 from taichi.types.utils import is_integral
+from taichi.lang._ndrange import _Ndrange
 
 
 def reshape_list(flat_list: list[Any], target_shape: tuple[int, ...]) -> list[Any]:
