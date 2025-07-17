@@ -142,7 +142,6 @@ def make_constant_expr(val, dtype):
 def make_var_list(size: int, ast_builder: "ASTBuilder | None" = None):
     exprs = []
     prog = impl.get_runtime().prog
-    assert prog is not None
     for _ in range(size):
         if ast_builder is None:
             exprs.append(prog.make_id_expr(""))
