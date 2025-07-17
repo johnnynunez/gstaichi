@@ -4,6 +4,7 @@ import inspect
 import math
 import operator
 import re
+from typing import Any
 import warnings
 from collections import ChainMap
 
@@ -196,7 +197,7 @@ class CallTransformer:
     # ast.dump(ast.parse("def func(foo: int):\n    pass").body[0].args.args[0])
 
     @staticmethod
-    def build_Call(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts) -> None:
+    def build_Call(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts) -> Any | None:
         print("build_Call", ast.dump(node))
         print("ctx.local_scopes:")
         for scope in ctx.local_scopes:
