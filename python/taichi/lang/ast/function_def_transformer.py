@@ -299,7 +299,7 @@ class FunctionDefTransformer:
                 dataclass_type = argument.annotation
                 # print("******* creating var name", argument.name, "value", dataclass_type)
                 for field in dataclasses.fields(dataclass_type):
-                    flat_name = f"__ti_{argument.name}_{field.name}"
+                    flat_name = f"__ti_{argument.name}__ti_{field.name}"
                     print("field_name", field.name, field.type, "new_field_name", flat_name)
                     data_child = getattr(data, field.name)
                     if not isinstance(

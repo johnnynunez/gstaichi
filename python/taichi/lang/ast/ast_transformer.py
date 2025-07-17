@@ -27,6 +27,7 @@ from taichi.lang.ast.ast_transformer_utils import (
     Builder,
     LoopStatus,
     ReturnStatus,
+    get_decorator,
 )
 from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 from taichi.lang.ast.symbol_resolver import ASTResolver
@@ -45,6 +46,7 @@ from taichi.lang.struct import Struct, StructType
 from taichi.lang.util import is_taichi_class
 from taichi.types import primitive_types
 from taichi.types.utils import is_integral
+from taichi.lang.ast.call_transformer import CallTransformer
 
 
 def reshape_list(flat_list: list[Any], target_shape: tuple[int, ...]) -> list[Any]:
@@ -428,36 +430,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def build_call_if_is_builtin(ctx: ASTTransformerContext, node, args, keywords):
-        from taichi.lang import matrix_ops  # pylint: disable=C0415
-
-        func = node.func.ptr
-        replace_func = {
-            id(print): impl.ti_print,
-            id(min): ti_ops.min,
-            id(max): ti_ops.max,
-            id(int): impl.ti_int,
-            id(bool): impl.ti_bool,
-            id(float): impl.ti_float,
-            id(any): matrix_ops.any,
-            id(all): matrix_ops.all,
-            id(abs): abs,
-            id(pow): pow,
-            id(operator.matmul): matrix_ops.matmul,
-        }
-
-        # Builtin 'len' function on Matrix Expr
-        if id(func) == id(len) and len(args) == 1:
-            if isinstance(args[0], Expr) and args[0].ptr.is_tensor():
-                node.ptr = args[0].get_shape()[0]
-                return True
-
-        if id(func) in replace_func:
-            node.ptr = replace_func[id(func)](*args, **keywords)
-            return True
-        return False
-
-    @staticmethod
     def build_call_if_is_type(ctx: ASTTransformerContext, node, args, keywords):
         func = node.func.ptr
         if id(func) in primitive_types.type_ids:
@@ -600,7 +572,7 @@ class ASTTransformer(Builder):
         print("ctx.local_scopes:")
         for scope in ctx.local_scopes:
             print("  ", scope)
-        if ASTTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
+        if get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
                 build_stmts(ctx, node.args)
@@ -647,7 +619,7 @@ class ASTTransformer(Builder):
             node.ptr = matrix.make_matrix(*args, **keywords)
             return node.ptr
 
-        if ASTTransformer.build_call_if_is_builtin(ctx, node, args, keywords):
+        if CallTransformer.build_call_if_is_builtin(ctx, node, args, keywords):
             return node.ptr
 
         if ASTTransformer.build_call_if_is_type(ctx, node, args, keywords):
@@ -1087,20 +1059,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def get_decorator(ctx: ASTTransformerContext, node) -> str:
-        if not isinstance(node, ast.Call):
-            return ""
-        for wanted, name in [
-            (impl.static, "static"),
-            (impl.static_assert, "static_assert"),
-            (impl.grouped, "grouped"),
-            (ndrange, "ndrange"),
-        ]:
-            if ASTResolver.resolve_to(node.func, wanted, ctx.global_vars):
-                return name
-        return ""
-
-    @staticmethod
     def get_for_loop_targets(node: ast.Name | ast.Tuple | Any) -> list:
         """
         Returns the list of indices of the for loop |node|.
@@ -1311,6 +1269,7 @@ class ASTTransformer(Builder):
                     raise TaichiSyntaxError(f"Group for should have 1 loop target, found {len(targets)}")
                 target = targets[0]
                 loop_var = build_stmt(ctx, node.iter)
+                print("loop_var", loop_var, "node.iter", ast.dump(node.iter))
                 loop_indices = expr.make_var_list(size=len(loop_var.shape), ast_builder=ctx.ast_builder)
                 expr_group = expr.make_expr_group(loop_indices)
                 impl.begin_frontend_struct_for(ctx.ast_builder, expr_group, loop_var)
@@ -1389,10 +1348,10 @@ class ASTTransformer(Builder):
     def build_For(ctx: ASTTransformerContext, node: ast.For) -> None:
         if node.orelse:
             raise TaichiSyntaxError("'else' clause for 'for' not supported in Taichi kernels")
-        decorator = ASTTransformer.get_decorator(ctx, node.iter)
+        decorator = get_decorator(ctx, node.iter)
         double_decorator = ""
         if decorator != "" and len(node.iter.args) == 1:
-            double_decorator = ASTTransformer.get_decorator(ctx, node.iter.args[0])
+            double_decorator = get_decorator(ctx, node.iter.args[0])
 
         if decorator == "static":
             if double_decorator == "static":
@@ -1454,7 +1413,7 @@ class ASTTransformer(Builder):
     @staticmethod
     def build_If(ctx: ASTTransformerContext, node: ast.If) -> ast.If | None:
         build_stmt(ctx, node.test)
-        is_static_if = ASTTransformer.get_decorator(ctx, node.test) == "static"
+        is_static_if = get_decorator(ctx, node.test) == "static"
 
         if is_static_if:
             if node.test.ptr:
@@ -1503,7 +1462,7 @@ class ASTTransformer(Builder):
             node.ptr = ti_ops.select(node.test.ptr, node.body.ptr, node.orelse.ptr)
             return node.ptr
 
-        is_static_if = ASTTransformer.get_decorator(ctx, node.test) == "static"
+        is_static_if = get_decorator(ctx, node.test) == "static"
 
         if is_static_if:
             if node.test.ptr:
