@@ -1353,6 +1353,10 @@ build_stmt = ASTTransformer()
 
 
 def build_stmts(ctx: ASTTransformerContext, stmts: list[ast.stmt]):
+    """
+    Should we just make this part of ASTTransformer? Then, easier to pass around (just
+    pass the ASTTransformer object around)
+    """
     with ctx.variable_scope_guard():
         print("inside ctx.variable_scope_guard, scopes:")
         for scope in ctx.local_scopes:

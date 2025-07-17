@@ -579,7 +579,7 @@ class Kernel:
         return new_params
 
     def extract_arguments(self) -> None:
-        print("Kernel.extract_arguments()")
+        # print("Kernel.extract_arguments()")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation

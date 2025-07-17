@@ -165,10 +165,15 @@ class CallTransformer:
 
     @staticmethod
     def _expand_Call_dataclass_args(args: tuple[ast.AST]) -> tuple[ast.AST]:
+        """
+        We require that each node has a .ptr attribute added to it, that contains
+        the associated Python object
+        """
         args_new = []
+        print("_expand_Call_dataclass_args")
         for i, arg in enumerate(args):
             val = arg.ptr
-            print("  i", i, "arg", ast.dump(arg), "val", val)
+            print("  i", i, "arg", ast.dump(arg, indent=2), "val", val)
             if dataclasses.is_dataclass(val):
                 print("found dataclass val", val)
                 dataclass_type = val
@@ -199,6 +204,10 @@ class CallTransformer:
 
     @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts) -> Any | None:
+        """
+        example ast:
+        Call(func=Name(id='f2', ctx=Load()), args=[Name(id='my_struct_ab', ctx=Load())], keywords=[])
+        """
         print("build_Call", ast.dump(node))
         print("ctx.local_scopes:")
         for scope in ctx.local_scopes:
