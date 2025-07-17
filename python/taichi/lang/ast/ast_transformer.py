@@ -430,35 +430,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def is_external_func(ctx: ASTTransformerContext, func) -> bool:
-        if ctx.is_in_static_scope():  # allow external function in static scope
-            return False
-        if hasattr(func, "_is_taichi_function") or hasattr(func, "_is_wrapped_kernel"):  # taichi func/kernel
-            return False
-        if hasattr(func, "__module__") and func.__module__ and func.__module__.startswith("taichi."):
-            return False
-        return True
-
-    @staticmethod
-    def warn_if_is_external_func(ctx: ASTTransformerContext, node):
-        func = node.func.ptr
-        if not ASTTransformer.is_external_func(ctx, func):
-            return
-        name = unparse(node.func).strip()
-        warnings.warn_explicit(
-            f"\x1b[38;5;226m"  # Yellow
-            f'Calling non-taichi function "{name}". '
-            f"Scope inside the function is not processed by the Taichi AST transformer. "
-            f"The function may not work as expected. Proceed with caution! "
-            f"Maybe you can consider turning it into a @ti.func?"
-            f"\x1b[0m",  # Reset
-            SyntaxWarning,
-            ctx.file,
-            node.lineno + ctx.lineno_offset,
-            module="taichi",
-        )
-
-    @staticmethod
     # Parses a formatted string and extracts format specifiers from it, along with positional and keyword arguments.
     # This function produces a canonicalized formatted string that includes solely empty replacement fields, e.g. 'qwerty {} {} {} {} {}'.
     # Note that the arguments can be used multiple times in the string.
@@ -611,7 +582,7 @@ class ASTTransformer(Builder):
             node.ptr = func(node.func.caller, *args, **keywords)
             return node.ptr
 
-        ASTTransformer.warn_if_is_external_func(ctx, node)
+        CallTransformer.warn_if_is_external_func(ctx, node)
         try:
             print(". build_Call calling function", func)
             node.ptr = func(*args, **keywords)
@@ -620,7 +591,7 @@ class ASTTransformer(Builder):
             error_msg = re.sub(r"\bExpr\b", "Taichi Expression", str(e))
             func_name = getattr(func, "__name__", func.__class__.__name__)
             msg = f"TypeError when calling `{func_name}`: {error_msg}."
-            if ASTTransformer.is_external_func(ctx, node.func.ptr):
+            if CallTransformer.is_external_func(ctx, node.func.ptr):
                 args_has_expr = any([isinstance(arg, Expr) for arg in args])
                 if args_has_expr and (module == math or module == np):
                     exec_str = f"from taichi import {func.__name__}"
