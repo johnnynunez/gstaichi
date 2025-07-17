@@ -300,10 +300,10 @@ class FunctionDefTransformer:
                         f"Argument {field.name}: {field.type} of type {argument_type} {field.type} is not recognized."
                     )
                 field.type.check_matched(data_child.get_type(), field.name)
-                var_name = f"__ti_{argument_name}_{field.name}"
-                print("    creating var", var_name, "=", str(data_child)[:50])
+                # var_name = f"__ti_{argument_name}_{field.name}"
+                print("    creating var", flat_name, "=", str(data_child)[:50])
                 # print("        ctx.arg_features", ctx.arg_features)
-                ctx.create_variable(var_name, data_child)
+                ctx.create_variable(flat_name, data_child)
             return
 
         # Ndarray arguments are passed by reference.

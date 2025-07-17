@@ -90,3 +90,12 @@ def test_process_func_arg(argument_name: str, argument_type: Any, expected_varia
     print("epected variables", expected_variables)
     # since these should both be flat, we can just loop over both
     assert set(ctx.variables.keys()) == set(expected_variables.keys())
+    for k, expected_obj in expected_variables.items():
+        if isinstance(expected_obj, ti.types.NDArray):
+            print("checking ndarray")
+            actual = ctx.variables[k]
+            assert isinstance(actual, (ti.ScalarNdarray,))
+            assert len(actual.shape) == expected_obj.ndim
+            assert actual.dtype == expected_obj.dtype
+        else:
+            raise Exception("unexpected expected type", expected_obj)
