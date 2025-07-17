@@ -437,7 +437,6 @@ class Func:
         self.taichi_functions[key.instance_id].set_function_body(func_body)
 
     def extract_arguments(self) -> None:
-        print("extract_arguments")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect.Signature.empty, None):
             self.return_type = sig.return_annotation
