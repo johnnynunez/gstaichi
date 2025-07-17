@@ -60,3 +60,21 @@ class CallTransformer:
             node.ptr = replace_func[id(func)](*args, **keywords)
             return True
         return False
+
+    @staticmethod
+    def build_call_if_is_type(ctx: ASTTransformerContext, node, args, keywords):
+        func = node.func.ptr
+        if id(func) in primitive_types.type_ids:
+            if len(args) != 1 or keywords:
+                raise TaichiSyntaxError("A primitive type can only decorate a single expression.")
+            if is_taichi_class(args[0]):
+                raise TaichiSyntaxError("A primitive type cannot decorate an expression with a compound type.")
+
+            if isinstance(args[0], expr.Expr):
+                if args[0].ptr.is_tensor():
+                    raise TaichiSyntaxError("A primitive type cannot decorate an expression with a compound type.")
+                node.ptr = ti_ops.cast(args[0], func)
+            else:
+                node.ptr = expr.Expr(args[0], dtype=func)
+            return True
+        return False
