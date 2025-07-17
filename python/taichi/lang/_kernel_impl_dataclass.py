@@ -5,7 +5,7 @@ import inspect
 from taichi.lang.ast import (
     ASTTransformerContext,
 )
-from taichi.lang.kernel_arguments import KernelArgument
+from taichi.lang.kernel_arguments import ArgMetadata
 
 
 def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struct_type) -> None:
@@ -84,7 +84,7 @@ def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
     return struct_locals
 
 
-def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgument]:
+def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
     """
     Used to expand arguments for @ti.func
     """
@@ -98,7 +98,7 @@ def expand_func_arguments(arguments: list[KernelArgument]) -> list[KernelArgumen
                 field_type = field.type
                 print("field_name", field_name, field_type)
                 # field_value = getattr(arg, field.name)
-                new_argument = KernelArgument(
+                new_argument = ArgMetadata(
                     _annotation=field_type,
                     _name=f"__ti_{argument.name}__ti_{field_name}",
                 )

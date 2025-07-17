@@ -13,7 +13,7 @@ from taichi.lang.argpack import ArgPack, ArgPackType
 from taichi.lang.exception import (
     TaichiRuntimeTypeError,
 )
-from taichi.lang.kernel_arguments import KernelArgument
+from taichi.lang.kernel_arguments import ArgMetadata
 from taichi.lang.matrix import MatrixType
 from taichi.lang.util import to_taichi_type
 from taichi.types import (
@@ -39,8 +39,8 @@ AnnotationType = Union[
 
 
 class TemplateMapper:
-    def __init__(self, arguments: list[KernelArgument], template_slot_locations: list[int]) -> None:
-        self.arguments: list[KernelArgument] = arguments
+    def __init__(self, arguments: list[ArgMetadata], template_slot_locations: list[int]) -> None:
+        self.arguments: list[ArgMetadata] = arguments
         self.num_args: int = len(arguments)
         self.template_slot_locations: list[int] = template_slot_locations
         self.mapping: dict[tuple[Any, ...], int] = {}

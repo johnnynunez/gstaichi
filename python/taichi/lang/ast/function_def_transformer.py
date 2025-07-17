@@ -281,9 +281,9 @@ class FunctionDefTransformer:
 
         elif dataclasses.is_dataclass(argument_type):
             print("got dataclass")
-            dataclass_type = argument_type
-            # print("******* creating var name", argument.name, "value", dataclass_type)
-            for field in dataclasses.fields(dataclass_type):
+            # dataclass_type = argument_type
+            print("******* creating var name", argument_name, "value", argument_type)
+            for field in dataclasses.fields(argument_type):
                 flat_name = f"__ti_{argument_name}__ti_{field.name}"
                 print("field_name", field.name, field.type, "new_field_name", flat_name)
                 data_child = getattr(data, field.name)
@@ -297,12 +297,12 @@ class FunctionDefTransformer:
                     ),
                 ):
                     raise TaichiSyntaxError(
-                        f"Argument {field.name}: {field.type} of type {dataclass_type} {field.type} is not recognized."
+                        f"Argument {field.name}: {field.type} of type {argument_type} {field.type} is not recognized."
                     )
                 field.type.check_matched(data_child.get_type(), field.name)
                 var_name = f"__ti_{argument_name}_{field.name}"
                 print("    creating var", var_name, "=", str(data_child)[:50])
-                print("        ctx.arg_features", ctx.arg_features)
+                # print("        ctx.arg_features", ctx.arg_features)
                 ctx.create_variable(var_name, data_child)
             return
 

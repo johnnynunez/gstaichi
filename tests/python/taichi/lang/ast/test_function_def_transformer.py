@@ -38,15 +38,21 @@ class NDArrayBuilder:
 
 
 def build_struct(struct_type: Any) -> Any:
-    for field in dataclasses.fields(struct_type):
     member_objects = {}
     for field in dataclasses.fields(struct_type):
-        if field.type == ti.types.ndarray:
+        if isinstance(field.type, ti.types.NDArray):
             print("got ndarray")
             ndarray_type = cast(ti.types.ndarray, field.type)
-            child = ti.ndarray()
+            shape = tuple([10] * ndarray_type.ndim)
+            child_obj = ti.ndarray(ndarray_type.dtype, shape=shape)
+        elif dataclasses.is_dataclass(field.type):
+            child_obj = build_struct(field.type)
+        else:
+            raise Exception("unknown type ", field.type)
+        member_objects[field.name] = child_obj
     # DataclassClass = dataclasses.make_dataclass(struct_name, declaration_type_by_name)
-    dataclass_object = struct_type(**arrays)
+    dataclass_object = struct_type(**member_objects)
+    return dataclass_object
 
 
 @pytest.mark.parametrize(
@@ -54,16 +60,15 @@ def build_struct(struct_type: Any) -> Any:
         (
             "my_struct_1",
             MyStructAB,
-            # MyStructAB(e=ti.ndarray(ti.i32, (10,)), f=ti.ndarray(ti.i32, (20,))),
             {
-                "__ti_my_struct_1__ti_a": ti.ndarray(ti.i32, (10,)),
-                "__ti_my_struct_1__ti_b": ti.ndarray(ti.i32, (20,)),
+                "__ti_my_struct_1__ti_a": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_1__ti_b": ti.types.NDArray[ti.i32, 1],
             }
         ),
     ]
 )
 @test_utils.test()
-def test_process_func_arg(argument_name: str, argument_type: Any, data: Any, expected_variables: dict[str, Any]) -> None:
+def test_process_func_arg(argument_name: str, argument_type: Any, expected_variables: dict[str, Any]) -> None:
     class MockContext:
         def __init__(self) -> None:
             self.variables: dict[str, Any] = {}
@@ -72,6 +77,8 @@ def test_process_func_arg(argument_name: str, argument_type: Any, data: Any, exp
             assert name not in self.variables
             self.variables[name] = data
     
+    data = build_struct(argument_type)
+    print("data", data)
     ctx = MockContext()
     FunctionDefTransformer._process_func_arg(
         ctx,
@@ -81,3 +88,5 @@ def test_process_func_arg(argument_name: str, argument_type: Any, data: Any, exp
     )
     print("output variables", ctx.variables)
     print("epected variables", expected_variables)
+    # since these should both be flat, we can just loop over both
+    assert set(ctx.variables.keys()) == set(expected_variables.keys())

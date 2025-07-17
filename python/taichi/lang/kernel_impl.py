@@ -49,7 +49,7 @@ from taichi.lang.exception import (
     handle_exception_from_cpp,
 )
 from taichi.lang.expr import Expr
-from taichi.lang.kernel_arguments import KernelArgument
+from taichi.lang.kernel_arguments import ArgMetadata
 from taichi.lang.matrix import MatrixType
 from taichi.lang.shell import _shell_pop_print
 from taichi.lang.struct import StructType
@@ -297,8 +297,8 @@ class Func:
         self.classfunc = _classfunc
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
-        self.arguments: list[KernelArgument] = []
-        self.orig_arguments: list[KernelArgument] = []
+        self.arguments: list[ArgMetadata] = []
+        self.orig_arguments: list[ArgMetadata] = []
         self.return_type: tuple[Type, ...] | None = None
         self.extract_arguments()
         self.template_slot_locations: list[int] = []
@@ -495,8 +495,8 @@ class Func:
                     pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
-            self.arguments.append(KernelArgument(annotation, param.name, param.default))
-            self.orig_arguments.append(KernelArgument(annotation, param.name, param.default))
+            self.arguments.append(ArgMetadata(annotation, param.name, param.default))
+            self.orig_arguments.append(ArgMetadata(annotation, param.name, param.default))
 
 
 def _get_global_vars(_func: Callable) -> dict[str, Any]:
@@ -528,7 +528,7 @@ class Kernel:
         )
         self.autodiff_mode = autodiff_mode
         self.grad: "Kernel | None" = None
-        self.arguments: list[KernelArgument] = []
+        self.arguments: list[ArgMetadata] = []
         self.return_type = None
         self.classkernel = _classkernel
         self.extract_arguments()
@@ -648,7 +648,7 @@ class Kernel:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             # if is_dataclass:
             #     asdfasdf
-            self.arguments.append(KernelArgument(annotation, param.name, param.default))
+            self.arguments.append(ArgMetadata(annotation, param.name, param.default))
 
     def materialize(self, key, args: tuple[Any, ...], arg_features=None):
         if key is None:
