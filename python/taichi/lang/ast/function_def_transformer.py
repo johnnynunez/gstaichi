@@ -267,6 +267,104 @@ class FunctionDefTransformer:
         node.args.args = []
 
     @staticmethod
+    def _process_func_arg(
+        ctx: ASTTransformerContext,
+        argument_name: str,
+        argument_type: Any,
+        data: Any,
+    ) -> None:
+        print("  annotation", argument_type, type(argument_type))
+        # Template arguments are passed by reference.
+        if isinstance(argument_type, annotations.template):
+            ctx.create_variable(argument_name, data)
+            return
+
+        elif dataclasses.is_dataclass(argument_type):
+            print("got dataclass")
+            dataclass_type = argument_type
+            # print("******* creating var name", argument.name, "value", dataclass_type)
+            for field in dataclasses.fields(dataclass_type):
+                flat_name = f"__ti_{argument_name}__ti_{field.name}"
+                print("field_name", field.name, field.type, "new_field_name", flat_name)
+                data_child = getattr(data, field.name)
+                if not isinstance(
+                    data_child,
+                    (
+                        _ndarray.ScalarNdarray,
+                        matrix.VectorNdarray,
+                        matrix.MatrixNdarray,
+                        any_array.AnyArray,
+                    ),
+                ):
+                    raise TaichiSyntaxError(
+                        f"Argument {field.name}: {field.type} of type {dataclass_type} {field.type} is not recognized."
+                    )
+                field.type.check_matched(data_child.get_type(), field.name)
+                var_name = f"__ti_{argument_name}_{field.name}"
+                print("    creating var", var_name, "=", str(data_child)[:50])
+                print("        ctx.arg_features", ctx.arg_features)
+                ctx.create_variable(var_name, data_child)
+            return
+
+        # Ndarray arguments are passed by reference.
+        if isinstance(argument_type, (ndarray_type.NdarrayType)):
+            if not isinstance(
+                data,
+                (
+                    _ndarray.ScalarNdarray,
+                    matrix.VectorNdarray,
+                    matrix.MatrixNdarray,
+                    any_array.AnyArray,
+                ),
+            ):
+                raise TaichiSyntaxError(f"Argument {argument_name} of type {argument_type} is not recognized.")
+            argument_type.check_matched(data.get_type(), argument_name)
+            ctx.create_variable(argument_name, data)
+            return
+
+        # Matrix arguments are passed by value.
+        if isinstance(argument_type, (MatrixType)):
+            # "data" is expected to be an Expr here,
+            # so we simply call "impl.expr_init_func(data)" to perform:
+            #
+            # TensorType* t = alloca()
+            # assign(t, data)
+            #
+            # We created local variable "t" - a copy of the passed-in argument "data"
+            if not isinstance(data, expr.Expr) or not data.ptr.is_tensor():
+                raise TaichiSyntaxError(
+                    f"Argument {argument_name} of type {argument_type} is expected to be a Matrix, but got {type(data)}."
+                )
+
+            element_shape = data.ptr.get_rvalue_type().shape()
+            if len(element_shape) != argument_type.ndim:
+                raise TaichiSyntaxError(
+                    f"Argument {argument_name} of type {argument_type} is expected to be a Matrix with ndim {argument_type.ndim}, but got {len(element_shape)}."
+                )
+
+            assert argument_type.ndim > 0
+            if element_shape[0] != argument_type.n:
+                raise TaichiSyntaxError(
+                    f"Argument {argument_name} of type {argument_type} is expected to be a Matrix with n {argument_type.n}, but got {element_shape[0]}."
+                )
+
+            if argument_type.ndim == 2 and element_shape[1] != argument_type.m:
+                raise TaichiSyntaxError(
+                    f"Argument {argument_name} of type {argument_type} is expected to be a Matrix with m {argument_type.m}, but got {element_shape[0]}."
+                )
+
+            ctx.create_variable(argument_name, impl.expr_init_func(data))
+            return
+
+        if id(argument_type) in primitive_types.type_ids:
+            ctx.create_variable(argument_name, impl.expr_init_func(ti_ops.cast(data, argument_type)))
+            return
+        # Create a copy for non-template arguments,
+        # so that they are passed by value.
+        var_name = argument_name
+        ctx.create_variable(var_name, impl.expr_init_func(data))
+
+    @staticmethod
     def _transform_as_func(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
         print("  build_FunctionDef args.args", args.args, "ctx.argument_data", ctx.argument_data)
         print("args. args:")
@@ -287,97 +385,14 @@ class FunctionDefTransformer:
             # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
             argument = ctx.func.arguments[data_i]
             print("  ti.func arg data_i", data_i, "data", str(data)[:100])
-            # annotation = argument.annotation
-            print("  annotation", argument.annotation, type(argument.annotation))
-            # Template arguments are passed by reference.
-            if isinstance(argument.annotation, annotations.template):
-                ctx.create_variable(argument.name, data)
-                continue
+            # annotation = argument_type
+            FunctionDefTransformer._process_func_arg(
+                ctx,
+                argument.name,
+                argument.annotation,
+                data,
+            )
 
-            elif dataclasses.is_dataclass(argument.annotation):
-                print("got dataclass")
-                dataclass_type = argument.annotation
-                # print("******* creating var name", argument.name, "value", dataclass_type)
-                for field in dataclasses.fields(dataclass_type):
-                    flat_name = f"__ti_{argument.name}__ti_{field.name}"
-                    print("field_name", field.name, field.type, "new_field_name", flat_name)
-                    data_child = getattr(data, field.name)
-                    if not isinstance(
-                        data_child,
-                        (
-                            _ndarray.ScalarNdarray,
-                            matrix.VectorNdarray,
-                            matrix.MatrixNdarray,
-                            any_array.AnyArray,
-                        ),
-                    ):
-                        raise TaichiSyntaxError(
-                            f"Argument {field.name}: {field.type} of type {dataclass_type} {field.type} is not recognized."
-                        )
-                    field.type.check_matched(data_child.get_type(), field.name)
-                    var_name = f"__ti_{argument.name}_{field.name}"
-                    print("    creating var", var_name, "=", str(data_child)[:50])
-                    print("        ctx.arg_features", ctx.arg_features)
-                    ctx.create_variable(var_name, data_child)
-                continue
-
-            # Ndarray arguments are passed by reference.
-            if isinstance(argument.annotation, (ndarray_type.NdarrayType)):
-                if not isinstance(
-                    data,
-                    (
-                        _ndarray.ScalarNdarray,
-                        matrix.VectorNdarray,
-                        matrix.MatrixNdarray,
-                        any_array.AnyArray,
-                    ),
-                ):
-                    raise TaichiSyntaxError(f"Argument {argument} of type {argument.annotation} is not recognized.")
-                argument.annotation.check_matched(data.get_type(), argument.name)
-                ctx.create_variable(argument.name, data)
-                continue
-
-            # Matrix arguments are passed by value.
-            if isinstance(argument.annotation, (MatrixType)):
-                # "data" is expected to be an Expr here,
-                # so we simply call "impl.expr_init_func(data)" to perform:
-                #
-                # TensorType* t = alloca()
-                # assign(t, data)
-                #
-                # We created local variable "t" - a copy of the passed-in argument "data"
-                if not isinstance(data, expr.Expr) or not data.ptr.is_tensor():
-                    raise TaichiSyntaxError(
-                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix, but got {type(data)}."
-                    )
-
-                element_shape = data.ptr.get_rvalue_type().shape()
-                if len(element_shape) != argument.annotation.ndim:
-                    raise TaichiSyntaxError(
-                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with ndim {argument.annotation.ndim}, but got {len(element_shape)}."
-                    )
-
-                assert argument.annotation.ndim > 0
-                if element_shape[0] != argument.annotation.n:
-                    raise TaichiSyntaxError(
-                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with n {argument.annotation.n}, but got {element_shape[0]}."
-                    )
-
-                if argument.annotation.ndim == 2 and element_shape[1] != argument.annotation.m:
-                    raise TaichiSyntaxError(
-                        f"Argument {argument} of type {argument.annotation} is expected to be a Matrix with m {argument.annotation.m}, but got {element_shape[0]}."
-                    )
-
-                ctx.create_variable(argument.name, impl.expr_init_func(data))
-                continue
-
-            if id(argument.annotation) in primitive_types.type_ids:
-                ctx.create_variable(argument.name, impl.expr_init_func(ti_ops.cast(data, argument.annotation)))
-                continue
-            # Create a copy for non-template arguments,
-            # so that they are passed by value.
-            var_name = argument.name
-            ctx.create_variable(var_name, impl.expr_init_func(data))
         # deal with dataclasses
         print("")
         print("********* iterate over args.args")
