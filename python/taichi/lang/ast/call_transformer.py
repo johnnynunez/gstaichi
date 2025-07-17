@@ -179,7 +179,9 @@ class CallTransformer:
                 dataclass_type = val
                 for field in dataclasses.fields(dataclass_type):
                     # field_val = getattr(val, field_name)
-                    child_name = f"__ti_{arg.id}__ti_{field.name}"
+                    child_name = f"{arg.id}__ti_{field.name}"
+                    if not child_name.startswith("__ti_"):
+                        child_name = f"__ti_{child_name}"
                     print("child_name", child_name)
                     load_ctx = ast.Load()
                     # module = ast.parse(f"def func({child_name}):\n    pass")
@@ -193,9 +195,13 @@ class CallTransformer:
                         end_col_offset=arg.end_col_offset,
                     )
                     print("arg_node", ast.dump(arg_node), arg_node.__dict__)
-                    # ast_str = ast.dump(arg_node)
-                    # print("ast_str", ast_str)
-                    args_new.append(arg_node)
+                    if dataclasses.is_dataclass(field.type):
+                        arg_node.ptr = field.type
+                        args_new.extend(CallTransformer._expand_Call_dataclass_args((arg_node, )))
+                    else:
+                        # ast_str = ast.dump(arg_node)
+                        # print("ast_str", ast_str)
+                        args_new.append(arg_node)
             else:
                 args_new.append(arg)
         return tuple(args_new)
