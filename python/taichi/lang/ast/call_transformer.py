@@ -160,3 +160,35 @@ class CallTransformer:
         # put the formatted string as the first argument to make ti.format() happy
         args.insert(0, re.sub(r"{.*?}", "{}", raw_string))
         return args
+
+    @staticmethod
+    def expand_Call_dataclass_args(args: tuple[ast.AST]) -> tuple[ast.AST]:
+        args_new = []
+        for i, arg in enumerate(args):
+            val = arg.ptr
+            print("  i", i, "arg", ast.dump(arg), "val", val)
+            if dataclasses.is_dataclass(val):
+                print("found dataclass val", val)
+                dataclass_type = val
+                for field in dataclasses.fields(dataclass_type):
+                    # field_val = getattr(val, field_name)
+                    child_name = f"__ti_{arg.id}__ti_{field.name}"
+                    print("child_name", child_name)
+                    load_ctx = ast.Load()
+                    # module = ast.parse(f"def func({child_name}):\n    pass")
+                    # arg_node = module.body[0].args.args[0]
+                    arg_node = ast.Name(
+                        id=child_name,
+                        ctx=load_ctx,
+                        lineno=arg.lineno,
+                        end_lineno=arg.end_lineno,
+                        col_offset=arg.col_offset,
+                        end_col_offset=arg.end_col_offset,
+                    )
+                    print("arg_node", ast.dump(arg_node), arg_node.__dict__)
+                    # ast_str = ast.dump(arg_node)
+                    # print("ast_str", ast_str)
+                    args_new.append(arg_node)
+            else:
+                args_new.append(arg)
+        return tuple(args_new)

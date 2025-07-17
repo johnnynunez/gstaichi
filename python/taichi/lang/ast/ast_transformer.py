@@ -430,43 +430,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def expand_node_args_dataclasses(args: tuple[ast.AST]) -> tuple[ast.AST]:
-        # TODO: need to implement this
-        args_new = []
-        for i, arg in enumerate(args):
-            val = arg.ptr
-            print("  i", i, "arg", ast.dump(arg), "val", val)
-            if dataclasses.is_dataclass(val):
-                print("found dataclass val", val)
-                dataclass_type = val
-                for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                    field_name = field.name
-                    field_type = field.type
-                    # field_val = getattr(val, field_name)
-                    child_name = f"__ti_{arg.id}__ti_{field_name}"
-                    print("child_name", child_name)
-                    load_ctx = ast.Load()
-                    # module = ast.parse(f"def func({child_name}):\n    pass")
-                    # arg_node = module.body[0].args.args[0]
-                    arg_node = ast.Name(
-                        id=child_name,
-                        ctx=load_ctx,
-                        lineno=arg.lineno,
-                        end_lineno=arg.end_lineno,
-                        col_offset=arg.col_offset,
-                        end_col_offset=arg.end_col_offset,
-                    )
-                    print("arg_node", ast.dump(arg_node), arg_node.__dict__)
-                    # ast_str = ast.dump(arg_node)
-                    # print("ast_str", ast_str)
-                    args_new.append(arg_node)
-            else:
-                args_new.append(arg)
-        return tuple(args_new)
-
-    # ast.dump(ast.parse("def func(foo: int):\n    pass").body[0].args.args[0])
-
-    @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call):
         print("build_Call", ast.dump(node))
         print("ctx.local_scopes:")
@@ -485,7 +448,7 @@ class ASTTransformer(Builder):
             print("  build_stmts over args...")
             build_stmts(ctx, node.args)
             print("  ... build_stmts over args done")
-            node.args = ASTTransformer.expand_node_args_dataclasses(node.args)
+            node.args = CallTransformer.expand_Call_dataclass_args(node.args)
             build_stmts(ctx, node.args)
             build_stmts(ctx, node.keywords)
 
