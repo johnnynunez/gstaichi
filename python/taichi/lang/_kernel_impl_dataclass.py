@@ -1,12 +1,13 @@
 import ast
 import dataclasses
 import inspect
-from typing import Any
+from typing import Any, Type
 
 from taichi.lang.ast import (
     ASTTransformerContext,
 )
 from taichi.lang.kernel_arguments import ArgMetadata
+from taichi.types import template, Template
 
 
 def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struct_type) -> None:
@@ -227,42 +228,67 @@ def _populate_global_vars_from_sub_dataclasses(
                 global_vars,
             )
         else:
-            global_vars[flat_name] = child_value
-            # for field in dataclasses.fields(param_type):
-            #     child_value = getattr(py_args[arg_i], field.name)
-            #     flat_name = f"__ti_{name}__ti_{field.name}"
-            #     if dataclasses.is_dataclass(field.type):
-            #         print("got dataclass ", field.type)
-            #         child_param_type_by_name = {child_field.name: child_field.type for child_field in dataclasses.fields(field.type)}
-            #         print("child_param_type_by_name", child_param_type_by_name)
-            #         _populate_global_vars_from_sub_dataclasses(
-            #             param_type_by_name=child_param_type_by_name,
-            #             py_args=(child_value,),
-            #             global_vars=global_vars,
-            #         )
-            #     else:
-            #         global_vars[flat_name] = child_value
+            pass
 
 
-def populate_global_vars_from_dataclasses(
-    param_type_by_name: dict[str, Any],
-    py_args: tuple[Any, ...],
+# def populate_global_vars_from_dataclasses(
+#     param_type_by_name: dict[str, Any],
+#     py_args: tuple[Any, ...],
+#     global_vars: dict[str, Any],
+# ):
+#     for arg_i, (name, param_type) in enumerate(param_type_by_name.items()):
+#         if dataclasses.is_dataclass(param_type):
+#             for field in dataclasses.fields(param_type):
+#                 child_value = getattr(py_args[arg_i], field.name)
+#                 flat_name = f"__ti_{name}__ti_{field.name}"
+#                 print(flat_name, "field.type", field.type)
+#                 if dataclasses.is_dataclass(field.type):
+#                     print("got dataclass ", field.type)
+#                     # child_param_type_by_name = {child_field.name: child_field.type for child_field in dataclasses.fields(field.type)}
+#                     # print("child_param_type_by_name", child_param_type_by_name)
+#                     _populate_global_vars_from_sub_dataclasses(
+#                         basename=flat_name,
+#                         struct_type=field.type,
+#                         py_arg=child_value,
+#                         global_vars=global_vars,
+#                     )
+#                 elif isinstance(field.type, (Template,)) or field.type == Template:
+#                     global_vars[flat_name] = child_value
+#                 else:
+#                     pass
+#                     # global_vars[flat_name] = child_value
+
+
+def populate_global_vars_from_dataclass(
+    param_name: str,
+    param_type: Any,
+    py_arg: Any,
     global_vars: dict[str, Any],
 ):
-    for arg_i, (name, param_type) in enumerate(param_type_by_name.items()):
-        if dataclasses.is_dataclass(param_type):
-            for field in dataclasses.fields(param_type):
-                child_value = getattr(py_args[arg_i], field.name)
-                flat_name = f"__ti_{name}__ti_{field.name}"
-                if dataclasses.is_dataclass(field.type):
-                    print("got dataclass ", field.type)
-                    # child_param_type_by_name = {child_field.name: child_field.type for child_field in dataclasses.fields(field.type)}
-                    # print("child_param_type_by_name", child_param_type_by_name)
-                    _populate_global_vars_from_sub_dataclasses(
-                        basename=flat_name,
-                        struct_type=field.type,
-                        py_arg=child_value,
-                        global_vars=global_vars,
-                    )
-                else:
-                    global_vars[flat_name] = child_value
+    # for arg_i, (name, param_type) in enumerate(param_type_by_name.items()):
+        # if dataclasses.is_dataclass(param_type):
+        for field in dataclasses.fields(param_type):
+            child_value = getattr(py_arg, field.name)
+            flat_name = f"__ti_{param_name}__ti_{field.name}"
+            print(flat_name, "field.type", field.type)
+            if dataclasses.is_dataclass(field.type):
+                print("got dataclass ", field.type)
+                # child_param_type_by_name = {child_field.name: child_field.type for child_field in dataclasses.fields(field.type)}
+                # print("child_param_type_by_name", child_param_type_by_name)
+                # _populate_global_vars_from_sub_dataclasses(
+                #     basename=flat_name,
+                #     struct_type=field.type,
+                #     py_arg=child_value,
+                #     global_vars=global_vars,
+                # )
+                populate_global_vars_from_dataclass(
+                    param_name=flat_name,
+                    param_type=field.type,
+                    py_arg=child_value,
+                    global_vars=global_vars,
+                )
+            elif isinstance(field.type, (Template,)) or field.type == Template:
+                global_vars[flat_name] = child_value
+            else:
+                pass
+                # global_vars[flat_name] = child_value

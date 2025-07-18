@@ -43,6 +43,26 @@ class MyStructEF:
     my_struct_cd: MyStructCD
 
 
+@dataclasses.dataclass
+class MyStructFieldAB:
+    a: ti.Template
+    b: ti.template()
+
+
+@dataclasses.dataclass
+class MyStructFieldCD:
+    c: ti.Template
+    d: ti.template()
+    my_struct_ab: MyStructFieldAB
+
+
+@dataclasses.dataclass
+class MyStructFieldEF:
+    e: ti.Template
+    f: ti.template()
+    my_struct_cd: MyStructFieldCD
+
+
 @pytest.mark.parametrize(
     "ast_in, struct_locals, expected_ast",
     [
@@ -142,40 +162,40 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
 
 
 @pytest.mark.parametrize(
-    "param_type_by_name, expected_global_args", [
+    "param_name, param_type, expected_global_args", [
         (
+            "my_struct_ab",
+            MyStructAB,
             {
-                "a": ti.types.NDArray[ti.i32, 1],
-                "my_struct_ab": MyStructAB,
-            },
-            {
-                "__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
-                "__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
             }
         ),
         (
+            "my_struct_cd",
+            MyStructCD,
             {
-                "a": ti.types.NDArray[ti.i32, 1],
-                "my_struct_cd": MyStructCD,
-            },
+            }
+        ),
+        (
+            "my_struct_ab",
+            MyStructFieldAB,
             {
-                "__ti_my_struct_cd__ti_c": ti.types.NDArray[ti.i32, 1],
-                "__ti_my_struct_cd__ti_d": ti.types.NDArray[ti.i32, 1],
-                "__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
-                "__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_ab__ti_a": ti.template,
+                "__ti_my_struct_ab__ti_b": ti.template,
             }
         ),
     ]
 )
 @test_utils.test()
 def test_populate_global_vars_from_dataclasses(
-    param_type_by_name: dict[str, Any], expected_global_args: dict[str, Any]
+    param_name: str, param_type: Any, expected_global_args: dict[str, Any]
 ) -> None:
-    py_args = dataclass_test_tools.build_obj_tuple_from_type_dict(param_type_by_name)
+    py_arg = dataclass_test_tools.build_struct(param_type)
+    print("py_arg", py_arg)
     global_vars = {}
-    _kernel_impl_dataclass.populate_global_vars_from_dataclasses(
-        param_type_by_name,
-        py_args,
+    _kernel_impl_dataclass.populate_global_vars_from_dataclass(
+        param_name,
+        param_type,
+        py_arg,
         global_vars
     )
     print("global vars names", list(global_vars.keys()))
@@ -191,5 +211,9 @@ def test_populate_global_vars_from_dataclasses(
             assert isinstance(actual_obj, ti.ScalarNdarray)
             assert actual_obj.dtype == expected_type.dtype
             assert len(actual_obj.shape) == expected_type.ndim
+        elif isinstance(expected_type, ti.Template) or expected_type == ti.Template:
+            assert isinstance(actual_obj, ti.Field)
+            assert len(actual_obj.shape) == 1
+            assert actual_obj.dtype == ti.i32
         else:
             raise Exception("Unexpected expected type", expected_type)
