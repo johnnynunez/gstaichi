@@ -529,27 +529,12 @@ def test_field_struct_nested_field() -> None:
     my_struct_ab_param = MyStructAB(a=a, b=b, struct_cd=my_struct_cd_param)
     k1(my_struct_ab_param)
 
-    print("")
-    print('a[7]', a[7])
-    print('b[2]', b[2])
-    print('c[11]', c[11])
-    print('d[17]', d[17])
-    print('e[12]', e[12])
-    print('f[18]', f[18])
     assert a[7] == 3
     assert b[2] == 5
     assert c[11] == 13
     assert d[17] == 23
     assert e[12] == 14
     assert f[18] == 24
-
-    print("")
-    print('a[27]', a[27])
-    print('b[22]', b[22])
-    print('c[31]', c[31])
-    print('d[37]', d[37])
-    print('e[32]', e[32])
-    print('f[38]', f[38])
 
     assert a[27] == 13
     assert b[22] == 15
@@ -558,13 +543,6 @@ def test_field_struct_nested_field() -> None:
     assert e[32] == 24
     assert f[38] == 34
 
-    print("")
-    print('a[47]', a[47])
-    print('b[42]', b[42])
-    print('c[51]', c[51])
-    print('d[57]', d[57])
-    print('e[52]', e[52])
-    print('f[58]', f[58])
     assert a[47] == 23
     assert b[42] == 25
     assert c[51] == 33
