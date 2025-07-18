@@ -94,17 +94,31 @@ def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
         if dataclasses.is_dataclass(argument.annotation):
             print("found dataclass")
             for field in dataclasses.fields(argument.annotation):
-                field_name = field.name
-                field_type = field.type
-                print("field_name", field_name, field_type)
-                # field_value = getattr(arg, field.name)
-                new_argument = ArgMetadata(
-                    _annotation=field_type,
-                    _name=f"__ti_{argument.name}__ti_{field_name}",
-                )
-                # print("new_argument", new_argument)
-                # asdfad
-                new_arguments.append(new_argument)
+                # field_name = field.name
+                # field_type = field.type
+                print("field_name", field.name, field.type)
+                child_name = f"{argument.name}__ti_{field.name}"
+                if not child_name.startswith("__ti_"):
+                    child_name = f"__ti_{child_name}"
+                if dataclasses.is_dataclass(field.type):
+                    print('got datcalss', field.type)
+                    child_args = expand_func_arguments([
+                        ArgMetadata(
+                            field.type,
+                            child_name,
+                            argument.default,
+                        )
+                    ])
+                    new_arguments.extend(child_args)
+                else:
+                    # field_value = getattr(arg, field.name)
+                    new_argument = ArgMetadata(
+                        _annotation=field.type,
+                        _name=child_name,
+                    )
+                    # print("new_argument", new_argument)
+                    # asdfad
+                    new_arguments.append(new_argument)
         else:
             new_arguments.append(argument)
     return new_arguments
