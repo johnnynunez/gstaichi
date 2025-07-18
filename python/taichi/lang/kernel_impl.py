@@ -1061,7 +1061,7 @@ class Kernel:
                     raise TaichiRuntimeTypeError(f"Argument {provided} cannot be converted into required type {needed}")
                 needed.set_kernel_struct_args(v, launch_ctx, indices)
                 return 1
-            if isinstance(needed, template):
+            if isinstance(needed, template) or needed == template:
                 return 0
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
