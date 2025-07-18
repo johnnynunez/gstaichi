@@ -4,10 +4,10 @@ import inspect
 import math
 import operator
 import re
-from typing import Any
 import warnings
-from collections import ChainMap
 from ast import unparse
+from collections import ChainMap
+from typing import Any
 
 import numpy as np
 
@@ -197,7 +197,7 @@ class CallTransformer:
                     print("arg_node", ast.dump(arg_node), arg_node.__dict__)
                     if dataclasses.is_dataclass(field.type):
                         arg_node.ptr = field.type
-                        args_new.extend(CallTransformer._expand_Call_dataclass_args((arg_node, )))
+                        args_new.extend(CallTransformer._expand_Call_dataclass_args((arg_node,)))
                     else:
                         # ast_str = ast.dump(arg_node)
                         # print("ast_str", ast_str)

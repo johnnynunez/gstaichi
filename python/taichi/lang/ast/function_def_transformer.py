@@ -279,7 +279,7 @@ class FunctionDefTransformer:
             ctx.create_variable(argument_name, data)
             return
 
-        elif dataclasses.is_dataclass(argument_type):
+        if dataclasses.is_dataclass(argument_type):
             print("got dataclass")
             # dataclass_type = argument_type
             print("******* creating var name", argument_name, "value", argument_type)

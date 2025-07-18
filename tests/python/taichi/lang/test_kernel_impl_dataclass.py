@@ -4,17 +4,17 @@ but let's just start with a few tests using this structure/architecture, as a pr
 """
 
 import ast
+import dataclasses
 from ast import Attribute, Load, Name
 from typing import Any
 
 import pytest
-import dataclasses
-import taichi as ti
 
+import taichi as ti
 import taichi.lang._kernel_impl_dataclass as _kernel_impl_dataclass
-from tests import test_utils
-from taichi.lang.kernel_arguments import ArgMetadata
 import taichi.test_tools.dataclass_test_tools as dataclass_test_tools
+from taichi.lang.kernel_arguments import ArgMetadata
+from tests import test_utils
 
 __all__ = [
     "Attribute",
@@ -115,16 +115,14 @@ class MyStructFieldEF:
               ctx=Load()
             )
             """,
-            {
-                "__ti_my_struct_ab__ti_a"
-            },
+            {"__ti_my_struct_ab__ti_a"},
             """
             Attribute(
               value=Name(id='__ti_my_struct_ab__ti_a', ctx=Load()),
               attr='shape',
               ctx=Load()
             )
-            """
+            """,
         ),
     ],
 )
@@ -139,13 +137,14 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
 
 
 @pytest.mark.parametrize(
-    "in_meta, expected_meta", [
+    "in_meta, expected_meta",
+    [
         (
             [ArgMetadata(MyStructAB, "my_struct_ab")],
             [
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ab__ti_a"),
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ab__ti_b"),
-            ]
+            ],
         ),
         (
             [ArgMetadata(MyStructCD, "my_struct_cd")],
@@ -154,7 +153,7 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_d"),
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_my_struct_ab__ti_a"),
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_my_struct_ab__ti_b"),
-            ]
+            ],
         ),
         (
             [ArgMetadata(MyStructEF, "my_struct_ef")],
@@ -165,9 +164,9 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_d"),
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_a"),
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_b"),
-            ]
+            ],
         ),
-    ]
+    ],
 )
 @test_utils.test()
 def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[ArgMetadata]) -> None:
@@ -187,26 +186,17 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
 
 
 @pytest.mark.parametrize(
-    "param_name, param_type, expected_global_args", [
-        (
-            "my_struct_ab",
-            MyStructAB,
-            {
-            }
-        ),
-        (
-            "my_struct_cd",
-            MyStructCD,
-            {
-            }
-        ),
+    "param_name, param_type, expected_global_args",
+    [
+        ("my_struct_ab", MyStructAB, {}),
+        ("my_struct_cd", MyStructCD, {}),
         (
             "my_struct_ab",
             MyStructFieldAB,
             {
                 "__ti_my_struct_ab__ti_a": ti.template,
                 "__ti_my_struct_ab__ti_b": ti.template,
-            }
+            },
         ),
         (
             "my_struct_cd",
@@ -216,7 +206,7 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
                 "__ti_my_struct_cd__ti_d": ti.template,
                 "__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.template,
                 "__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.template,
-            }
+            },
         ),
         (
             "my_struct_ef",
@@ -228,9 +218,9 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
                 "__ti_my_struct_ef__ti_my_struct_cd__ti_d": ti.template,
                 "__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.template,
                 "__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.template,
-            }
+            },
         ),
-    ]
+    ],
 )
 @test_utils.test()
 def test_populate_global_vars_from_dataclasses(
@@ -239,12 +229,7 @@ def test_populate_global_vars_from_dataclasses(
     py_arg = dataclass_test_tools.build_struct(param_type)
     print("py_arg", py_arg)
     global_vars = {}
-    _kernel_impl_dataclass.populate_global_vars_from_dataclass(
-        param_name,
-        param_type,
-        py_arg,
-        global_vars
-    )
+    _kernel_impl_dataclass.populate_global_vars_from_dataclass(param_name, param_type, py_arg, global_vars)
     print("global vars names", list(global_vars.keys()))
     expected_names = set(expected_global_args.keys())
     actual_names = set(global_vars.keys())

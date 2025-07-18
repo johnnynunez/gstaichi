@@ -1,12 +1,13 @@
-from typing import Any, cast
-import pytest
-import taichi as ti
 import ast
+import dataclasses
+from typing import Any, cast
+
 import pytest
+
+import taichi as ti
+import taichi.test_tools.dataclass_test_tools as dataclass_test_tools
 from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 from tests import test_utils
-import dataclasses
-import taichi.test_tools.dataclass_test_tools as dataclass_test_tools
 
 
 @dataclasses.dataclass
@@ -33,20 +34,21 @@ class NDArrayBuilder:
     def __init__(self, dtype: Any, shape: tuple[int, ...]) -> None:
         self.dtype = dtype
         self.shape = shape
-    
+
     def build(self) -> ti.types.NDArray:
         return ti.ndarray(self.dtype, self.shape)
 
 
 @pytest.mark.parametrize(
-    "argument_name, argument_type, expected_variables", [
+    "argument_name, argument_type, expected_variables",
+    [
         (
             "my_struct_1",
             MyStructAB,
             {
                 "__ti_my_struct_1__ti_a": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_1__ti_b": ti.types.NDArray[ti.i32, 1],
-            }
+            },
         ),
         (
             "my_struct_2",
@@ -56,7 +58,7 @@ class NDArrayBuilder:
                 "__ti_my_struct_2__ti_d": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_2__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_2__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
-            }
+            },
         ),
         (
             "my_struct_3",
@@ -68,9 +70,9 @@ class NDArrayBuilder:
                 "__ti_my_struct_3__ti_my_struct_cd__ti_d": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_3__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_3__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
-            }
+            },
         ),
-    ]
+    ],
 )
 @test_utils.test()
 def test_process_func_arg(argument_name: str, argument_type: Any, expected_variables: dict[str, Any]) -> None:
@@ -81,7 +83,7 @@ def test_process_func_arg(argument_name: str, argument_type: Any, expected_varia
         def create_variable(self, name: str, data: Any) -> None:
             assert name not in self.variables
             self.variables[name] = data
-    
+
     data = dataclass_test_tools.build_struct(argument_type)
     print("data", data)
     ctx = MockContext()

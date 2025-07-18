@@ -1,13 +1,13 @@
 import ast
 import dataclasses
 import inspect
-from typing import Any, Type
+from typing import Any
 
 from taichi.lang.ast import (
     ASTTransformerContext,
 )
 from taichi.lang.kernel_arguments import ArgMetadata
-from taichi.types import template, Template
+from taichi.types import Template
 
 
 def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struct_type) -> None:
@@ -109,14 +109,16 @@ def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
                 if not child_name.startswith("__ti_"):
                     child_name = f"__ti_{child_name}"
                 if dataclasses.is_dataclass(field.type):
-                    print('got datcalss', field.type)
-                    child_args = expand_func_arguments([
-                        ArgMetadata(
-                            field.type,
-                            child_name,
-                            argument.default,
-                        )
-                    ])
+                    print("got datcalss", field.type)
+                    child_args = expand_func_arguments(
+                        [
+                            ArgMetadata(
+                                field.type,
+                                child_name,
+                                argument.default,
+                            )
+                        ]
+                    )
                     new_arguments.extend(child_args)
                 else:
                     # field_value = getattr(arg, field.name)
@@ -199,7 +201,7 @@ def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> 
             if not flat_name:
                 return node
             if flat_name not in struct_locals:
-            # if not match:
+                # if not match:
                 return self.generic_visit(node)
             print("updating ast for new_id", flat_name)
             return ast.copy_location(ast.Name(id=flat_name, ctx=node.ctx), node)

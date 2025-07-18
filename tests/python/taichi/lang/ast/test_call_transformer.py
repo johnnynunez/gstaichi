@@ -1,9 +1,11 @@
-import taichi as ti
 import ast
+import dataclasses
+
 import pytest
+
+import taichi as ti
 from taichi.lang.ast.call_transformer import CallTransformer
 from tests import test_utils
-import dataclasses
 
 
 @dataclasses.dataclass
@@ -34,41 +36,36 @@ def dump_ast_list(nodes: list[ast.AST]) -> str:
 
 
 @pytest.mark.parametrize(
-    "args_in, expected_args_out", [
+    "args_in, expected_args_out",
+    [
         (
+            [ast.Name(id="my_struct_ab", ctx=ast.Load(), ptr=MyStructAB)],
             [
-                ast.Name(id='my_struct_ab', ctx=ast.Load(), ptr=MyStructAB)
+                ast.Name(id="__ti_my_struct_ab__ti_a", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_ab__ti_b", ctx=ast.Load()),
             ],
-            [
-                ast.Name(id='__ti_my_struct_ab__ti_a', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_ab__ti_b', ctx=ast.Load()),
-            ]
         ),
         (
+            [ast.Name(id="my_struct_cd", ctx=ast.Load(), ptr=MyStructCD)],
             [
-                ast.Name(id='my_struct_cd', ctx=ast.Load(), ptr=MyStructCD)
+                ast.Name(id="__ti_my_struct_cd__ti_c", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_cd__ti_d", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_cd__ti_my_struct_ab__ti_a", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_cd__ti_my_struct_ab__ti_b", ctx=ast.Load()),
             ],
-            [
-                ast.Name(id='__ti_my_struct_cd__ti_c', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_cd__ti_d', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_cd__ti_my_struct_ab__ti_a', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_cd__ti_my_struct_ab__ti_b', ctx=ast.Load()),
-            ]
         ),
         (
+            [ast.Name(id="my_struct_ef", ctx=ast.Load(), ptr=MyStructEF)],
             [
-                ast.Name(id='my_struct_ef', ctx=ast.Load(), ptr=MyStructEF)
+                ast.Name(id="__ti_my_struct_ef__ti_e", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_ef__ti_f", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_ef__ti_my_struct_cd__ti_c", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_ef__ti_my_struct_cd__ti_d", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_a", ctx=ast.Load()),
+                ast.Name(id="__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_b", ctx=ast.Load()),
             ],
-            [
-                ast.Name(id='__ti_my_struct_ef__ti_e', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_ef__ti_f', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_c', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_d', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_a', ctx=ast.Load()),
-                ast.Name(id='__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_b', ctx=ast.Load()),
-            ]
         ),
-    ]
+    ],
 )
 @test_utils.test()
 def test_expand_Call_dataclass_args(args_in: list[ast.AST], expected_args_out: list[ast.AST]) -> None:

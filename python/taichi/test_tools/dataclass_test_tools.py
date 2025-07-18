@@ -1,5 +1,6 @@
-from typing import Any, cast
 import dataclasses
+from typing import Any, cast
+
 import taichi as ti
 
 
@@ -15,7 +16,7 @@ def build_struct(struct_type: Any) -> Any:
         elif dataclasses.is_dataclass(field.type):
             child_obj = build_struct(field.type)
         elif isinstance(field.type, ti.Template) or field.type == ti.Template:
-            child_obj = ti.field(ti.i32, (10, ))
+            child_obj = ti.field(ti.i32, (10,))
         else:
             raise Exception("unknown type ", field.type)
         member_objects[field.name] = child_obj
@@ -36,7 +37,7 @@ def build_obj_tuple_from_type_dict(name_to_type: dict[str, Any]) -> tuple[Any, .
         elif dataclasses.is_dataclass(param_type):
             child_obj = build_struct(param_type)
         elif isinstance(param_type, ti.Template) or param_type == ti.Template:
-            child_obj = ti.field(ti.i32, (10, ))
+            child_obj = ti.field(ti.i32, (10,))
         else:
             raise Exception("unknown type ", param_type)
         obj_l.append(child_obj)
