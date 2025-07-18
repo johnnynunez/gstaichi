@@ -461,3 +461,113 @@ def test_ndarray_struct_nested_ndarray():
     assert d[57] == 43
     assert e[52] == 34
     assert f[58] == 44
+
+
+@test_utils.test()
+def test_field_struct_nested_field() -> None:
+    a = ti.field(ti.i32, shape=(55,))
+    b = ti.field(ti.i32, shape=(57,))
+    c = ti.field(ti.i32, shape=(211,))
+    d = ti.field(ti.i32, shape=(211,))
+    e = ti.field(ti.i32, shape=(251,))
+    f = ti.field(ti.i32, shape=(251,))
+
+    @dataclass
+    class MyStructEF:
+        e: ti.Template
+        f: ti.Template
+
+    @dataclass
+    class MyStructCD:
+        c: ti.Template
+        d: ti.Template
+        struct_ef: MyStructEF
+
+    @dataclass
+    class MyStructAB:
+        a: ti.Template
+        b: ti.Template
+        struct_cd: MyStructCD
+
+    @ti.func
+    def f3(
+        my_struct_ab3: MyStructAB,
+    ) -> None:
+        my_struct_ab3.a[47] += 23
+        my_struct_ab3.b[42] += 25
+        my_struct_ab3.struct_cd.c[51] += 33
+        my_struct_ab3.struct_cd.d[57] += 43
+        my_struct_ab3.struct_cd.struct_ef.e[52] += 34
+        my_struct_ab3.struct_cd.struct_ef.f[58] += 44
+
+    @ti.func
+    def f2(
+        my_struct_ab2: MyStructAB,
+    ) -> None:
+        my_struct_ab2.a[27] += 13
+        my_struct_ab2.b[22] += 15
+        my_struct_ab2.struct_cd.c[31] += 23
+        my_struct_ab2.struct_cd.d[37] += 33
+        my_struct_ab2.struct_cd.struct_ef.e[32] += 24
+        my_struct_ab2.struct_cd.struct_ef.f[38] += 34
+        f3(my_struct_ab2)
+
+    @ti.kernel
+    def k1(
+        my_struct_ab: MyStructAB,
+    ) -> None:
+        my_struct_ab.a[7] += 3
+        my_struct_ab.b[2] += 5
+        my_struct_ab.struct_cd.c[11] += 13
+        my_struct_ab.struct_cd.d[17] += 23
+        my_struct_ab.struct_cd.struct_ef.e[12] += 14
+        my_struct_ab.struct_cd.struct_ef.f[18] += 24
+        f2(my_struct_ab)
+
+    my_struct_ef_param = MyStructEF(e=e, f=f)
+    my_struct_cd_param = MyStructCD(c=c, d=d, struct_ef=my_struct_ef_param)
+    my_struct_ab_param = MyStructAB(a=a, b=b, struct_cd=my_struct_cd_param)
+    k1(my_struct_ab_param)
+
+    print("")
+    print('a[7]', a[7])
+    print('b[2]', b[2])
+    print('c[11]', c[11])
+    print('d[17]', d[17])
+    print('e[12]', e[12])
+    print('f[18]', f[18])
+    assert a[7] == 3
+    assert b[2] == 5
+    assert c[11] == 13
+    assert d[17] == 23
+    assert e[12] == 14
+    assert f[18] == 24
+
+    print("")
+    print('a[27]', a[27])
+    print('b[22]', b[22])
+    print('c[31]', c[31])
+    print('d[37]', d[37])
+    print('e[32]', e[32])
+    print('f[38]', f[38])
+
+    assert a[27] == 13
+    assert b[22] == 15
+    assert c[31] == 23
+    assert d[37] == 33
+    assert e[32] == 24
+    assert f[38] == 34
+
+    print("")
+    print('a[47]', a[47])
+    print('b[42]', b[42])
+    print('c[51]', c[51])
+    print('d[57]', d[57])
+    print('e[52]', e[52])
+    print('f[58]', f[58])
+    assert a[47] == 23
+    assert b[42] == 25
+    assert c[51] == 33
+    assert d[57] == 43
+    assert e[52] == 34
+    assert f[58] == 44
