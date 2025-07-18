@@ -100,6 +100,15 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ab__ti_b"),
             ]
         ),
+        (
+            [ArgMetadata(MyStructCD, "my_struct_cd")],
+            [
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_c"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_d"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_my_struct_ab__ti_a"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_my_struct_ab__ti_b"),
+            ]
+        ),
     ]
 )
 @test_utils.test()
@@ -110,6 +119,8 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
     print("expected_meta", "\n".join([str(m) for m in expected_meta]))
     out_names = [m.name for m in out_meta]
     expected_names = [m.name for m in expected_meta]
+    print("out_names", out_names)
+    print("expected_names", expected_names)
     assert out_names == expected_names
 
     out_dtypes = [m.annotation.dtype for m in out_meta]
