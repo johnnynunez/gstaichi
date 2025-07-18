@@ -238,13 +238,10 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_Subscript(ctx: ASTTransformerContext, node: ast.Subscript):
-        print("build_Subscript node", ast.dump(node))
         build_stmt(ctx, node.value)
         build_stmt(ctx, node.slice)
         if not ASTTransformer.is_tuple(node.slice):
-            print("  is_tuple")
             node.slice.ptr = [node.slice.ptr]
-        print("  node.value.ptr", node.value.ptr, "node.slice.ptr", node.slice.ptr)
         node.ptr = impl.subscript(ctx.ast_builder, node.value.ptr, *node.slice.ptr)
         return node.ptr
 
@@ -626,9 +623,6 @@ class ASTTransformer(Builder):
         if ASTTransformer.build_attribute_if_is_dynamic_snode_method(ctx, node):
             return node.ptr
 
-        print("*** node", ast.dump(node))
-        print("*** node.value", ast.dump(node.value))
-        print("*** node.value.ptr", node.value.ptr)
         if isinstance(node.value.ptr, Expr) and not hasattr(node.value.ptr, node.attr):
             if node.attr in Matrix._swizzle_to_keygroup:
                 keygroup = Matrix._swizzle_to_keygroup[node.attr]
@@ -661,34 +655,10 @@ class ASTTransformer(Builder):
                 node.ptr = getattr(tensor_ops, node.attr)
                 setattr(node, "caller", node.value.ptr)
         elif dataclasses.is_dataclass(node.value.ptr):
-            # its a dataclass type, so we should get the subtype probably...
             type_by_name = {field.name: field.type for field in dataclasses.fields(node.value.ptr)}
             child_type = type_by_name[node.attr]
-            print("child_type", child_type)
-            # setattr(node, "caller", child_type)
             node.ptr = child_type
         else:
-            # if dataclasses.is_dataclass(node.value.ptr):
-            #     print("got dataclass")
-            #     print("node.value", ast.dump(node.value), node.value.id)
-            #     child_name = f"__ti_{node.value.id}_{node.attr}"
-            #     print("node.value.ptr", node.value.ptr, "node.attr", node.attr)
-            #     # node.ptr = getattr(node.value.ptr, child_name)
-            #     _node = ast.Name(
-            #         id=child_name,
-            #         ctx=node.ctx,
-            #         lineno=node.lineno,
-            #         end_lineno=node.end_lineno,
-            #         col_offset=node.col_offset,
-            #         end_col_offset=node.end_col_offset,
-            #     )
-            #     print("_node", ast.dump(_node))
-            #     build_stmt(ctx, _node)
-            #     print("_node.ptr", _node.ptr)
-            #     node.ptr = _node.ptr
-            #     node.value.ptr = _node.ptr
-            #     return _node.ptr
-            # else:
             node.ptr = getattr(node.value.ptr, node.attr)
         return node.ptr
 
@@ -722,7 +692,6 @@ class ASTTransformer(Builder):
 
     @staticmethod
     def build_AugAssign(ctx: ASTTransformerContext, node: ast.AugAssign):
-        # print("build_AugAssign target", node.target, "value", node.value)
         build_stmt(ctx, node.target)
         build_stmt(ctx, node.value)
         if isinstance(node.target, ast.Name) and node.target.id in ctx.kernel_args:
@@ -1358,12 +1327,8 @@ def build_stmts(ctx: ASTTransformerContext, stmts: list[ast.stmt]):
     pass the ASTTransformer object around)
     """
     with ctx.variable_scope_guard():
-        print("inside ctx.variable_scope_guard, scopes:")
-        for scope in ctx.local_scopes:
-            print("    ", scope)
         for stmt in stmts:
             if ctx.returned != ReturnStatus.NoReturn or ctx.loop_status() != LoopStatus.Normal:
-                print("     breaking")
                 break
             else:
                 build_stmt(ctx, stmt)

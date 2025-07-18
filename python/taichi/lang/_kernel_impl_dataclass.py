@@ -54,16 +54,12 @@ def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struc
 
 
     """
-    print("_populate_struct_locals_from_params_dict struct_type", struct_type)
     for field in dataclasses.fields(struct_type):
-        print("field.name", field.name, "field.type", field.type)
         child_name = f"{basename}__ti_{field.name}"
         if dataclasses.is_dataclass(field.type):
-            print("found dataclass")
             _populate_struct_locals_from_params_dict(child_name, struct_locals, field.type)
         else:
             struct_locals.add(child_name)
-    print("struct_locals", struct_locals)
 
 
 def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
@@ -88,7 +84,6 @@ def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
                     _populate_struct_locals_from_params_dict(child_name, struct_locals, field.type)
                     continue
                 struct_locals.add(child_name)
-    print("struct_locals", struct_locals)
     return struct_locals
 
 
@@ -98,18 +93,12 @@ def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
     """
     new_arguments = []
     for i, argument in enumerate(arguments):
-        print("i", i, "argument", argument, "annotation", argument.annotation)
         if dataclasses.is_dataclass(argument.annotation):
-            print("found dataclass")
             for field in dataclasses.fields(argument.annotation):
-                # field_name = field.name
-                # field_type = field.type
-                print("field_name", field.name, field.type)
                 child_name = f"{argument.name}__ti_{field.name}"
                 if not child_name.startswith("__ti_"):
                     child_name = f"__ti_{child_name}"
                 if dataclasses.is_dataclass(field.type):
-                    print("got datcalss", field.type)
                     child_args = expand_func_arguments(
                         [
                             ArgMetadata(
@@ -121,13 +110,10 @@ def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
                     )
                     new_arguments.extend(child_args)
                 else:
-                    # field_value = getattr(arg, field.name)
                     new_argument = ArgMetadata(
                         _annotation=field.type,
                         _name=child_name,
                     )
-                    # print("new_argument", new_argument)
-                    # asdfad
                     new_arguments.append(new_argument)
         else:
             new_arguments.append(argument)
@@ -201,9 +187,7 @@ def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> 
             if not flat_name:
                 return node
             if flat_name not in struct_locals:
-                # if not match:
                 return self.generic_visit(node)
-            print("updating ast for new_id", flat_name)
             return ast.copy_location(ast.Name(id=flat_name, ctx=node.ctx), node)
 
     transformer = AttributeToNameTransformer()
@@ -223,9 +207,7 @@ def populate_global_vars_from_dataclass(
         flat_name = f"{param_name}__ti_{field.name}"
         if not flat_name.startswith("__ti_"):
             flat_name = f"__ti_{flat_name}"
-        print(flat_name, "field.type", field.type)
         if dataclasses.is_dataclass(field.type):
-            print("got dataclass ", field.type)
             populate_global_vars_from_dataclass(
                 param_name=flat_name,
                 param_type=field.type,

@@ -28,7 +28,6 @@ if TYPE_CHECKING:
 class Builder:
     def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
         method_name = "build_" + node.__class__.__name__
-        print(method_name, ast.dump(node)[:150])
         method = getattr(self, method_name, None)
         try:
             if method is None:
@@ -196,7 +195,6 @@ class ASTTransformerContext:
         self.visited_funcdef = False
         self.is_real_function = is_real_function
         self.kernel_args: list = []
-        print("ASTTransformerContext.__init__ func", func, "is_kernel", is_kernel)
 
     # e.g.: FunctionDef, Module, Global
     def variable_scope_guard(self):
@@ -253,19 +251,6 @@ class ASTTransformerContext:
         return False
 
     def create_variable(self, name: str, var: Any) -> None:
-        print("create_variable name", name)
-        # if hasattr(var, "__dataclass_fields__"):
-        #     print("  is dataclass")
-        #     for field in dataclasses.fields(var):
-        #         field_name = "__ti_" + name + "_" + field.name
-        #         # print("field_name", field_name)
-        #         field_value = getattr(var, field.name)
-        #         # print("field_value", field.value)
-        #         print("  create_variable", field_name, str(field_value)[:50])
-        #         self.current_scope()[field_name] = field_value
-        #         if field_name in self.current_scope():
-        #             raise TaichiSyntaxError(f"Recreating variables is not allowed {field_name}")
-        #     return
         if name in self.current_scope():
             raise TaichiSyntaxError("Recreating variables is not allowed")
         self.current_scope()[name] = var
@@ -277,15 +262,11 @@ class ASTTransformerContext:
             )
 
     def get_var_by_name(self, name: str) -> Any:
-        print("get_var_by_name", name)
         for s in reversed(self.local_scopes):
-            # print("local scope", s)
             if name in s:
-                print("  returning", name)
                 return s[name]
         if name in self.global_vars:
             var = self.global_vars[name]
-            print("  returning", name, "from global scope")
             from taichi.lang.matrix import (  # pylint: disable-msg=C0415
                 Matrix,
                 make_matrix,
@@ -293,7 +274,6 @@ class ASTTransformerContext:
 
             if isinstance(var, Matrix):
                 return make_matrix(var.to_list())
-            print("  returning", var)
             return var
         try:
             return getattr(builtins, name)

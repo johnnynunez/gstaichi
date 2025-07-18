@@ -170,22 +170,15 @@ class CallTransformer:
         the associated Python object
         """
         args_new = []
-        print("_expand_Call_dataclass_args")
         for i, arg in enumerate(args):
             val = arg.ptr
-            print("  i", i, "arg", ast.dump(arg, indent=2), "val", val)
             if dataclasses.is_dataclass(val):
-                print("found dataclass val", val)
                 dataclass_type = val
                 for field in dataclasses.fields(dataclass_type):
-                    # field_val = getattr(val, field_name)
                     child_name = f"{arg.id}__ti_{field.name}"
                     if not child_name.startswith("__ti_"):
                         child_name = f"__ti_{child_name}"
-                    print("child_name", child_name)
                     load_ctx = ast.Load()
-                    # module = ast.parse(f"def func({child_name}):\n    pass")
-                    # arg_node = module.body[0].args.args[0]
                     arg_node = ast.Name(
                         id=child_name,
                         ctx=load_ctx,
@@ -194,19 +187,14 @@ class CallTransformer:
                         col_offset=arg.col_offset,
                         end_col_offset=arg.end_col_offset,
                     )
-                    print("arg_node", ast.dump(arg_node), arg_node.__dict__)
                     if dataclasses.is_dataclass(field.type):
                         arg_node.ptr = field.type
                         args_new.extend(CallTransformer._expand_Call_dataclass_args((arg_node,)))
                     else:
-                        # ast_str = ast.dump(arg_node)
-                        # print("ast_str", ast_str)
                         args_new.append(arg_node)
             else:
                 args_new.append(arg)
         return tuple(args_new)
-
-    # ast.dump(ast.parse("def func(foo: int):\n    pass").body[0].args.args[0])
 
     @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts) -> Any | None:
@@ -214,10 +202,6 @@ class CallTransformer:
         example ast:
         Call(func=Name(id='f2', ctx=Load()), args=[Name(id='my_struct_ab', ctx=Load())], keywords=[])
         """
-        print("build_Call", ast.dump(node))
-        print("ctx.local_scopes:")
-        for scope in ctx.local_scopes:
-            print("  ", scope)
         if get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
@@ -225,20 +209,13 @@ class CallTransformer:
                 build_stmts(ctx, node.keywords)
         else:
             build_stmt(ctx, node.func)
-            print("   iterate args")
-            for i, arg in enumerate(node.args):
-                print("      i", i, "arg", ast.dump(arg))
-            print("  build_stmts over args...")
             build_stmts(ctx, node.args)
-            print("  ... build_stmts over args done")
             node.args = CallTransformer._expand_Call_dataclass_args(node.args)
             build_stmts(ctx, node.args)
             build_stmts(ctx, node.keywords)
 
         args = []
-        print("  build_Call iterate node.args len(node.args)", len(node.args))
         for i, arg in enumerate(node.args):
-            print("    i", i, "arg", ast.dump(arg), "arg.ptr", arg.ptr, type(arg.ptr))
             if isinstance(arg, ast.Starred):
                 arg_list = arg.ptr
                 if isinstance(arg_list, Expr) and arg_list.is_tensor():
@@ -277,7 +254,6 @@ class CallTransformer:
 
         CallTransformer._warn_if_is_external_func(ctx, node)
         try:
-            print(". build_Call calling function", func)
             node.ptr = func(*args, **keywords)
         except TypeError as e:
             module = inspect.getmodule(func)

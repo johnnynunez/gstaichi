@@ -36,7 +36,6 @@ class FunctionDefTransformer:
         arg_depth: int,
     ) -> tuple[bool, Any]:
         full_name = prefix_name + "_" + name
-        print("decl_and_create_variable fullname", full_name, "prefix_name", prefix_name, "annotation", annotation)
         if not isinstance(annotation, primitive_types.RefType):
             ctx.kernel_args.append(name)
         if isinstance(annotation, ArgPackType):
@@ -70,18 +69,6 @@ class FunctionDefTransformer:
             )
         if isinstance(annotation, ndarray_type.NdarrayType):
             assert this_arg_features is not None
-            call_params = [
-                to_taichi_type(this_arg_features[0]),
-                this_arg_features[1],
-                full_name,
-                this_arg_features[2],
-                this_arg_features[3],
-            ]
-            print(
-                "    decl_and_create_variable is_ndarray_type returning ",
-                kernel_arguments.decl_ndarray_arg,
-                call_params,
-            )
             return False, (
                 kernel_arguments.decl_ndarray_arg,
                 (
@@ -102,7 +89,6 @@ class FunctionDefTransformer:
                 (this_arg_features[0], this_arg_features[1], this_arg_features[2], full_name),
             )
         if dataclasses.is_dataclass(annotation):
-            print("found dataclass argument!")
             """
             So, what needs to happen now is ...
             - we'll need to expand out the nested struct too
@@ -164,22 +150,14 @@ class FunctionDefTransformer:
                 invoke_later_dict[item[0]] = argpack, item[1], *item[2]
             create_variable_later[argument_name] = argpack
         elif dataclasses.is_dataclass(argument_type):
-            print("     transform_as_kernel got dataclass")
             dataclass_type = argument_type
-            # assert this_arg_features is not None
-            # arg_features = ctx.arg_features[i]
             ctx.create_variable(argument_name, dataclass_type)
             for field_idx, field in enumerate(dataclasses.fields(dataclass_type)):
-                # TODO: change names to add __ti_ before field.name
                 flat_name = f"{argument_name}__ti_{field.name}"
                 if not flat_name.startswith("__ti_"):
                     flat_name = f"__ti_{flat_name}"
-                print("     transform_as_kernel   field_name", field.name, field.type, "flat_name", flat_name)
-                # print("ctx.arg_features[i]", ctx.arg_features[i])
                 # if a field is a dataclass, then feed back into process_kernel_arg recursively
-                # and see what happens
                 if dataclasses.is_dataclass(field.type):
-                    # child_name = flat_name
                     FunctionDefTransformer._process_kernel_arg(
                         ctx,
                         invoke_later_dict,
@@ -198,7 +176,6 @@ class FunctionDefTransformer:
                         "",
                         0,
                     )
-                    print("     transform_as_kernel calling ctx.create_variable", flat_name, str(obj)[:100])
                     ctx.create_variable(flat_name, obj if result else obj[0](*obj[1]))
         else:
             call_params = [
@@ -209,7 +186,6 @@ class FunctionDefTransformer:
                 "",
                 0,
             ]
-            print("transform_as_kernel() calling decl_and_create_variable, params", call_params)
             result, obj = FunctionDefTransformer._decl_and_create_variable(
                 ctx,
                 argument_type,
@@ -219,8 +195,6 @@ class FunctionDefTransformer:
                 "",
                 0,
             )
-            print("obj returned by decl_and_create_variable obj", obj)
-            print("transform_as_kernel() calling ctx.create_variable", argument_name, obj)
             ctx.create_variable(argument_name, obj if result else obj[0](*obj[1]))
 
     @staticmethod
@@ -238,15 +212,8 @@ class FunctionDefTransformer:
 
         invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]] = dict()
         create_variable_later: dict[str, Any] = dict()
-        print(
-            "transform_as_kernel iterate args len(args.args)",
-            len(args.args),
-            "len(ctx.func.arguments)",
-            len(ctx.func.arguments),
-        )
         for i, arg in enumerate(args.args):
             argument = ctx.func.arguments[i]
-            print(" arg i", i, "arg", ast.dump(arg), type(arg))
             FunctionDefTransformer._process_kernel_arg(
                 ctx,
                 invoke_later_dict,
@@ -257,8 +224,6 @@ class FunctionDefTransformer:
             )
         for k, v in invoke_later_dict.items():
             argpack, name, func, params = v
-            print("v", v)
-            print("func", func, "argpack", argpack, "name", name, "params", params)
             argpack[name] = func(*params)
         for k, v in create_variable_later.items():
             ctx.create_variable(k, v)
@@ -273,21 +238,16 @@ class FunctionDefTransformer:
         argument_type: Any,
         data: Any,
     ) -> None:
-        print("  annotation", argument_type, type(argument_type))
         # Template arguments are passed by reference.
         if isinstance(argument_type, annotations.template):
             ctx.create_variable(argument_name, data)
             return
 
         if dataclasses.is_dataclass(argument_type):
-            print("got dataclass")
-            # dataclass_type = argument_type
-            print("******* creating var name", argument_name, "value", argument_type)
             for field in dataclasses.fields(argument_type):
                 flat_name = f"{argument_name}__ti_{field.name}"
                 if not flat_name.startswith("__ti_"):
                     flat_name = f"__ti_{flat_name}"
-                print("field_name", field.name, field.type, "new_field_name", flat_name)
                 data_child = getattr(data, field.name)
                 if isinstance(
                     data_child,
@@ -299,9 +259,6 @@ class FunctionDefTransformer:
                     ),
                 ):
                     field.type.check_matched(data_child.get_type(), field.name)
-                    # var_name = f"__ti_{argument_name}_{field.name}"
-                    print("    creating var", flat_name, "=", str(data_child)[:50])
-                    # print("        ctx.arg_features", ctx.arg_features)
                     ctx.create_variable(flat_name, data_child)
                 elif dataclasses.is_dataclass(data_child):
                     FunctionDefTransformer._process_func_arg(
@@ -376,26 +333,10 @@ class FunctionDefTransformer:
 
     @staticmethod
     def _transform_as_func(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
-        print("  build_FunctionDef args.args", args.args, "ctx.argument_data", ctx.argument_data)
-        print("args. args:")
         assert ctx.argument_data is not None
         assert ctx.func is not None
-        for arg in args.args:
-            print("    ", arg, ast.dump(arg))
-        print("ctx.argument_data:")
-        for arg in ctx.argument_data:
-            print("    ", arg)
-        print("ctx.func.arguments")
-        for arg in ctx.func.arguments:
-            print("    ", arg, arg.annotation, arg.name)
-        # assert len(args.args) == len(ctx.argument_data)
-        print("ti.func iterate args")
-        # args_offset = 0
         for data_i, data in enumerate(ctx.argument_data):
-            # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
             argument = ctx.func.arguments[data_i]
-            print("  ti.func arg data_i", data_i, "data", str(data)[:100])
-            # annotation = argument_type
             FunctionDefTransformer._process_func_arg(
                 ctx,
                 argument.name,
@@ -404,31 +345,16 @@ class FunctionDefTransformer:
             )
 
         # deal with dataclasses
-        print("")
-        print("********* iterate over args.args")
-        # sig = inspect.signature(ctx.func.func)
-        # for k, v in sig.parameters.items():
+
         # pylint: disable=import-outside-toplevel
-        from taichi.lang.kernel_impl import (
-            Func,
-        )
+        from taichi.lang.kernel_impl import Func
 
         assert isinstance(ctx.func, Func)
         for v in ctx.func.orig_arguments:
-            # k = arg.name
-            # v = arg.annotation
-            # print("    ", k, v, type(v), v.annotation)
-            print("    ", v.name, v.annotation)
             if dataclasses.is_dataclass(v.annotation):
-                print("found dataclass")
-                print("create variabele", v.name, "=", v.annotation)
                 ctx.create_variable(v.name, v.annotation)
-        # print([(arg.name, arg.annotation) for arg in sig.parameters])
         for arg in args.args:
-            # val = arg.ptr
             val = ctx.get_var_by_name(arg.arg)
-            print("  arg", ast.dump(arg), "val", val)
-        # asdfdf
 
     @staticmethod
     def build_FunctionDef(
@@ -436,7 +362,6 @@ class FunctionDefTransformer:
         node: ast.FunctionDef,
         build_stmts: Callable[[ASTTransformerContext, list[ast.stmt]], None],
     ) -> None:
-        print("build_FunctionDef node", ast.dump(node))
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(
                 f"Function definition is not allowed in 'ti.{'kernel' if ctx.is_kernel else 'func'}'."
@@ -444,7 +369,6 @@ class FunctionDefTransformer:
         ctx.visited_funcdef = True
 
         args = node.args
-        # print("args", args)
         assert args.vararg is None
         assert args.kwonlyargs == []
         assert args.kw_defaults == []

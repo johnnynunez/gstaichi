@@ -47,7 +47,6 @@ class TemplateMapper:
 
     @staticmethod
     def extract_arg(arg: Any, anno: AnnotationType, arg_name: str) -> Any:
-        print("extract_arg arg", type(arg), "anno", type(anno), "arg_name", arg_name)
         if anno == template or isinstance(anno, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -83,7 +82,6 @@ class TemplateMapper:
                 for index, (name, dtype) in enumerate(anno.members.items())
             )
         if dataclasses.is_dataclass(anno):
-            print("extract_arg: found dataclass")
             dataclass_type = anno
             _res_l = []
             for field in dataclasses.fields(dataclass_type):
@@ -96,7 +94,6 @@ class TemplateMapper:
                 child_name = f"{child_name}__ti_{field_name}"
                 field_extracted = TemplateMapper.extract_arg(field_value, field_type, child_name)
                 _res_l.append(field_extracted)
-            # print("extract_arg res", _res_l, _res_l[0][0].element_type())
             return tuple(_res_l)
         if isinstance(anno, texture_type.TextureType):
             if not isinstance(arg, taichi.lang._texture.Texture):
@@ -183,14 +180,12 @@ class TemplateMapper:
         return "#"
 
     def extract(self, args: tuple[Any, ...]) -> tuple[Any, ...]:
-        print("extract()")
         extracted: list[Any] = []
         for arg, kernel_arg in zip(args, self.arguments):
             extracted.append(self.extract_arg(arg, kernel_arg.annotation, kernel_arg.name))
         return tuple(extracted)
 
     def lookup(self, args: tuple[Any, ...]) -> tuple[int, tuple[Any, ...]]:
-        print("lookup()")
         if len(args) != self.num_args:
             raise TypeError(f"{self.num_args} argument(s) needed but {len(args)} provided.")
 
