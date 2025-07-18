@@ -23,6 +23,9 @@ class ArgMetadata:
         self.annotation = _annotation
         self.name = _name
         self.default = _default
+    
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(annotation={self.annotation}, name={self.name}, default={self.default})"
 
 
 class SparseMatrixEntry:

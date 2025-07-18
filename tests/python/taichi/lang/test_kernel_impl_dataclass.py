@@ -7,15 +7,38 @@ import ast
 from ast import Attribute, Load, Name
 
 import pytest
+import dataclasses
+import taichi as ti
 
 import taichi.lang._kernel_impl_dataclass as _kernel_impl_dataclass
 from tests import test_utils
+from taichi.lang.kernel_arguments import ArgMetadata
 
 __all__ = [
     "Attribute",
     "Name",
     "Load",
 ]
+
+
+@dataclasses.dataclass
+class MyStructAB:
+    a: ti.types.NDArray[ti.i32, 1]
+    b: ti.types.NDArray[ti.i32, 1]
+
+
+@dataclasses.dataclass
+class MyStructCD:
+    c: ti.types.NDArray[ti.i32, 1]
+    d: ti.types.NDArray[ti.i32, 1]
+    my_struct_ab: MyStructAB
+
+
+@dataclasses.dataclass
+class MyStructEF:
+    e: ti.types.NDArray[ti.i32, 1]
+    f: ti.types.NDArray[ti.i32, 1]
+    my_struct_cd: MyStructCD
 
 
 @pytest.mark.parametrize(
@@ -66,3 +89,29 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
     expected_ast_obj = eval(expected_ast.strip())
     new_ast_obj = _kernel_impl_dataclass.unpack_ast_struct_expressions(ast_in_obj, struct_locals)
     assert ast.dump(new_ast_obj) == ast.dump(expected_ast_obj)
+
+
+@pytest.mark.parametrize(
+    "in_meta, expected_meta", [
+        (
+            [ArgMetadata(MyStructAB, "my_struct_ab")],
+            [
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ab__ti_a"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ab__ti_b"),
+            ]
+        ),
+    ]
+)
+@test_utils.test()
+def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[ArgMetadata]) -> None:
+    out_meta = _kernel_impl_dataclass.expand_func_arguments(in_meta)
+    print("in_meta", "\n".join([str(m) for m in in_meta]))
+    print("out_meta", "\n".join([str(m) for m in out_meta]))
+    print("expected_meta", "\n".join([str(m) for m in expected_meta]))
+    out_names = [m.name for m in out_meta]
+    expected_names = [m.name for m in expected_meta]
+    assert out_names == expected_names
+
+    out_dtypes = [m.annotation.dtype for m in out_meta]
+    expected_dtypes = [m.annotation.dtype for m in expected_meta]
+    assert out_dtypes == expected_dtypes
