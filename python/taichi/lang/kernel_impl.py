@@ -177,6 +177,27 @@ def pyfunc(fn: Callable) -> TaichiCallable:
     return taichi_callable
 
 
+def _populate_global_vars_for_templates(
+    template_slot_locations: list[int],
+    argument_metas: list[ArgMetadata],
+    global_vars: dict[str, Any],
+    func: Callable,
+    py_args: tuple[Any, ...],
+):
+    # inject template parameters into globals
+    for i in template_slot_locations:
+        template_var_name = argument_metas[i].name
+        global_vars[template_var_name] = py_args[i]
+    parameters = inspect.signature(func).parameters
+    for arg_i, (name, param) in enumerate(parameters.items()):
+        if dataclasses.is_dataclass(param.annotation):
+            for field in dataclasses.fields(param.annotation):
+                child_value = getattr(py_args[arg_i], field.name)
+                flat_name = f"__ti_{name}__ti_{field.name}"
+                global_vars[flat_name] = child_value
+    print("global_vars", list(global_vars.keys()))
+
+
 def _get_tree_and_ctx(
     self: "Func | Kernel",
     args: tuple[Any, ...],
@@ -197,18 +218,13 @@ def _get_tree_and_ctx(
     global_vars = _get_global_vars(self.func)
 
     if is_kernel or is_real_function:
-        # inject template parameters into globals
-        for i in self.template_slot_locations:
-            template_var_name = self.arguments[i].name
-            global_vars[template_var_name] = args[i]
-        parameters = inspect.signature(self.func).parameters
-        for arg_i, (name, param) in enumerate(parameters.items()):
-            if dataclasses.is_dataclass(param.annotation):
-                for field in dataclasses.fields(param.annotation):
-                    child_value = getattr(args[arg_i], field.name)
-                    flat_name = f"__ti_{name}__ti_{field.name}"
-                    global_vars[flat_name] = child_value
-        print("global_vars", list(global_vars.keys()))
+        _populate_global_vars_for_templates(
+            template_slot_locations=self.template_slot_locations,
+            argument_metas=self.arguments,
+            global_vars=global_vars,
+            func=self.func,
+            py_args=args,
+        )
 
     return tree, ASTTransformerContext(
         excluded_parameters=excluded_parameters,
