@@ -201,6 +201,14 @@ def _get_tree_and_ctx(
         for i in self.template_slot_locations:
             template_var_name = self.arguments[i].name
             global_vars[template_var_name] = args[i]
+        parameters = inspect.signature(self.func).parameters
+        for arg_i, (name, param) in enumerate(parameters.items()):
+            if dataclasses.is_dataclass(param.annotation):
+                for field in dataclasses.fields(param.annotation):
+                    child_value = getattr(args[arg_i], field.name)
+                    flat_name = f"__ti_{name}__ti_{field.name}"
+                    global_vars[flat_name] = child_value
+        print("global_vars", list(global_vars.keys()))
 
     return tree, ASTTransformerContext(
         excluded_parameters=excluded_parameters,
@@ -980,6 +988,7 @@ class Kernel:
                 assert provided == needed
                 print("    recursive set args got dataclass")
                 dataclass_type = needed
+                idx = 0
                 for j, field in enumerate(dataclasses.fields(dataclass_type)):
                     field_name = field.name
                     field_type = field.type
@@ -987,11 +996,11 @@ class Kernel:
                     assert not isinstance(field_type, str)
                     field_value = getattr(v, field_name)
                     # arg_name = f"__ti_{arg_name}_{field_name}"
-                    recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
+                    idx += recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
                     # field_extracted = TemplateMapper.extract_arg(
                     #     field_value, field_type, arg_name
                     # )
-                return len(dataclasses.fields(dataclass_type))
+                return idx
             if isinstance(needed, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
                     set_later_list.append((set_arg_ndarray, (v,)))
@@ -1028,6 +1037,8 @@ class Kernel:
                     raise TaichiRuntimeTypeError(f"Argument {provided} cannot be converted into required type {needed}")
                 needed.set_kernel_struct_args(v, launch_ctx, indices)
                 return 1
+            if isinstance(needed, template):
+                return 0
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
         template_num = 0

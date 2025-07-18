@@ -67,6 +67,12 @@ def _populate_struct_locals_from_params_dict(basename: str, struct_locals, struc
 def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
     """
     Provides meta information for later tarnsformation of nodes in AST
+
+    - Uses ctx.func.func to get the function signature.
+    - Searches this for any dataclasses:
+      - If it finds any dataclasses, then converts them into expanded names.
+      - E.g. my_struct: MyStruct, and MyStruct contains a, b, c would become:
+          {"__ti_my_struct_a", "__ti_my_struct_b, "__ti_my_struct_c"}
     """
     struct_locals = set()
     assert ctx.func is not None
