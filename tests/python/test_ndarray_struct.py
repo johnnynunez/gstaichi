@@ -412,6 +412,10 @@ def test_ndarray_struct_nested_ndarray():
         my_struct_ab3.struct_cd.struct_ef.e[52] += 34
         my_struct_ab3.struct_cd.struct_ef.f[58] += 44
 
+        my_struct_ab3.a[50] = my_struct_ab3.a.shape[0]
+        my_struct_ab3.a[51] = my_struct_ab3.struct_cd.c.shape[0]
+        my_struct_ab3.a[52] = my_struct_ab3.struct_cd.struct_ef.e.shape[0]
+
     @ti.func
     def f2(
         my_struct_ab2: MyStructAB,
@@ -423,6 +427,9 @@ def test_ndarray_struct_nested_ndarray():
         my_struct_ab2.struct_cd.struct_ef.e[32] += 24
         my_struct_ab2.struct_cd.struct_ef.f[38] += 34
         f3(my_struct_ab2)
+        my_struct_ab2.a[60] = my_struct_ab2.a.shape[0]
+        my_struct_ab2.a[61] = my_struct_ab2.struct_cd.c.shape[0]
+        my_struct_ab2.a[62] = my_struct_ab2.struct_cd.struct_ef.e.shape[0]
 
     @ti.kernel
     def k1(
@@ -435,6 +442,9 @@ def test_ndarray_struct_nested_ndarray():
         my_struct_ab.struct_cd.struct_ef.e[12] += 14
         my_struct_ab.struct_cd.struct_ef.f[18] += 24
         f2(my_struct_ab)
+        my_struct_ab.a[70] = my_struct_ab.a.shape[0]
+        my_struct_ab.a[71] = my_struct_ab.struct_cd.c.shape[0]
+        my_struct_ab.a[72] = my_struct_ab.struct_cd.struct_ef.e.shape[0]
 
     my_struct_ef_param = MyStructEF(e=e, f=f)
     my_struct_cd_param = MyStructCD(c=c, d=d, struct_ef=my_struct_ef_param)
@@ -461,6 +471,19 @@ def test_ndarray_struct_nested_ndarray():
     assert d[57] == 43
     assert e[52] == 34
     assert f[58] == 44
+
+    # shapes
+    assert a[50] == 55
+    assert a[51] == 211
+    assert a[52] == 251
+
+    assert a[60] == 55
+    assert a[61] == 211
+    assert a[62] == 251
+
+    assert a[70] == 55
+    assert a[71] == 211
+    assert a[72] == 251
 
 
 @test_utils.test()
@@ -499,6 +522,9 @@ def test_field_struct_nested_field() -> None:
         my_struct_ab3.struct_cd.d[57] += 43
         my_struct_ab3.struct_cd.struct_ef.e[52] += 34
         my_struct_ab3.struct_cd.struct_ef.f[58] += 44
+        my_struct_ab3.a[50] = my_struct_ab3.a.shape[0]
+        my_struct_ab3.a[51] = my_struct_ab3.struct_cd.c.shape[0]
+        my_struct_ab3.a[52] = my_struct_ab3.struct_cd.struct_ef.e.shape[0]
 
     @ti.func
     def f2(
@@ -511,6 +537,9 @@ def test_field_struct_nested_field() -> None:
         my_struct_ab2.struct_cd.struct_ef.e[32] += 24
         my_struct_ab2.struct_cd.struct_ef.f[38] += 34
         f3(my_struct_ab2)
+        my_struct_ab2.a[60] = my_struct_ab2.a.shape[0]
+        my_struct_ab2.a[61] = my_struct_ab2.struct_cd.c.shape[0]
+        my_struct_ab2.a[62] = my_struct_ab2.struct_cd.struct_ef.e.shape[0]
 
     @ti.kernel
     def k1(
@@ -523,6 +552,9 @@ def test_field_struct_nested_field() -> None:
         my_struct_ab.struct_cd.struct_ef.e[12] += 14
         my_struct_ab.struct_cd.struct_ef.f[18] += 24
         f2(my_struct_ab)
+        my_struct_ab.a[70] = my_struct_ab.a.shape[0]
+        my_struct_ab.a[71] = my_struct_ab.struct_cd.c.shape[0]
+        my_struct_ab.a[72] = my_struct_ab.struct_cd.struct_ef.e.shape[0]
 
     my_struct_ef_param = MyStructEF(e=e, f=f)
     my_struct_cd_param = MyStructCD(c=c, d=d, struct_ef=my_struct_ef_param)
@@ -549,3 +581,16 @@ def test_field_struct_nested_field() -> None:
     assert d[57] == 43
     assert e[52] == 34
     assert f[58] == 44
+
+    # shapes
+    assert a[50] == 55
+    assert a[51] == 211
+    assert a[52] == 251
+
+    assert a[60] == 55
+    assert a[61] == 211
+    assert a[62] == 251
+
+    assert a[70] == 55
+    assert a[71] == 211
+    assert a[72] == 251
