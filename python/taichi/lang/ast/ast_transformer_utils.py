@@ -2,6 +2,7 @@
 
 import ast
 import builtins
+import traceback
 from enum import Enum
 from textwrap import TextWrapper
 from typing import TYPE_CHECKING, Any, List
@@ -11,8 +12,10 @@ from taichi.lang import impl
 from taichi.lang._ndrange import ndrange
 from taichi.lang.ast.symbol_resolver import ASTResolver
 from taichi.lang.exception import (
+    TaichiCompilationError,
     TaichiNameError,
     TaichiSyntaxError,
+    handle_exception_from_cpp,
 )
 
 if TYPE_CHECKING:
@@ -53,10 +56,7 @@ class VariableScopeGuard:
         self.scopes = scopes
 
     def __enter__(self):
-        # print("()", ())
-        # print("self.scopes before", self.scopes)
         self.scopes.append({})
-        # print("self.scopes after", self.scopes)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.scopes.pop()
