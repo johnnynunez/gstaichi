@@ -189,12 +189,12 @@ def _populate_global_vars_for_templates(
         template_var_name = argument_metas[i].name
         global_vars[template_var_name] = py_args[i]
     parameters = inspect.signature(func).parameters
-    for arg_i, (name, param) in enumerate(parameters.items()):
-        if dataclasses.is_dataclass(param.annotation):
-            for field in dataclasses.fields(param.annotation):
-                child_value = getattr(py_args[arg_i], field.name)
-                flat_name = f"__ti_{name}__ti_{field.name}"
-                global_vars[flat_name] = child_value
+    param_type_by_name = {parameter_name: parameter.annotation for parameter_name, parameter in parameters.items()}
+    _kernel_impl_dataclass.populate_global_vars_from_dataclasses(
+        param_type_by_name=param_type_by_name,
+        py_args=py_args,
+        global_vars=global_vars,
+    )
     print("global_vars", list(global_vars.keys()))
 
 

@@ -5,6 +5,7 @@ but let's just start with a few tests using this structure/architecture, as a pr
 
 import ast
 from ast import Attribute, Load, Name
+from typing import Any
 
 import pytest
 import dataclasses
@@ -13,6 +14,7 @@ import taichi as ti
 import taichi.lang._kernel_impl_dataclass as _kernel_impl_dataclass
 from tests import test_utils
 from taichi.lang.kernel_arguments import ArgMetadata
+import taichi.test_tools.dataclass_test_tools as dataclass_test_tools
 
 __all__ = [
     "Attribute",
@@ -137,3 +139,34 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
     out_dtypes = [m.annotation.dtype for m in out_meta]
     expected_dtypes = [m.annotation.dtype for m in expected_meta]
     assert out_dtypes == expected_dtypes
+
+
+@pytest.mark.parametrize(
+    "param_type_by_name, expected_global_args", [
+        (
+            {
+                "a": ti.types.NDArray[ti.i32, 1],
+                "my_struct_ab": MyStructAB,
+            },
+            {
+                "a": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
+            }
+        ),
+    ]
+)
+@test_utils.test()
+def test_populate_global_vars_from_dataclasses(
+    param_type_by_name: dict[str, Any], expected_global_args: dict[str, Any]
+) -> None:
+    py_args = dataclass_test_tools.build_obj_tuple_from_type_dict(param_type_by_name)
+    # for name, param_type in param_type_by_name.items():
+
+    global_vars = {}
+    _kernel_impl_dataclass.populate_global_vars_from_dataclasses(
+        param_type_by_name,
+        py_args,
+        global_vars
+    )
+    print("global vars names", list(global_vars.keys()))

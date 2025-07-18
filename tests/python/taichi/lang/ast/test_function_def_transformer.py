@@ -6,6 +6,7 @@ import pytest
 from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 from tests import test_utils
 import dataclasses
+import taichi.test_tools.dataclass_test_tools as dataclass_test_tools
 
 
 @dataclasses.dataclass
@@ -35,24 +36,6 @@ class NDArrayBuilder:
     
     def build(self) -> ti.types.NDArray:
         return ti.ndarray(self.dtype, self.shape)
-
-
-def build_struct(struct_type: Any) -> Any:
-    member_objects = {}
-    for field in dataclasses.fields(struct_type):
-        if isinstance(field.type, ti.types.NDArray):
-            print("got ndarray")
-            ndarray_type = cast(ti.types.ndarray, field.type)
-            shape = tuple([10] * ndarray_type.ndim)
-            child_obj = ti.ndarray(ndarray_type.dtype, shape=shape)
-        elif dataclasses.is_dataclass(field.type):
-            child_obj = build_struct(field.type)
-        else:
-            raise Exception("unknown type ", field.type)
-        member_objects[field.name] = child_obj
-    # DataclassClass = dataclasses.make_dataclass(struct_name, declaration_type_by_name)
-    dataclass_object = struct_type(**member_objects)
-    return dataclass_object
 
 
 @pytest.mark.parametrize(
@@ -99,7 +82,7 @@ def test_process_func_arg(argument_name: str, argument_type: Any, expected_varia
             assert name not in self.variables
             self.variables[name] = data
     
-    data = build_struct(argument_type)
+    data = dataclass_test_tools.build_struct(argument_type)
     print("data", data)
     ctx = MockContext()
     FunctionDefTransformer._process_func_arg(

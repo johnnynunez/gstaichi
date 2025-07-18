@@ -1,6 +1,7 @@
 import ast
 import dataclasses
 import inspect
+from typing import Any
 
 from taichi.lang.ast import (
     ASTTransformerContext,
@@ -205,3 +206,24 @@ def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> 
     new_tree = transformer.visit(tree)
     ast.fix_missing_locations(new_tree)
     return new_tree
+
+
+def populate_global_vars_from_dataclasses(
+    param_type_by_name: dict[str, Any],
+    py_args: tuple[Any, ...],
+    global_vars: dict[str, Any],
+):
+    for arg_i, (name, param_type) in enumerate(param_type_by_name.items()):
+        if dataclasses.is_dataclass(param_type):
+            for field in dataclasses.fields(param_type):
+                child_value = getattr(py_args[arg_i], field.name)
+                flat_name = f"__ti_{name}__ti_{field.name}"
+                if dataclasses.is_dataclass(field.type):
+                    child_param_type_by_name = {field.name: field.type for field in dataclasses.fields(field.type)}
+                    _populate_global_vars_from_dataclasses(
+                        param_type_by_name=child_param_type_by_name,
+                        py_args=(child_value,),
+                        global_vars=global_vars,
+                    )
+                else:
+                    global_vars[flat_name] = child_value
