@@ -373,3 +373,91 @@ def test_ndarray_struct_prim1():
     assert a[36] == 119
     assert a[37] == 123
     assert a[38] == 345
+
+
+@test_utils.test()
+def test_ndarray_struct_nested_ndarray():
+    a = ti.ndarray(ti.i32, shape=(55,))
+    b = ti.ndarray(ti.i32, shape=(57,))
+    c = ti.ndarray(ti.i32, shape=(211,))
+    d = ti.ndarray(ti.i32, shape=(211,))
+    e = ti.ndarray(ti.i32, shape=(251,))
+    f = ti.ndarray(ti.i32, shape=(251,))
+
+    @dataclass
+    class MyStructEF:
+        e: ti.types.NDArray[ti.i32, 1]
+        f: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class MyStructCD:
+        c: ti.types.NDArray[ti.i32, 1]
+        d: ti.types.NDArray[ti.i32, 1]
+        struct_ef: MyStructEF
+
+    @dataclass
+    class MyStructAB:
+        a: ti.types.NDArray[ti.i32, 1]
+        b: ti.types.NDArray[ti.i32, 1]
+        struct_cd: MyStructCD
+
+    @ti.func
+    def f3(
+        my_struct_ab3: MyStructAB,
+    ) -> None:
+        my_struct_ab3.a[47] += 23
+        my_struct_ab3.b[42] += 25
+        my_struct_ab3.struct_cd.c[51] += 33
+        my_struct_ab3.struct_cd.d[57] += 43
+        my_struct_ab3.struct_cd.struct_ef.e[52] += 34
+        my_struct_ab3.struct_cd.struct_ef.f[58] += 44
+
+    @ti.func
+    def f2(
+        my_struct_ab2: MyStructAB,
+    ) -> None:
+        my_struct_ab2.a[27] += 13
+        my_struct_ab2.b[22] += 15
+        my_struct_ab2.struct_cd.c[31] += 23
+        my_struct_ab2.struct_cd.d[37] += 33
+        my_struct_ab2.struct_cd.struct_ef.e[32] += 24
+        my_struct_ab2.struct_cd.struct_ef.f[38] += 34
+        f3(my_struct_ab2)
+
+    @ti.kernel
+    def k1(
+        my_struct_ab: MyStructAB,
+    ) -> None:
+        my_struct_ab.a[7] += 3
+        my_struct_ab.b[2] += 5
+        my_struct_ab.struct_cd.c[11] += 13
+        my_struct_ab.struct_cd.d[17] += 23
+        my_struct_ab.struct_cd.struct_ef.e[12] += 14
+        my_struct_ab.struct_cd.struct_ef.f[18] += 24
+        f2(my_struct_ab)
+
+    my_struct_ef_param = MyStructEF(e=e, f=f)
+    my_struct_cd_param = MyStructCD(c=c, d=d, struct_ef=my_struct_ef_param)
+    my_struct_ab_param = MyStructAB(a=a, b=b, struct_cd=my_struct_cd_param)
+    k1(my_struct_ab_param)
+
+    assert a[7] == 3
+    assert b[2] == 5
+    assert c[11] == 13
+    assert d[17] == 23
+    assert e[12] == 14
+    assert f[18] == 24
+
+    assert a[27] == 13
+    assert b[22] == 15
+    assert c[31] == 23
+    assert d[37] == 33
+    assert e[32] == 24
+    assert f[38] == 34
+
+    assert a[47] == 23
+    assert b[42] == 25
+    assert c[51] == 33
+    assert d[57] == 43
+    assert e[52] == 34
+    assert f[58] == 44
