@@ -74,7 +74,7 @@ Module Contents
 
 
 
-   .. py:method:: build_assign_unpack(ctx: taichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node_target: ast.Tuple, values, is_static_assign: bool)
+   .. py:method:: build_assign_unpack(ctx: taichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node_target: list | ast.Tuple, values, is_static_assign: bool)
       :staticmethod:
 
 
@@ -248,6 +248,11 @@ Module Contents
 
 
    .. py:method:: canonicalize_formatted_string(raw_string: str, *raw_args: list, **raw_keywords: dict)
+      :staticmethod:
+
+
+
+   .. py:method:: expand_node_args_dataclasses(args: tuple[ast.AST, Ellipsis]) -> tuple[ast.AST, Ellipsis]
       :staticmethod:
 
 

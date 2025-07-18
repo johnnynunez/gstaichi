@@ -318,8 +318,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sys</span><span class="w"> </span><span class="kn">import</span> <span class="n">version_info</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">textwrap</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextWrapper</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASTBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">impl</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.exception</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TaichiCompilationError</span><span class="p">,</span>
@@ -327,6 +328,12 @@
     <span class="n">TaichiSyntaxError</span><span class="p">,</span>
     <span class="n">handle_exception_from_cpp</span><span class="p">,</span>
 <span class="p">)</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.kernel_impl</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">Func</span><span class="p">,</span>
+        <span class="n">Kernel</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="Builder">
@@ -452,14 +459,14 @@
 <div class="viewcode-block" id="LoopScopeAttribute">
 <a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.LoopScopeAttribute">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LoopScopeAttribute</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_static</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_static</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
 <div class="viewcode-block" id="LoopScopeAttribute.is_static">
 <a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.LoopScopeAttribute.is_static">[docs]</a>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_static</span> <span class="o">=</span> <span class="n">is_static</span></div>
 
 <div class="viewcode-block" id="LoopScopeAttribute.status">
 <a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.LoopScopeAttribute.status">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">LoopStatus</span><span class="o">.</span><span class="n">Normal</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span> <span class="n">LoopStatus</span> <span class="o">=</span> <span class="n">LoopStatus</span><span class="o">.</span><span class="n">Normal</span></div>
 
 <div class="viewcode-block" id="LoopScopeAttribute.nearest_non_static_if">
 <a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.LoopScopeAttribute.nearest_non_static_if">[docs]</a>
@@ -553,14 +560,14 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">excluded_parameters</span><span class="o">=</span><span class="p">(),</span>
         <span class="n">is_kernel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">func</span><span class="p">:</span> <span class="s2">&quot;Func | Kernel | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">arg_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">global_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">argument_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">src</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">src</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">start_lineno</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">ast_builder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ast_builder</span><span class="p">:</span> <span class="n">ASTBuilder</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">is_real_function</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
 <div class="viewcode-block" id="ASTTransformerContext.func">
@@ -769,7 +776,7 @@
 
 <div class="viewcode-block" id="ASTTransformerContext.get_var_by_name">
 <a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext.get_var_by_name">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_var_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_var_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_scopes</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">s</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
@@ -791,7 +798,7 @@
 
 <div class="viewcode-block" id="ASTTransformerContext.get_pos_info">
 <a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext.get_pos_info">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_pos_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pos_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;File &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="si">}</span><span class="s1">&quot;, line </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">lineno</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">lineno_offset</span><span class="si">}</span><span class="s1">, in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">:</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">if</span> <span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">src</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>

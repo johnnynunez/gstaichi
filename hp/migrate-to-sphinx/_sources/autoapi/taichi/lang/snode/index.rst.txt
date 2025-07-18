@@ -29,7 +29,7 @@ Functions
 Module Contents
 ---------------
 
-.. py:class:: SNode(ptr)
+.. py:class:: SNode(ptr: taichi._lib.core.taichi_python.SNode)
 
    A Python-side SNode wrapper.
 
@@ -46,7 +46,7 @@ Module Contents
    .. py:attribute:: ptr
 
 
-   .. py:method:: dense(axes, dimensions)
+   .. py:method:: dense(axes: list[taichi._lib.core.taichi_python.Axis], dimensions: list[int] | int) -> SNode
 
       Adds a dense SNode as a child component of `self`.
 
@@ -59,7 +59,7 @@ Module Contents
 
 
 
-   .. py:method:: pointer(axes, dimensions)
+   .. py:method:: pointer(axes: list[taichi._lib.core.taichi_python.Axis], dimensions: list[int] | int) -> SNode
 
       Adds a pointer SNode as a child component of `self`.
 
@@ -72,7 +72,7 @@ Module Contents
 
 
 
-   .. py:method:: dynamic(axis, dimension, chunk_size=None)
+   .. py:method:: dynamic(axis: list[taichi._lib.core.taichi_python.Axis], dimension: int, chunk_size: int | None = None) -> SNode
 
       Adds a dynamic SNode as a child component of `self`.
 
@@ -87,7 +87,7 @@ Module Contents
 
 
 
-   .. py:method:: bitmasked(axes, dimensions)
+   .. py:method:: bitmasked(axes: list[taichi._lib.core.taichi_python.Axis], dimensions: list[int] | int) -> SNode
 
       Adds a bitmasked SNode as a child component of `self`.
 
@@ -100,7 +100,7 @@ Module Contents
 
 
 
-   .. py:method:: quant_array(axes, dimensions, max_num_bits)
+   .. py:method:: quant_array(axes: list[taichi._lib.core.taichi_python.Axis], dimensions: list[int] | int, max_num_bits: int) -> SNode
 
       Adds a quant_array SNode as a child component of `self`.
 
@@ -115,7 +115,7 @@ Module Contents
 
 
 
-   .. py:method:: place(*args, offset=None)
+   .. py:method:: place(*args, offset: numbers.Number | tuple[numbers.Number] | None = None) -> SNode
 
       Places a list of Taichi fields under the `self` container.
 

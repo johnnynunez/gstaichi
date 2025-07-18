@@ -82,12 +82,13 @@ Module Contents
 
 
 
-.. py:class:: LoopScopeAttribute(is_static)
+.. py:class:: LoopScopeAttribute(is_static: bool)
 
    .. py:attribute:: is_static
 
 
    .. py:attribute:: status
+      :type:  LoopStatus
 
 
    .. py:attribute:: nearest_non_static_if
@@ -142,7 +143,7 @@ Module Contents
 
 
 
-.. py:class:: ASTTransformerContext(excluded_parameters=(), is_kernel: bool = True, func=None, arg_features=None, global_vars=None, argument_data=None, file=None, src=None, start_lineno: int | None = None, ast_builder=None, is_real_function: bool = False)
+.. py:class:: ASTTransformerContext(excluded_parameters=(), is_kernel: bool = True, func: Func | Kernel | None = None, arg_features=None, global_vars: dict[str, Any] | None = None, argument_data=None, file: str | None = None, src: list[str] | None = None, start_lineno: int | None = None, ast_builder: taichi._lib.core.taichi_python.ASTBuilder | None = None, is_real_function: bool = False)
 
    .. py:attribute:: func
       :value: None
@@ -292,9 +293,9 @@ Module Contents
    .. py:method:: check_loop_var(loop_var)
 
 
-   .. py:method:: get_var_by_name(name)
+   .. py:method:: get_var_by_name(name: str)
 
 
-   .. py:method:: get_pos_info(node)
+   .. py:method:: get_pos_info(node) -> str
 
 
