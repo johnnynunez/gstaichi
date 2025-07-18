@@ -96,7 +96,7 @@ class TemplateMapper:
                 child_name = f"{child_name}__ti_{field_name}"
                 field_extracted = TemplateMapper.extract_arg(field_value, field_type, child_name)
                 _res_l.append(field_extracted)
-            print("extract_arg res", _res_l, _res_l[0][0].element_type())
+            # print("extract_arg res", _res_l, _res_l[0][0].element_type())
             return tuple(_res_l)
         if isinstance(anno, texture_type.TextureType):
             if not isinstance(arg, taichi.lang._texture.Texture):
