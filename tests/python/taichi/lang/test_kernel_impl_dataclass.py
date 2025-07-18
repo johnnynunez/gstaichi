@@ -149,9 +149,20 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
                 "my_struct_ab": MyStructAB,
             },
             {
-                "a": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
                 "__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
+            }
+        ),
+        (
+            {
+                "a": ti.types.NDArray[ti.i32, 1],
+                "my_struct_cd": MyStructCD,
+            },
+            {
+                "__ti_my_struct_cd__ti_c": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_cd__ti_d": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.types.NDArray[ti.i32, 1],
+                "__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.types.NDArray[ti.i32, 1],
             }
         ),
     ]
@@ -170,3 +181,6 @@ def test_populate_global_vars_from_dataclasses(
         global_vars
     )
     print("global vars names", list(global_vars.keys()))
+    expected_names = set(expected_global_args.keys())
+    actual_names = set(global_vars.keys())
+    assert expected_names == actual_names

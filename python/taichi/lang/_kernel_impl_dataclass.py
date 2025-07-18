@@ -220,7 +220,7 @@ def populate_global_vars_from_dataclasses(
                 flat_name = f"__ti_{name}__ti_{field.name}"
                 if dataclasses.is_dataclass(field.type):
                     child_param_type_by_name = {field.name: field.type for field in dataclasses.fields(field.type)}
-                    _populate_global_vars_from_dataclasses(
+                    populate_global_vars_from_dataclasses(
                         param_type_by_name=child_param_type_by_name,
                         py_args=(child_value,),
                         global_vars=global_vars,
