@@ -209,27 +209,6 @@ def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> 
     return new_tree
 
 
-# def _populate_global_vars_from_sub_dataclasses(
-#     basename: str,
-#     struct_type: Any,
-#     py_arg: Any,
-#     global_vars: dict[str, Any],
-# ):
-#     for field in dataclasses.fields(struct_type):
-#         child_value = getattr(py_arg, field.name)
-#         flat_name = f"{basename}__ti_{field.name}"
-#         print("flat_name", flat_name)
-#         if dataclasses.is_dataclass(field.type):
-#             _populate_global_vars_from_sub_dataclasses(
-#                 flat_name,
-#                 field.type,
-#                 child_value,
-#                 global_vars,
-#             )
-#         else:
-#             pass
-
-
 def populate_global_vars_from_dataclass(
     param_name: str,
     param_type: Any,
