@@ -183,6 +183,16 @@ def test_expand_func_arguments(in_meta: list[ArgMetadata], expected_meta: list[A
                 "__ti_my_struct_ab__ti_b": ti.template,
             }
         ),
+        (
+            "my_struct_cd",
+            MyStructFieldCD,
+            {
+                "__ti_my_struct_cd__ti_c": ti.template,
+                "__ti_my_struct_cd__ti_d": ti.template,
+                "__ti_my_struct_cd__ti_my_struct_ab__ti_a": ti.template,
+                "__ti_my_struct_cd__ti_my_struct_ab__ti_b": ti.template,
+            }
+        ),
     ]
 )
 @test_utils.test()
