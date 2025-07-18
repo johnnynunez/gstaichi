@@ -103,6 +103,29 @@ class MyStructFieldEF:
             {"__ti_my_struct_ab__ti_struct_cd__ti_struct_ef__ti_f"},
             "Name(id='__ti_my_struct_ab__ti_struct_cd__ti_struct_ef__ti_f', ctx=Load())",
         ),
+        (
+            """
+            Attribute(
+              value=Attribute(
+                value=Name(id='my_struct_ab', ctx=Load()),
+                attr='a',
+                ctx=Load()
+              ),
+              attr='shape',
+              ctx=Load()
+            )
+            """,
+            {
+                "__ti_my_struct_ab__ti_a"
+            },
+            """
+            Attribute(
+              value=Name(id='__ti_my_struct_ab__ti_a', ctx=Load()),
+              attr='shape',
+              ctx=Load()
+            )
+            """
+        ),
     ],
 )
 @test_utils.test()
@@ -110,6 +133,8 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
     ast_in_obj = eval(ast_in.strip())
     expected_ast_obj = eval(expected_ast.strip())
     new_ast_obj = _kernel_impl_dataclass.unpack_ast_struct_expressions(ast_in_obj, struct_locals)
+    print("new_ast_obj", ast.dump(new_ast_obj, indent=2))
+    print("expected_ast_obj", ast.dump(expected_ast_obj, indent=2))
     assert ast.dump(new_ast_obj) == ast.dump(expected_ast_obj)
 
 

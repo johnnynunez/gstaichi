@@ -199,7 +199,8 @@ def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> 
             if not flat_name:
                 return node
             if flat_name not in struct_locals:
-                return node
+            # if not match:
+                return self.generic_visit(node)
             print("updating ast for new_id", flat_name)
             return ast.copy_location(ast.Name(id=flat_name, ctx=node.ctx), node)
 
