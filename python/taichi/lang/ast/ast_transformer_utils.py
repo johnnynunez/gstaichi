@@ -287,7 +287,6 @@ class ASTTransformerContext:
 
     def get_pos_info(self, node: ast.AST) -> str:
         msg = f'File "{self.file}", line {node.lineno + self.lineno_offset}, in {self.func.func.__name__}:\n'
-        print("msg", msg)
         col_offset = self.indent + node.col_offset
         end_col_offset = self.indent + node.end_col_offset
 
@@ -301,7 +300,6 @@ class ASTTransformerContext:
                 return "\n\n"
             return "".join([c + "\n" + h + "\n" for c, h in zip(code, hint)])
 
-        print("node", node, ast.dump(node), node.__dict__)
         if node.lineno == node.end_lineno:
             hint = " " * col_offset + "^" * (end_col_offset - col_offset)
             msg += gen_line(self.src[node.lineno - 1], hint)

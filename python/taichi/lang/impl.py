@@ -197,7 +197,6 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
     assert compiling_callable is not None
     ast_builder = compiling_callable.ast_builder()
     # Directly evaluate in Python for non-Taichi types
-    print("impl.subscript value", str(value)[:100], type(value))
     if not isinstance(
         value,
         (
