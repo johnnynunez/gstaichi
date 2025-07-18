@@ -109,6 +109,17 @@ def test_unpack_ast_struct_expressions(ast_in: str, struct_locals: set[str], exp
                 ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_cd__ti_my_struct_ab__ti_b"),
             ]
         ),
+        (
+            [ArgMetadata(MyStructEF, "my_struct_ef")],
+            [
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_e"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_f"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_c"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_d"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_a"),
+                ArgMetadata(ti.types.NDArray[ti.i32, 1], "__ti_my_struct_ef__ti_my_struct_cd__ti_my_struct_ab__ti_b"),
+            ]
+        ),
     ]
 )
 @test_utils.test()
