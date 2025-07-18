@@ -172,8 +172,6 @@ def test_populate_global_vars_from_dataclasses(
     param_type_by_name: dict[str, Any], expected_global_args: dict[str, Any]
 ) -> None:
     py_args = dataclass_test_tools.build_obj_tuple_from_type_dict(param_type_by_name)
-    # for name, param_type in param_type_by_name.items():
-
     global_vars = {}
     _kernel_impl_dataclass.populate_global_vars_from_dataclasses(
         param_type_by_name,
@@ -183,4 +181,15 @@ def test_populate_global_vars_from_dataclasses(
     print("global vars names", list(global_vars.keys()))
     expected_names = set(expected_global_args.keys())
     actual_names = set(global_vars.keys())
+    print("expected", expected_names)
+    print("actual", actual_names)
     assert expected_names == actual_names
+    for name in expected_names:
+        expected_type = expected_global_args[name]
+        actual_obj = global_vars[name]
+        if isinstance(expected_type, ti.types.ndarray):
+            assert isinstance(actual_obj, ti.ScalarNdarray)
+            assert actual_obj.dtype == expected_type.dtype
+            assert len(actual_obj.shape) == expected_type.ndim
+        else:
+            raise Exception("Unexpected expected type", expected_type)
