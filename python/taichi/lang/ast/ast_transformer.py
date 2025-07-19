@@ -1041,20 +1041,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def get_decorator(ctx: ASTTransformerContext, node) -> str:
-        if not isinstance(node, ast.Call):
-            return ""
-        for wanted, name in [
-            (impl.static, "static"),
-            (impl.static_assert, "static_assert"),
-            (impl.grouped, "grouped"),
-            (ndrange, "ndrange"),
-        ]:
-            if ASTResolver.resolve_to(node.func, wanted, ctx.global_vars):
-                return name
-        return ""
-
-    @staticmethod
     def get_for_loop_targets(node: ast.Name | ast.Tuple | Any) -> list:
         """
         Returns the list of indices of the for loop |node|.
