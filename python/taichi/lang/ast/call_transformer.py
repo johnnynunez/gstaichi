@@ -187,7 +187,7 @@ class CallTransformer:
 
     @staticmethod
     def build_Call(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts):
-        if CallTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
+        if get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)
                 build_stmts(ctx, node.args)
