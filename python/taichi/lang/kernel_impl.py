@@ -74,8 +74,8 @@ class BoundFunc:
         self.instance = instance
         self.taichi_callable = taichi_callable
 
-    def __call__(self, *args):
-        return self.fn(self.instance, *args)
+    def __call__(self, *args, **kwargs):
+        return self.fn(self.instance, *args, **kwargs)
 
     def __getattr__(self, k: str) -> Any:
         res = getattr(self.taichi_callable, k)
