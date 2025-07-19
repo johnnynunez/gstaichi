@@ -18,7 +18,7 @@ from taichi.lang import (
 )
 from taichi.lang import ops as ti_ops
 from taichi.lang.ast.ast_transformer_utils import (
-    CallTransformerContext,
+    ASTTransformerContext,
     get_decorator,
 )
 from taichi.lang.exception import (
@@ -33,7 +33,7 @@ from taichi.types import primitive_types
 
 class CallTransformer:
     @staticmethod
-    def build_call_if_is_builtin(ctx: CallTransformerContext, node, args, keywords):
+    def build_call_if_is_builtin(ctx: ASTTransformerContext, node, args, keywords):
         from taichi.lang import matrix_ops  # pylint: disable=C0415
 
         func = node.func.ptr
@@ -63,7 +63,7 @@ class CallTransformer:
         return False
 
     @staticmethod
-    def build_call_if_is_type(ctx: CallTransformerContext, node, args, keywords):
+    def build_call_if_is_type(ctx: ASTTransformerContext, node, args, keywords):
         func = node.func.ptr
         if id(func) in primitive_types.type_ids:
             if len(args) != 1 or keywords:
@@ -81,7 +81,7 @@ class CallTransformer:
         return False
 
     @staticmethod
-    def is_external_func(ctx: CallTransformerContext, func) -> bool:
+    def is_external_func(ctx: ASTTransformerContext, func) -> bool:
         if ctx.is_in_static_scope():  # allow external function in static scope
             return False
         if hasattr(func, "_is_taichi_function") or hasattr(func, "_is_wrapped_kernel"):  # taichi func/kernel
@@ -91,7 +91,7 @@ class CallTransformer:
         return True
 
     @staticmethod
-    def warn_if_is_external_func(ctx: CallTransformerContext, node):
+    def warn_if_is_external_func(ctx: ASTTransformerContext, node):
         func = node.func.ptr
         if not CallTransformer.is_external_func(ctx, func):
             return
@@ -186,7 +186,7 @@ class CallTransformer:
         return tuple(args_new)
 
     @staticmethod
-    def build_Call(ctx: CallTransformerContext, node: ast.Call):
+    def build_Call(ctx: ASTTransformerContext, node: ast.Call, build_stmt, build_stmts):
         if CallTransformer.get_decorator(ctx, node) in ["static", "static_assert"]:
             with ctx.static_scope_guard():
                 build_stmt(ctx, node.func)

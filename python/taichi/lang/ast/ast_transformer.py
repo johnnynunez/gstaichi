@@ -429,7 +429,9 @@ class ASTTransformer(Builder):
         node.ptr = impl.ti_format(*args)
         return node.ptr
 
-
+    @staticmethod
+    def build_Call(ctx: ASTTransformerContext, node: ast.Call) -> Any | None:
+        return CallTransformer.build_Call(ctx, node, build_stmt, build_stmts)
 
     @staticmethod
     def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef):
