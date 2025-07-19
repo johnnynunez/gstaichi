@@ -85,6 +85,82 @@ class FunctionDefTransformer:
         return True, kernel_arguments.decl_scalar_arg(annotation, name, arg_depth)
 
     @staticmethod
+    def _transform_as_kernel(ctx: ASTTransformerContext, node: ast.FunctionDef, args: ast.arguments) -> None:
+        if node.returns is not None:
+            if not isinstance(node.returns, ast.Constant):
+                for return_type in ctx.func.return_type:
+                    kernel_arguments.decl_ret(return_type)
+        impl.get_runtime().compiling_callable.finalize_rets()
+
+        invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
+        create_variable_later = dict()
+        for i, arg in enumerate(args.args):
+            argument = ctx.func.arguments[i]
+            if isinstance(argument.annotation, ArgPackType):
+                kernel_arguments.push_argpack_arg(argument.name)
+                d = {}
+                items_to_put_in_dict: list[tuple[str, str, Any]] = []
+                for j, (name, anno) in enumerate(argument.annotation.members.items()):
+                    result, obj = FunctionDefTransformer.decl_and_create_variable(
+                        ctx,
+                        anno, name, ctx.arg_features[i][j], invoke_later_dict, "__argpack_" + name, 1
+                    )
+                    if not result:
+                        d[name] = None
+                        items_to_put_in_dict.append(("__argpack_" + name, name, obj))
+                    else:
+                        d[name] = obj
+                argpack = kernel_arguments.decl_argpack_arg(ctx.func.arguments[i].annotation, d)
+                for item in items_to_put_in_dict:
+                    invoke_later_dict[item[0]] = argpack, item[1], *item[2]
+                create_variable_later[arg.arg] = argpack
+            elif dataclasses.is_dataclass(argument.annotation):
+                arg_features = ctx.arg_features[i]
+                ctx.create_variable(argument.name, argument.annotation)
+                for field_idx, field in enumerate(dataclasses.fields(argument.annotation)):
+                    flat_name = f"__ti_{argument.name}_{field.name}"
+                    result, obj = FunctionDefTransformer.decl_and_create_variable(
+                        ctx,
+                        field.type,
+                        flat_name,
+                        arg_features[field_idx],
+                        invoke_later_dict,
+                        "",
+                        0,
+                    )
+                    if result:
+                        ctx.create_variable(flat_name, obj)
+                    else:
+                        decl_type_func, type_args = obj
+                        obj = decl_type_func(*type_args)
+                        ctx.create_variable(flat_name, obj)
+            else:
+                result, obj = FunctionDefTransformer.decl_and_create_variable(
+                    ctx,
+                    argument.annotation,
+                    argument.name,
+                    ctx.arg_features[i] if ctx.arg_features is not None else None,
+                    invoke_later_dict,
+                    "",
+                    0,
+                )
+                if result:
+                    ctx.create_variable(arg.arg, obj)
+                else:
+                    decl_type_func, type_args = obj
+                    obj = decl_type_func(*type_args)
+                    ctx.create_variable(arg.arg, obj)
+        for k, v in invoke_later_dict.items():
+            argpack, name, func, params = v
+            argpack[name] = func(*params)
+        for k, v in create_variable_later.items():
+            ctx.create_variable(k, v)
+
+        impl.get_runtime().compiling_callable.finalize_params()
+        # remove original args
+        node.args.args = []
+
+    @staticmethod
     def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef, build_stmts):
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(
@@ -100,87 +176,12 @@ class FunctionDefTransformer:
 
 
 
-        def transform_as_kernel() -> None:
-            if node.returns is not None:
-                if not isinstance(node.returns, ast.Constant):
-                    for return_type in ctx.func.return_type:
-                        kernel_arguments.decl_ret(return_type)
-            impl.get_runtime().compiling_callable.finalize_rets()
-
-            invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
-            create_variable_later = dict()
-            for i, arg in enumerate(args.args):
-                argument = ctx.func.arguments[i]
-                if isinstance(argument.annotation, ArgPackType):
-                    kernel_arguments.push_argpack_arg(argument.name)
-                    d = {}
-                    items_to_put_in_dict: list[tuple[str, str, Any]] = []
-                    for j, (name, anno) in enumerate(argument.annotation.members.items()):
-                        result, obj = FunctionDefTransformer.decl_and_create_variable(
-                            ctx,
-                            anno, name, ctx.arg_features[i][j], invoke_later_dict, "__argpack_" + name, 1
-                        )
-                        if not result:
-                            d[name] = None
-                            items_to_put_in_dict.append(("__argpack_" + name, name, obj))
-                        else:
-                            d[name] = obj
-                    argpack = kernel_arguments.decl_argpack_arg(ctx.func.arguments[i].annotation, d)
-                    for item in items_to_put_in_dict:
-                        invoke_later_dict[item[0]] = argpack, item[1], *item[2]
-                    create_variable_later[arg.arg] = argpack
-                elif dataclasses.is_dataclass(argument.annotation):
-                    arg_features = ctx.arg_features[i]
-                    ctx.create_variable(argument.name, argument.annotation)
-                    for field_idx, field in enumerate(dataclasses.fields(argument.annotation)):
-                        flat_name = f"__ti_{argument.name}_{field.name}"
-                        result, obj = FunctionDefTransformer.decl_and_create_variable(
-                            ctx,
-                            field.type,
-                            flat_name,
-                            arg_features[field_idx],
-                            invoke_later_dict,
-                            "",
-                            0,
-                        )
-                        if result:
-                            ctx.create_variable(flat_name, obj)
-                        else:
-                            decl_type_func, type_args = obj
-                            obj = decl_type_func(*type_args)
-                            ctx.create_variable(flat_name, obj)
-                else:
-                    result, obj = FunctionDefTransformer.decl_and_create_variable(
-                        ctx,
-                        argument.annotation,
-                        argument.name,
-                        ctx.arg_features[i] if ctx.arg_features is not None else None,
-                        invoke_later_dict,
-                        "",
-                        0,
-                    )
-                    if result:
-                        ctx.create_variable(arg.arg, obj)
-                    else:
-                        decl_type_func, type_args = obj
-                        obj = decl_type_func(*type_args)
-                        ctx.create_variable(arg.arg, obj)
-            for k, v in invoke_later_dict.items():
-                argpack, name, func, params = v
-                argpack[name] = func(*params)
-            for k, v in create_variable_later.items():
-                ctx.create_variable(k, v)
-
-            impl.get_runtime().compiling_callable.finalize_params()
-            # remove original args
-            node.args.args = []
-
         if ctx.is_kernel:  # ti.kernel
-            transform_as_kernel()
+            FunctionDefTransformer._transform_as_kernel(ctx, node, args)
 
         else:  # ti.func
             if ctx.is_real_function:
-                transform_as_kernel()
+                FunctionDefTransformer._transform_as_kernel(ctx, node, args)
             else:
                 for data_i, data in enumerate(ctx.argument_data):
                     argument = ctx.func.arguments[data_i]
