@@ -26,7 +26,7 @@ from taichi.types import annotations, ndarray_type, primitive_types, texture_typ
 
 class FunctionDefTransformer:
     @staticmethod
-    def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef):
+    def build_FunctionDef(ctx: ASTTransformerContext, node: ast.FunctionDef, build_stmts):
         if ctx.visited_funcdef:
             raise TaichiSyntaxError(
                 f"Function definition is not allowed in 'ti.{'kernel' if ctx.is_kernel else 'func'}'."
