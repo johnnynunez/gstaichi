@@ -272,8 +272,6 @@ class FunctionDefTransformer:
         assert args.kw_defaults == []
         assert args.kwarg is None
 
-
-
         if ctx.is_kernel:  # ti.kernel
             FunctionDefTransformer._transform_as_kernel(ctx, node, args)
 
