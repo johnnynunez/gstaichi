@@ -278,7 +278,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
 
 def unpack_ndarray_struct(tree: ast.Module, struct_locals: set[str]) -> ast.Module:
     class AttributeToNameTransformer(ast.NodeTransformer):
-        def visit_Attribute(self, node: ast.AST):
+        def visit_Attribute(self, node: ast.Attribute):
             if isinstance(node.value, ast.Attribute):
                 return node
             if not isinstance(node.value, ast.Name):
