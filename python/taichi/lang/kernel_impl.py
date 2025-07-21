@@ -151,6 +151,9 @@ class BoundFunc:
 
 
 class TaichiCallable:
+    """
+    See docstring for `BoundFunc` for what this is being used for
+    """
     def __init__(self, fn: Callable, wrapper: Callable) -> None:
         # self.func: Func | None = None
         self.fn = fn
