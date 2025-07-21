@@ -646,3 +646,55 @@ def test_ndarray_struct_multiple_child_structs_ndarray():
     assert d[0] == 55
     assert e[0] == 66
     assert f[0] == 77
+
+
+@test_utils.test()
+def test_ndarray_struct_multiple_child_structs_field():
+    a = ti.field(ti.i32, shape=(55,))
+    b = ti.field(ti.i32, shape=(57,))
+    c = ti.field(ti.i32, shape=(211,))
+    d = ti.field(ti.i32, shape=(211,))
+    e = ti.field(ti.i32, shape=(251,))
+    f = ti.field(ti.i32, shape=(251,))
+
+    @dataclass
+    class C1:
+        a: ti.Template
+        b: ti.Template
+
+    @dataclass
+    class C2:
+        c: ti.Template
+        d: ti.Template
+
+    @dataclass
+    class C3:
+        e: ti.Template
+        f: ti.Template
+
+    @dataclass
+    class P1:
+        c1: C1
+        c2: C2
+        c3: C3
+
+    @ti.kernel
+    def k1(p1: P1) -> None:
+        p1.c1.a[0] = 22
+        p1.c1.b[0] = 33
+        p1.c2.c[0] = 44
+        p1.c2.d[0] = 55
+        p1.c3.e[0] = 66
+        p1.c3.f[0] = 77
+
+    c1 = C1(a=a, b=b)
+    c2 = C2(c=c, d=d)
+    c3 = C3(e=e, f=f)
+    p1 = P1(c1=c1, c2=c2, c3=c3)
+    k1(p1)
+    assert a[0] == 22
+    assert b[0] == 33
+    assert c[0] == 44
+    assert d[0] == 55
+    assert e[0] == 66
+    assert f[0] == 77
