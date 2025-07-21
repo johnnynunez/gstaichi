@@ -50,6 +50,9 @@ from taichi.lang.struct import Struct, StructType
 from taichi.lang.util import is_taichi_class, to_taichi_type
 from taichi.types import annotations, ndarray_type, primitive_types, texture_type
 from taichi.types.utils import is_integral
+from taichi.lang.ast.call_transformer import CallTransformer
+from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
+from taichi.lang.ast.ast_transformer_utils import get_decorator
 
 
 def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
