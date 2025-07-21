@@ -5,6 +5,7 @@ import builtins
 import traceback
 from enum import Enum
 from textwrap import TextWrapper
+from functools import partial
 from typing import TYPE_CHECKING, Any, List
 
 from taichi._lib.core.taichi_python import ASTBuilder
