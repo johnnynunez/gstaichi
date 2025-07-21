@@ -1,10 +1,10 @@
 # type: ignore
 
-from functools import partial
 import ast
 import builtins
 import traceback
 from enum import Enum
+from functools import partial
 from textwrap import TextWrapper
 from typing import TYPE_CHECKING, Any, List
 
@@ -34,7 +34,7 @@ class Builder:
         node.indent = node.depth * "  "
         node.print = partial(print, node.indent)
         print(node.indent, method_name, ast.dump(node)[:150])
-        for child_name in ['func', 'value']:
+        for child_name in ["func", "value"]:
             child = getattr(node, child_name, None)
             if isinstance(child, ast.AST):
                 child.depth = depth + 1
