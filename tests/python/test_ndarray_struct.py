@@ -605,9 +605,34 @@ def test_ndarray_struct_multiple_child_structs_ndarray():
     e = ti.ndarray(ti.i32, shape=(251,))
     f = ti.ndarray(ti.i32, shape=(251,))
 
+    d11 = ti.ndarray(ti.i32, shape=(251,))
+    d12 = ti.ndarray(ti.i32, shape=(251,))
+    d21 = ti.ndarray(ti.i32, shape=(251,))
+    d22 = ti.ndarray(ti.i32, shape=(251,))
+    d31 = ti.ndarray(ti.i32, shape=(251,))
+    d32 = ti.ndarray(ti.i32, shape=(251,))
+
+    @dataclass
+    class D1:
+        d11: ti.types.NDArray[ti.i32, 1]
+        d12: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class D2:
+        d21: ti.types.NDArray[ti.i32, 1]
+        d22: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class D3:
+        d31: ti.types.NDArray[ti.i32, 1]
+        d32: ti.types.NDArray[ti.i32, 1]
+
     @dataclass
     class C1:
         a: ti.types.NDArray[ti.i32, 1]
+        d1: D1
+        d2: D2
+        d3: D3
         b: ti.types.NDArray[ti.i32, 1]
 
     @dataclass
@@ -635,7 +660,10 @@ def test_ndarray_struct_multiple_child_structs_ndarray():
         p1.c3.e[0] = 66
         p1.c3.f[0] = 77
 
-    c1 = C1(a=a, b=b)
+    d1 = D1(d11=d11, d12=d12)
+    d2 = D2(d21=d21, d22=d22)
+    d3 = D3(d31=d31, d32=d32)
+    c1 = C1(a=a, b=b, d1=d1, d2=d2, d3=d3)
     c2 = C2(c=c, d=d)
     c3 = C3(e=e, f=f)
     p1 = P1(c1=c1, c2=c2, c3=c3)
