@@ -5,7 +5,7 @@ but let's just start with a few tests using this structure/architecture, as a pr
 
 import ast
 import dataclasses
-from ast import Attribute, Load, Name
+from ast import Attribute, Call, Constant, Load, Name, Subscript
 from typing import Any
 
 import pytest
@@ -20,6 +20,9 @@ __all__ = [
     "Attribute",
     "Name",
     "Load",
+    "Call",
+    "Subscript",
+    "Constant",
 ]
 
 
@@ -123,6 +126,41 @@ class MyStructFieldEF:
               ctx=Load()
             )
             """,
+        ),
+        (
+            """
+          Call(
+            func=Attribute(
+              value=Subscript(
+                value=Attribute(
+                  value=Attribute(
+                    value=Name(id='collider_state', ctx=Load()),
+                    attr='contact_cache',
+                    ctx=Load()),
+                  attr='normal',
+                  ctx=Load()),
+                slice=Constant(value=0),
+                ctx=Load()),
+              attr='fill',
+              ctx=Load()),
+                args=[
+              Constant(value=0.0)],
+            keywords=[])
+""",
+            {"__ti_collider_state__ti_contact_cache__ti_normal"},
+            """
+          Call(
+            func=Attribute(
+              value=Subscript(
+                value=Name(id='__ti_collider_state__ti_contact_cache__ti_normal', ctx=Load()),
+                slice=Constant(value=0),
+                ctx=Load()),
+              attr='fill',
+              ctx=Load()),
+            args=[
+              Constant(value=0.0)],
+            keywords=[])
+""",
         ),
     ],
 )
