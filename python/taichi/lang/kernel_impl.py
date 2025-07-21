@@ -988,6 +988,7 @@ class Kernel:
             needed_ = self.arguments[i_in].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
+                i_out += 1
                 continue
             i_out += recursive_set_args(needed_, type(val), val, (i_out - template_num,))
 
