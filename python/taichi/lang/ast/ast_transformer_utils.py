@@ -4,6 +4,7 @@ import ast
 import builtins
 import traceback
 from enum import Enum
+from functools import partial
 from textwrap import TextWrapper
 from typing import TYPE_CHECKING, Any, List
 
