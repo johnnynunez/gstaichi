@@ -1014,7 +1014,7 @@ class Kernel:
                     assert not isinstance(field_type, str)
                     field_value = getattr(v, field_name)
                     # arg_name = f"__ti_{arg_name}_{field_name}"
-                    idx += recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
+                    idx += recursive_set_args(field_type, field_type, field_value, (indices[0] + idx,))
                     # field_extracted = TemplateMapper.extract_arg(
                     #     field_value, field_type, arg_name
                     # )
@@ -1060,16 +1060,15 @@ class Kernel:
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
         template_num = 0
-        i = 0
-        skip = 0
+        i_out = 0
         print("launch_kernel iterate args, len(args)", len(args))
-        for i, val in enumerate(args):
+        for i_in, val in enumerate(args):
             # print("  val=", str(val)[:150])
-            needed_ = self.arguments[i].annotation
+            needed_ = self.arguments[i_in].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
                 continue
-            skip += recursive_set_args(needed_, type(val), val, (skip + i - template_num,)) - 1
+            i_out += recursive_set_args(needed_, type(val), val, (i_out - template_num,))
 
         for i, (set_arg_func, params) in enumerate(set_later_list):
             set_arg_func((len(args) - template_num + i,), *params)
