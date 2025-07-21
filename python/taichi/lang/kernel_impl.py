@@ -252,6 +252,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
 
     if is_func:
         print("is func => expanding self.arguments")
+        kwargs = _kernel_impl_dataclass.expand_func_kwargs(kwargs)
         self.arguments = _kernel_impl_dataclass.expand_func_arguments(self.arguments)
 
     # print("type(self)", type(self))

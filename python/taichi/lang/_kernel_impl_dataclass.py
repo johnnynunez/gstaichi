@@ -92,6 +92,50 @@ def populate_struct_locals(ctx: ASTTransformerContext) -> set[str]:
     return struct_locals
 
 
+def _expand_func_kwarg_dataclass(basename: str, dataclass_type: Any) -> dict[str, Any]:
+    print("basename", basename, "type", dataclass_type)
+    new_kwargs = {}
+    for field in dataclasses.fields(dataclass_type):
+        print("field_name", field.name, field.type)
+        child_name = f"{basename}__ti_{field.name}"
+        if not child_name.startswith("__ti_"):
+            child_name = f"__ti_{child_name}"
+        # child_obj = getattr(orig_arg, field.name)
+        if dataclasses.is_dataclass(field.type):
+            print("got datcalss", field.type)
+            new_kwargs.update(_expand_func_kwarg_dataclass(child_name, field.type))
+        else:
+            new_kwargs[child_name] = field.type
+    print("new_kwargs", new_kwargs)
+    return new_kwargs
+
+
+def expand_func_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
+    """
+    values are types, eg struct types, ndarray types etc
+    (I dont think that dataclasses are an isntance of Type, so using Any)
+    """
+    print("orig kwargs", kwargs)
+    new_kwargs: dict[str, Any] = {}
+    for name, orig_arg in kwargs.items():
+        if dataclasses.is_dataclass(orig_arg):
+            for field in dataclasses.fields(orig_arg):
+                print("field_name", field.name, field.type)
+                child_name = f"{name}__ti_{field.name}"
+                if not child_name.startswith("__ti_"):
+                    child_name = f"__ti_{child_name}"
+                # child_obj = getattr(orig_arg, field.name)
+                if dataclasses.is_dataclass(field.type):
+                    print("got datcalss", field.type)
+                    new_kwargs.update(_expand_func_kwarg_dataclass(child_name, field.type))
+                else:
+                    new_kwargs[child_name] = field.type
+        else:
+            new_kwargs[name] = orig_arg
+    print("new_kwargs", new_kwargs)
+    return new_kwargs
+
+
 def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
     """
     Used to expand arguments for @ti.func
@@ -102,8 +146,6 @@ def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
         if dataclasses.is_dataclass(argument.annotation):
             print("found dataclass")
             for field in dataclasses.fields(argument.annotation):
-                # field_name = field.name
-                # field_type = field.type
                 print("field_name", field.name, field.type)
                 child_name = f"{argument.name}__ti_{field.name}"
                 if not child_name.startswith("__ti_"):
@@ -121,13 +163,10 @@ def expand_func_arguments(arguments: list[ArgMetadata]) -> list[ArgMetadata]:
                     )
                     new_arguments.extend(child_args)
                 else:
-                    # field_value = getattr(arg, field.name)
                     new_argument = ArgMetadata(
                         _annotation=field.type,
                         _name=child_name,
                     )
-                    # print("new_argument", new_argument)
-                    # asdfad
                     new_arguments.append(new_argument)
         else:
             new_arguments.append(argument)
