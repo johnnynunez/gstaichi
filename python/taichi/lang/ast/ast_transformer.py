@@ -16,15 +16,7 @@ from typing import Any, Iterable, Type
 import numpy as np
 
 from taichi._lib import core as _ti_core
-from taichi.lang import (
-    _ndarray,
-    any_array,
-    expr,
-    impl,
-    kernel_arguments,
-    matrix,
-    mesh,
-)
+from taichi.lang import _ndarray, any_array, expr, impl, kernel_arguments, matrix, mesh
 from taichi.lang import ops as ti_ops
 from taichi.lang._ndrange import _Ndrange, ndrange
 from taichi.lang.argpack import ArgPackType

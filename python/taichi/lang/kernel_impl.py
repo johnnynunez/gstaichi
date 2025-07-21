@@ -73,6 +73,64 @@ CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
 class BoundFunc:
+    """
+    This class is used to enable wrapping a bindable function with a class.
+
+    We have the following requirements:
+    - pass wrapped functions around
+    - assign attributes to these functions, such as `_if_real_function`, `_primal`, etc
+    - use strong typing, and type checkers, such as pyright/mypy
+    - the wrapped functions should be able to be used with class instances
+
+    Let's take the following example:
+
+    def test_ptr_class_func():
+    @ti.data_oriented
+    class MyClass:
+        def __init__(self):
+            self.a = ti.field(dtype=ti.f32, shape=(3))
+
+        def add2numbers_py(self, x, y):
+            return x + y
+
+        @ti.func
+        def add2numbers_func(self, x, y):
+            return x + y
+
+        @ti.kernel
+        def func(self):
+            a, add_py, add_func = ti.static(self.a, self.add2numbers_py, self.add2numbers_func)
+            a[0] = add_py(2, 3)
+            a[1] = add_func(3, 7)
+
+    (taken from test_ptr_assign.py).
+
+    When @ti.func runs, the function `add2numbers_func` exists, but there is not yet any `self`
+    - it is not possible for the method to be bound, to a `self` instance
+    - however, it is at this point that we create the wrapped function, via the @ti.func annotation,
+      which runs the `func` function
+    - later on, when we cann self.add2numbers_py, here:
+
+            a, add_py, add_func = ti.static(self.a, self.add2numbers_py, self.add2numbers_func)
+    
+      ... we want to call the bound method, `self.add2numbers_py`.
+    - an actual function reference, created by doing somevar = MyClass.add2numbers, can automatically
+      binds to self under, when called from self in this way (remember that add2numbers_py is actually
+      the wrapped function, returned by the `func` function, run by `@ti.func`)
+    - however, in order to be able to add strongly typed attributes to the wrapped function, we need
+      to wrap the wrapped function in a class
+    - the wrapped function, wrapped in a class, will NOT automatically bind
+    - what happens then, is that later when we call the wrapped function, which is unbound, `self`
+      is not automatically passed in, as an argument, and things break
+    
+    To address this we need to use the `__get__` method, in our function wrapper, ie TaichiCallable,
+    and have the `__get__` method return this `BoundFunc` object. The `__get__` method handles
+    running the binding for use, and effectively binds `BoundFunc` object to `self` object, by passing
+    in the instance, as an argument into `__init__`.
+
+    `BoundFunc` can then be used as a normal bound func - even though it's just an object instance -
+    using its `__call__` method.
+    """
     def __init__(self, fn: Callable, instance: Any, taichi_callable: "TaichiCallable"):
         self.fn = fn
         self.instance = instance
@@ -116,7 +174,7 @@ class TaichiCallable:
         return BoundFunc(self.wrapper, instance, self)
 
 
-def func(fn: Callable, is_real_function=False) -> TaichiCallable:
+def func(fn: Callable, is_real_function: bool = False) -> TaichiCallable:
     """Marks a function as callable in Taichi-scope.
 
     This decorator transforms a Python function into a Taichi one. Taichi

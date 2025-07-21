@@ -1,5 +1,3 @@
-# type: ignore
-
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -32,7 +30,7 @@ class Ndarray:
         self.dtype = None
         self.arr = None
         self.layout = Layout.AOS
-        self.grad: "ScalarNdarray" | "VectorNdarray" | "MatrixNdarray" | None = None
+        self.grad: "ScalarNdarray | VectorNdarray | MatrixNdarray | None" = None
 
     def get_type(self):
         return NdarrayTypeMetadata(self.element_type, self.shape, self.grad is not None)
