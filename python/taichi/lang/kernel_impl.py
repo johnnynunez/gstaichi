@@ -283,7 +283,16 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
     for i, arg in enumerate(args):
         fused_args[i] = arg
 
+    print("self.arguments:")
+    for i, arg in enumerate(self.arguments):
+        print("    i", i, "arg", arg)
+    print("kwargs", kwargs)
+    # _arguments = self.arguments
+    # if is_func:
+    #     assert isinstance(self, Func)
+    #     _arguments = self.orig_arguments
     for key, value in kwargs.items():
+        print("   ", key, "=", value)
         found = False
         for i, arg in enumerate(self.arguments):
             if key == arg.name:
@@ -1301,16 +1310,16 @@ class _BoundedDifferentiableMethod:
         self.__name__: str | None = None
 
     def __call__(self, *args, **kwargs):
-        try:
+        # try:
             assert self._primal is not None
             if self._is_staticmethod:
                 return self._primal(*args, **kwargs)
             return self._primal(self._kernel_owner, *args, **kwargs)
 
-        except (TaichiCompilationError, TaichiRuntimeError) as e:
-            if impl.get_runtime().print_full_traceback:
-                raise e
-            raise type(e)("\n" + str(e)) from None
+        # except (TaichiCompilationError, TaichiRuntimeError) as e:
+        #     if impl.get_runtime().print_full_traceback:
+        #         raise e
+        #     raise type(e)("\n" + str(e)) from None
 
     def grad(self, *args, **kwargs) -> Kernel:
         assert self._adjoint is not None

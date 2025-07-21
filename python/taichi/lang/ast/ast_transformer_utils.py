@@ -39,25 +39,26 @@ class Builder:
             if isinstance(child, ast.AST):
                 child.depth = depth + 1
         method = getattr(self, method_name, None)
-        try:
+        # try:
+        if True:
             if method is None:
                 error_msg = f'Unsupported node "{node.__class__.__name__}"'
                 raise TaichiSyntaxError(error_msg)
             info = ctx.get_pos_info(node) if isinstance(node, (ast.stmt, ast.expr)) else ""
             with impl.get_runtime().src_info_guard(info):
                 return method(ctx, node)
-        except Exception as e:
-            if impl.get_runtime().print_full_traceback:
-                raise e
-            if ctx.raised or not isinstance(node, (ast.stmt, ast.expr)):
-                raise e.with_traceback(None)
-            ctx.raised = True
-            e = handle_exception_from_cpp(e)
-            if not isinstance(e, TaichiCompilationError):
-                msg = ctx.get_pos_info(node) + traceback.format_exc()
-                raise TaichiCompilationError(msg) from None
-            msg = ctx.get_pos_info(node) + str(e)
-            raise type(e)(msg) from None
+        # except Exception as e:
+        #     if impl.get_runtime().print_full_traceback:
+        #         raise e
+        #     if ctx.raised or not isinstance(node, (ast.stmt, ast.expr)):
+        #         raise e.with_traceback(None)
+        #     ctx.raised = True
+        #     e = handle_exception_from_cpp(e)
+        #     if not isinstance(e, TaichiCompilationError):
+        #         msg = ctx.get_pos_info(node) + traceback.format_exc()
+        #         raise TaichiCompilationError(msg) from None
+        #     msg = ctx.get_pos_info(node) + str(e)
+        #     raise type(e)(msg) from None
 
 
 class VariableScopeGuard:
