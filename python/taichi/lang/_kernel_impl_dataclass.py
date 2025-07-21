@@ -184,9 +184,7 @@ def unpack_ast_struct_expressions(tree: ast.Module, struct_locals: set[str]) -> 
         def visit_Attribute(self, node):
             ctx = node.ctx
             flat_name = _flatten_attribute_name(node)
-            if not flat_name:
-                return node
-            if flat_name not in struct_locals:
+            if not flat_name or flat_name not in struct_locals:
                 return self.generic_visit(node)
             return ast.copy_location(ast.Name(id=flat_name, ctx=node.ctx), node)
 
