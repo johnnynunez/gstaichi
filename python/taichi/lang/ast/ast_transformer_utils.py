@@ -1,5 +1,6 @@
 # type: ignore
 
+from functools import partial
 import ast
 import builtins
 import traceback
@@ -28,7 +29,15 @@ if TYPE_CHECKING:
 class Builder:
     def __call__(self, ctx: "ASTTransformerContext", node: ast.AST):
         method_name = "build_" + node.__class__.__name__
-        print(method_name, ast.dump(node)[:150])
+        depth = getattr(node, "depth", 0)
+        node.depth = depth
+        node.indent = node.depth * "  "
+        node.print = partial(print, node.indent)
+        print(node.indent, method_name, ast.dump(node)[:150])
+        for child_name in ['func', 'value']:
+            child = getattr(node, child_name, None)
+            if isinstance(child, ast.AST):
+                child.depth = depth + 1
         method = getattr(self, method_name, None)
         try:
             if method is None:
