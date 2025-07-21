@@ -66,6 +66,7 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
+from taichi.lang._template_mapper import TaichiCallableTemplateMapper
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 

@@ -13,7 +13,7 @@ from taichi.lang.argpack import ArgPack, ArgPackType
 from taichi.lang.exception import (
     TaichiRuntimeTypeError,
 )
-from taichi.lang.kernel_arguments import ArgMetadata
+from taichi.lang.kernel_arguments import KernelArgument
 from taichi.lang.matrix import MatrixType
 from taichi.lang.util import to_taichi_type
 from taichi.types import (
