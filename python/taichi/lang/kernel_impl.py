@@ -940,7 +940,7 @@ class Kernel:
                     field_type = field.type
                     assert not isinstance(field_type, str)
                     field_value = getattr(v, field_name)
-                    idx += recursive_set_args(field_type, field_type, field_value, (indices[0] + j,))
+                    idx += recursive_set_args(field_type, field_type, field_value, (indices[0] + idx,))
                 return idx
             if isinstance(needed, ndarray_type.NdarrayType) and isinstance(v, taichi.lang._ndarray.Ndarray):
                 if in_argpack:
@@ -983,14 +983,13 @@ class Kernel:
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
         template_num = 0
-        i = 0
-        skip = 0
-        for i, val in enumerate(args):
-            needed_ = self.arguments[i].annotation
+        i_out = 0
+        for i_in, val in enumerate(args):
+            needed_ = self.arguments[i_in].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
                 continue
-            skip += recursive_set_args(needed_, type(val), val, (skip + i - template_num,)) - 1
+            i_out += recursive_set_args(needed_, type(val), val, (i_out - template_num,))
 
         for i, (set_arg_func, params) in enumerate(set_later_list):
             set_arg_func((len(args) - template_num + i,), *params)
