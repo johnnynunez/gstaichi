@@ -32,11 +32,11 @@ def check_type_match(lhs, rhs):
 
 def produce_injected_args_from_template(kernel, template_args):
     injected_args = []
-    num_template_args = len([arg.annotation for arg in kernel.arguments if isinstance(arg.annotation, template_types)])
+    num_template_args = len([arg.annotation for arg in kernel.arg_metas if isinstance(arg.annotation, template_types)])
     assert num_template_args == len(
         template_args
     ), f"Need {num_template_args} inputs to instantiate the template parameters, got {len(template_args)}"
-    for arg in kernel.arguments:
+    for arg in kernel.arg_metas:
         anno = arg.annotation
         if isinstance(anno, template_types):
             injected_args.append(template_args[arg.name])
@@ -51,7 +51,7 @@ def produce_injected_args_from_template(kernel, template_args):
 
 def produce_injected_args(kernel, symbolic_args=None):
     injected_args = []
-    for i, arg in enumerate(kernel.arguments):
+    for i, arg in enumerate(kernel.arg_metas):
         anno = arg.annotation
         if isinstance(anno, NdarrayType):
             if symbolic_args is not None:
