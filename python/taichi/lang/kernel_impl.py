@@ -247,11 +247,8 @@ def _process_args(self: "Func | Kernel", is_func: bool, py_args: tuple[Any, ...]
     """
     used for both Func and Kernel
     """
-    print("global _process_args")
 
     if is_func:
-        print("is func => expanding self.arguments")
-        # py_kwargs = _kernel_impl_dataclass.expand_func_kwargs(py_kwargs)
         self.arg_metas = _kernel_impl_dataclass.expand_func_arguments(self.arg_metas)
 
     fused_args: list[Any] = [argument.default for argument in self.arg_metas]
@@ -264,19 +261,10 @@ def _process_args(self: "Func | Kernel", is_func: bool, py_args: tuple[Any, ...]
         msg = f"Too many arguments. Expected ({expected_str}), got ({arg_str})."
         raise TaichiSyntaxError(msg)
 
-    # first fill in from args
-    # print("py_args list:")
     for i, py_arg in enumerate(py_args):
-        # print("    i", i, "py_arg", py_arg, type(py_arg))
         fused_args[i] = py_arg
 
-    print("self.arguments:")
-    for i, py_arg in enumerate(self.arg_metas):
-        print("    i", i, "arg", py_arg)
-    print("kwargs", py_kwargs)
-    # now fill in from kwargs
     for key, value in py_kwargs.items():
-        print("   ", key, "=", value)
         found = False
         for i, py_arg in enumerate(self.arg_metas):
             if key == py_arg.name:
@@ -288,9 +276,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, py_args: tuple[Any, ...]
         if not found:
             raise TaichiSyntaxError(f"Unexpected argument '{key}'.")
 
-    print("enumerate fuused_args")
     for i, py_arg in enumerate(fused_args):
-        print("after print")
         if py_arg is inspect.Parameter.empty:
             if self.arg_metas[i].annotation is inspect._empty:
                 raise TaichiSyntaxError(f"Parameter `{self.arg_metas[i].name}` missing.")
@@ -299,9 +285,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, py_args: tuple[Any, ...]
                     f"Parameter `{self.arg_metas[i].name} : {self.arg_metas[i].annotation}` missing."
                 )
 
-    print("1")
     fused_args_tuple = tuple(fused_args)
-    print("2")
     return fused_args_tuple
 
 

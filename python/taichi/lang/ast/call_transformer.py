@@ -212,30 +212,19 @@ class CallTransformer:
         We require that each node has a .ptr attribute added to it, that contains
         the associated Python object
         """
-        # print("kwargs", kwargs, type(kwargs))
         kwargs_new = []
-        print("_expand_Call_dataclass_kwargs")
         for i, kwarg in enumerate(kwargs):
-            print("  i", i, "arg", ast.dump(kwarg, indent=2))
-            print("kwarg.ptr", kwarg.ptr)
-            print("kwarg.arg", kwarg.arg)
             val = kwarg.ptr[kwarg.arg]
-            print("val", val, val)
             if dataclasses.is_dataclass(val):
-                print("found dataclass val", val)
                 dataclass_type = val
                 for field in dataclasses.fields(dataclass_type):
-                    # field_val = getattr(val, field.name)
                     src_name = f"{kwarg.value.id}__ti_{field.name}"
                     if not src_name.startswith("__ti_"):
                         src_name = f"__ti_{src_name}"
                     child_name = f"{kwarg.arg}__ti_{field.name}"
                     if not child_name.startswith("__ti_"):
                         child_name = f"__ti_{child_name}"
-                    print("child_name", child_name)
                     load_ctx = ast.Load()
-                    # module = ast.parse(f"def func({child_name}):\n    pass")
-                    # arg_node = module.body[0].args.args[0]
                     src_node = ast.Name(
                         id=src_name,
                         ctx=load_ctx,
@@ -253,7 +242,6 @@ class CallTransformer:
                         col_offset=kwarg.col_offset,
                         end_col_offset=kwarg.end_col_offset,
                     )
-                    print("kwarg_node", ast.dump(kwarg_node), kwarg_node.__dict__)
                     if dataclasses.is_dataclass(field.type):
                         kwarg_node.ptr = {child_name: field.type}
                         kwargs_new.extend(CallTransformer._expand_Call_dataclass_kwargs([kwarg_node]))
@@ -263,8 +251,6 @@ class CallTransformer:
                         kwargs_new.append(kwarg_node)
             else:
                 kwargs_new.append(kwarg)
-        print("kwargs_new", kwargs_new, [ast.dump(kw) for kw in kwargs_new])
-        # adsafd
         return kwargs_new
 
     @staticmethod
