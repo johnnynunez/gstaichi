@@ -222,7 +222,7 @@ def _get_tree_and_ctx(
     if is_kernel or is_real_function:
         _populate_global_vars_for_templates(
             template_slot_locations=self.template_slot_locations,
-            argument_metas=self.arguments,
+            argument_metas=self.arg_metas,
             global_vars=global_vars,
             fn=self.func,
             py_args=args,
@@ -243,60 +243,44 @@ def _get_tree_and_ctx(
     )
 
 
-def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
+def _process_args(self: "Func | Kernel", is_func: bool, py_args: tuple[Any, ...], py_kwargs) -> tuple[Any, ...]:
     """
     used for both Func and Kernel
     """
     print("global _process_args")
-    # print("  self.arguments", self.arguments, [(a.name, a.annotation) for a in self.arguments])
 
     if is_func:
         print("is func => expanding self.arguments")
-        kwargs = _kernel_impl_dataclass.expand_func_kwargs(kwargs)
-        self.arguments = _kernel_impl_dataclass.expand_func_arguments(self.arguments)
+        # py_kwargs = _kernel_impl_dataclass.expand_func_kwargs(py_kwargs)
+        self.arg_metas = _kernel_impl_dataclass.expand_func_arguments(self.arg_metas)
 
-    # print("type(self)", type(self))
-    # is_func = isinstance(self, Func)
-    # return args
-    fused_args: list[Any] = [argument.default for argument in self.arguments]
-    # print("ret", ret)
-    # print("args", args)
-    # args = expand_args_dataclasses(args)
-    # print("args", args)
-    len_args = len(args)
+    fused_args: list[Any] = [argument.default for argument in self.arg_metas]
 
-    # expand dataclasses
-    # print("len(args) before epxand", len(args))
-    # args = expand_args_dataclasses(args)
-    # print("args after expand", args, "len(args)", len(args))
-
-    # print("len(args)", len(args))
-    # print("len(fused_args)", len(fused_args))
-
-    if len_args > len(fused_args):
+    len_py_args = len(py_args)
+    if len_py_args > len(fused_args):
         print("too many arguments")
-        arg_str = ", ".join([str(arg) for arg in args])
-        expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arguments])
+        arg_str = ", ".join([str(arg) for arg in py_args])
+        expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arg_metas])
         msg = f"Too many arguments. Expected ({expected_str}), got ({arg_str})."
         raise TaichiSyntaxError(msg)
 
-    for i, arg in enumerate(args):
-        fused_args[i] = arg
+    # first fill in from args
+    # print("py_args list:")
+    for i, py_arg in enumerate(py_args):
+        # print("    i", i, "py_arg", py_arg, type(py_arg))
+        fused_args[i] = py_arg
 
     print("self.arguments:")
-    for i, arg in enumerate(self.arguments):
-        print("    i", i, "arg", arg)
-    print("kwargs", kwargs)
-    # _arguments = self.arguments
-    # if is_func:
-    #     assert isinstance(self, Func)
-    #     _arguments = self.orig_arguments
-    for key, value in kwargs.items():
+    for i, py_arg in enumerate(self.arg_metas):
+        print("    i", i, "arg", py_arg)
+    print("kwargs", py_kwargs)
+    # now fill in from kwargs
+    for key, value in py_kwargs.items():
         print("   ", key, "=", value)
         found = False
-        for i, arg in enumerate(self.arguments):
-            if key == arg.name:
-                if i < len_args:
+        for i, py_arg in enumerate(self.arg_metas):
+            if key == py_arg.name:
+                if i < len_py_args:
                     raise TaichiSyntaxError(f"Multiple values for argument '{key}'.")
                 fused_args[i] = value
                 found = True
@@ -305,21 +289,20 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
             raise TaichiSyntaxError(f"Unexpected argument '{key}'.")
 
     print("enumerate fuused_args")
-    for i, arg in enumerate(fused_args):
-        # print("i", i, "arg", type(arg))
+    for i, py_arg in enumerate(fused_args):
         print("after print")
-        if arg is inspect.Parameter.empty:
-            if self.arguments[i].annotation is inspect._empty:
-                raise TaichiSyntaxError(f"Parameter `{self.arguments[i].name}` missing.")
+        if py_arg is inspect.Parameter.empty:
+            if self.arg_metas[i].annotation is inspect._empty:
+                raise TaichiSyntaxError(f"Parameter `{self.arg_metas[i].name}` missing.")
             else:
                 raise TaichiSyntaxError(
-                    f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
+                    f"Parameter `{self.arg_metas[i].name} : {self.arg_metas[i].annotation}` missing."
                 )
 
     print("1")
-    res = tuple(fused_args)
+    fused_args_tuple = tuple(fused_args)
     print("2")
-    return res
+    return fused_args_tuple
 
 
 class Func:
@@ -333,27 +316,21 @@ class Func:
         self.classfunc = _classfunc
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
-        self.arguments: list[ArgMetadata] = []
+        self.arg_metas: list[ArgMetadata] = []
         self.orig_arguments: list[ArgMetadata] = []
         self.return_type: tuple[Type, ...] | None = None
         self.extract_arguments()
         self.template_slot_locations: list[int] = []
-        for i, arg in enumerate(self.arguments):
+        for i, arg in enumerate(self.arg_metas):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
-        self.mapper = TemplateMapper(self.arguments, self.template_slot_locations)
+        self.mapper = TemplateMapper(self.arg_metas, self.template_slot_locations)
         self.taichi_functions = {}  # The |Function| class in C++
         self.has_print = False
 
-        # transformer = AttributeToNameTransformer()
-        # new_tree = transformer.visit(tree)
-        # ast.fix_missing_locations(new_tree)
-        # return new_tree
-
     def __call__(self: "Func", *args, **kwargs) -> Any:
         print("__call__")
-        # asdafdf
-        args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
+        args = _process_args(self, is_func=True, py_args=args, py_kwargs=kwargs)
 
         if not impl.inside_kernel():
             if not self.pyfunc:
@@ -410,7 +387,7 @@ class Func:
         assert self.is_real_function
         non_template_args = []
         dbg_info = _ti_core.DebugInfo(impl.get_runtime().get_current_src_info())
-        for i, kernel_arg in enumerate(self.arguments):
+        for i, kernel_arg in enumerate(self.arg_metas):
             anno = kernel_arg.annotation
             if not isinstance(anno, template):
                 if id(anno) in primitive_types.type_ids:
@@ -531,7 +508,7 @@ class Func:
                     pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
-            self.arguments.append(ArgMetadata(annotation, param.name, param.default))
+            self.arg_metas.append(ArgMetadata(annotation, param.name, param.default))
             self.orig_arguments.append(ArgMetadata(annotation, param.name, param.default))
 
 
@@ -564,15 +541,15 @@ class Kernel:
         )
         self.autodiff_mode = autodiff_mode
         self.grad: "Kernel | None" = None
-        self.arguments: list[ArgMetadata] = []
+        self.arg_metas: list[ArgMetadata] = []
         self.return_type = None
         self.classkernel = _classkernel
         self.extract_arguments()
         self.template_slot_locations = []
-        for i, arg in enumerate(self.arguments):
+        for i, arg in enumerate(self.arg_metas):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
-        self.mapper = TemplateMapper(self.arguments, self.template_slot_locations)
+        self.mapper = TemplateMapper(self.arg_metas, self.template_slot_locations)
         impl.get_runtime().kernels.append(self)
         self.reset()
         self.kernel_cpp = None
@@ -684,7 +661,7 @@ class Kernel:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
             # if is_dataclass:
             #     asdfasdf
-            self.arguments.append(ArgMetadata(annotation, param.name, param.default))
+            self.arg_metas.append(ArgMetadata(annotation, param.name, param.default))
 
     def materialize(self, key, args: tuple[Any, ...], arg_features=None):
         if key is None:
@@ -780,7 +757,7 @@ class Kernel:
         self.compiled_kernels[key] = taichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
-        assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
+        assert len(args) == len(self.arg_metas), f"{len(self.arg_metas)} arguments needed but {len(args)} provided"
 
         tmps = []
         callbacks = []
@@ -1074,7 +1051,7 @@ class Kernel:
         print("launch_kernel iterate args, len(args)", len(args))
         for i_in, val in enumerate(args):
             # print("  val=", str(val)[:150])
-            needed_ = self.arguments[i_in].annotation
+            needed_ = self.arg_metas[i_in].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
                 i_out += 1
@@ -1145,7 +1122,7 @@ class Kernel:
     def __call__(self, *args, **kwargs) -> Any:
         print("__call__")
         # print("__call__ args", args, "kwargs", kwargs)
-        args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
+        args = _process_args(self, is_func=False, py_args=args, py_kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
         # then recover to primal when exiting the forward mode manager

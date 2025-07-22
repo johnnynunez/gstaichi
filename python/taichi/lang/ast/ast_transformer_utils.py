@@ -263,7 +263,7 @@ class ASTTransformerContext:
         return False
 
     def create_variable(self, name: str, var: Any) -> None:
-        print("create_variable name", name)
+        print("create_variable name", name, "var", var, type(var))
         # if hasattr(var, "__dataclass_fields__"):
         #     print("  is dataclass")
         #     for field in dataclasses.fields(var):

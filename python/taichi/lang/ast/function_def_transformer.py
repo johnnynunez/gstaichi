@@ -242,10 +242,10 @@ class FunctionDefTransformer:
             "transform_as_kernel iterate args len(args.args)",
             len(args.args),
             "len(ctx.func.arguments)",
-            len(ctx.func.arguments),
+            len(ctx.func.arg_metas),
         )
         for i, arg in enumerate(args.args):
-            argument = ctx.func.arguments[i]
+            argument = ctx.func.arg_metas[i]
             print(" arg i", i, "arg", ast.dump(arg), type(arg))
             FunctionDefTransformer._process_kernel_arg(
                 ctx,
@@ -273,7 +273,7 @@ class FunctionDefTransformer:
         argument_type: Any,
         data: Any,
     ) -> None:
-        print("  annotation", argument_type, type(argument_type))
+        print("  _process_func_arg name=", argument_name, "type", argument_type, type(argument_type), "data", data)
         # Template arguments are passed by reference.
         if isinstance(argument_type, annotations.template):
             ctx.create_variable(argument_name, data)
@@ -386,14 +386,14 @@ class FunctionDefTransformer:
         for arg in ctx.argument_data:
             print("    ", arg)
         print("ctx.func.arguments")
-        for arg in ctx.func.arguments:
+        for arg in ctx.func.arg_metas:
             print("    ", arg, arg.annotation, arg.name)
         # assert len(args.args) == len(ctx.argument_data)
         print("ti.func iterate args")
         # args_offset = 0
         for data_i, data in enumerate(ctx.argument_data):
             # for i, (arg, data) in enumerate(zip(args.args, ctx.argument_data)):
-            argument = ctx.func.arguments[data_i]
+            argument = ctx.func.arg_metas[data_i]
             print("  ti.func arg data_i", data_i, "data", str(data)[:100])
             # annotation = argument_type
             FunctionDefTransformer._process_func_arg(
