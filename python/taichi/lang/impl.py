@@ -1161,7 +1161,6 @@ def static(x, *xs) -> Any:
     if isinstance(x, Field):
         return x
     if isinstance(x, (FunctionType, MethodType, BoundFunc, TaichiCallable)):
-        print(" is instanace FunctionType or MethodType", x, type(x))
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")
 
