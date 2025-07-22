@@ -1048,6 +1048,7 @@ class Kernel:
                     raise TaichiRuntimeTypeError(f"Argument {needed} cannot be converted into required type {v}")
             elif has_paddle():
                 # Do we want to continue to support paddle? :thinking_face:
+                # #maybeprunable
                 import paddle  # pylint: disable=C0415  # type: ignore
 
                 if isinstance(v, paddle.Tensor):
