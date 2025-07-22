@@ -71,7 +71,7 @@ def test_pythonish_tuple_assign():
 
 @test_utils.test()
 def test_ptr_func():
-    a = ti.field(dtype=ti.f32, shape=(3))
+    a = ti.field(dtype=ti.f32, shape=(3,))
 
     def add2numbers_py(x, y):
         return x + y

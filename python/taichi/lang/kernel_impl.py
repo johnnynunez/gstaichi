@@ -152,7 +152,7 @@ class BoundFunc:
 
 class TaichiCallable:
     """
-    See docstring for `BoundFunc` for what this is being used for
+    See docstring for `BoundFunc` for what this is being used for.
     """
     def __init__(self, fn: Callable, wrapper: Callable) -> None:
         # self.func: Func | None = None
@@ -203,10 +203,7 @@ def func(fn: Callable, is_real_function: bool = False) -> TaichiCallable:
     is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
 
     fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-    taichi_callable = TaichiCallable(
-        fn,
-        fun,
-    )
+    taichi_callable = TaichiCallable(fn,fun)
     taichi_callable._is_taichi_function = True
     taichi_callable._is_real_function = is_real_function
     return taichi_callable
@@ -233,10 +230,7 @@ def pyfunc(fn: Callable) -> TaichiCallable:
     """
     is_classfunc = _inside_class(level_of_class_stackframe=3)
     fun = Func(fn, _classfunc=is_classfunc, _pyfunc=True)
-    taichi_callable = TaichiCallable(
-        fn,
-        fun,
-    )
+    taichi_callable = TaichiCallable(fn, fun)
     taichi_callable._is_taichi_function = True
     taichi_callable._is_real_function = False
     return taichi_callable
@@ -557,17 +551,6 @@ class Func:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
             self.orig_arguments.append(KernelArgument(annotation, param.name, param.default))
-
-
-AnnotationType = Union[
-    template,
-    ArgPackType,
-    "texture_type.TextureType",
-    "texture_type.RWTextureType",
-    ndarray_type.NdarrayType,
-    sparse_matrix_builder,
-    Any,
-]
 
 
 AnnotationType = Union[
