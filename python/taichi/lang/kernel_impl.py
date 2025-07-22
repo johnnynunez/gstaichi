@@ -221,7 +221,7 @@ def _get_tree_and_ctx(
     if is_kernel or is_real_function:
         _populate_global_vars_for_templates(
             template_slot_locations=self.template_slot_locations,
-            argument_metas=self.arguments,
+            argument_metas=self.arg_metas,
             global_vars=global_vars,
             fn=self.func,
             py_args=args,
@@ -242,32 +242,32 @@ def _get_tree_and_ctx(
     )
 
 
-def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], kwargs) -> tuple[Any, ...]:
+def _process_args(self: "Func | Kernel", is_func: bool, py_args: tuple[Any, ...], py_kwargs) -> tuple[Any, ...]:
     """
     used for both Func and Kernel
     """
 
     if is_func:
-        self.arguments = _kernel_impl_dataclass.expand_func_arguments(self.arguments)
+        self.arg_metas = _kernel_impl_dataclass.expand_func_arguments(self.arg_metas)
 
-    fused_args: list[Any] = [argument.default for argument in self.arguments]
-    len_args = len(args)
+    fused_args: list[Any] = [argument.default for argument in self.arg_metas]
 
-    if len_args > len(fused_args):
+    len_py_args = len(py_args)
+    if len_py_args > len(fused_args):
         print("too many arguments")
-        arg_str = ", ".join([str(arg) for arg in args])
-        expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arguments])
+        arg_str = ", ".join([str(arg) for arg in py_args])
+        expected_str = ", ".join([f"{arg.name} : {arg.annotation}" for arg in self.arg_metas])
         msg = f"Too many arguments. Expected ({expected_str}), got ({arg_str})."
         raise TaichiSyntaxError(msg)
 
-    for i, arg in enumerate(args):
-        fused_args[i] = arg
+    for i, py_arg in enumerate(py_args):
+        fused_args[i] = py_arg
 
-    for key, value in kwargs.items():
+    for key, value in py_kwargs.items():
         found = False
-        for i, arg in enumerate(self.arguments):
-            if key == arg.name:
-                if i < len_args:
+        for i, py_arg in enumerate(self.arg_metas):
+            if key == py_arg.name:
+                if i < len_py_args:
                     raise TaichiSyntaxError(f"Multiple values for argument '{key}'.")
                 fused_args[i] = value
                 found = True
@@ -275,17 +275,17 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
         if not found:
             raise TaichiSyntaxError(f"Unexpected argument '{key}'.")
 
-    for i, arg in enumerate(fused_args):
-        if arg is inspect.Parameter.empty:
-            if self.arguments[i].annotation is inspect._empty:
-                raise TaichiSyntaxError(f"Parameter `{self.arguments[i].name}` missing.")
+    for i, py_arg in enumerate(fused_args):
+        if py_arg is inspect.Parameter.empty:
+            if self.arg_metas[i].annotation is inspect._empty:
+                raise TaichiSyntaxError(f"Parameter `{self.arg_metas[i].name}` missing.")
             else:
                 raise TaichiSyntaxError(
-                    f"Parameter `{self.arguments[i].name} : {self.arguments[i].annotation}` missing."
+                    f"Parameter `{self.arg_metas[i].name} : {self.arg_metas[i].annotation}` missing."
                 )
 
-    res = tuple(fused_args)
-    return res
+    fused_args_tuple = tuple(fused_args)
+    return fused_args_tuple
 
 
 class Func:
@@ -299,20 +299,20 @@ class Func:
         self.classfunc = _classfunc
         self.pyfunc = _pyfunc
         self.is_real_function = is_real_function
-        self.arguments: list[ArgMetadata] = []
+        self.arg_metas: list[ArgMetadata] = []
         self.orig_arguments: list[ArgMetadata] = []
         self.return_type: tuple[Type, ...] | None = None
         self.extract_arguments()
         self.template_slot_locations: list[int] = []
-        for i, arg in enumerate(self.arguments):
+        for i, arg in enumerate(self.arg_metas):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
-        self.mapper = TemplateMapper(self.arguments, self.template_slot_locations)
+        self.mapper = TemplateMapper(self.arg_metas, self.template_slot_locations)
         self.taichi_functions = {}  # The |Function| class in C++
         self.has_print = False
 
     def __call__(self: "Func", *args, **kwargs) -> Any:
-        args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
+        args = _process_args(self, is_func=True, py_args=args, py_kwargs=kwargs)
 
         if not impl.inside_kernel():
             if not self.pyfunc:
@@ -353,7 +353,7 @@ class Func:
         assert self.is_real_function
         non_template_args = []
         dbg_info = _ti_core.DebugInfo(impl.get_runtime().get_current_src_info())
-        for i, kernel_arg in enumerate(self.arguments):
+        for i, kernel_arg in enumerate(self.arg_metas):
             anno = kernel_arg.annotation
             if not isinstance(anno, template):
                 if id(anno) in primitive_types.type_ids:
@@ -472,7 +472,7 @@ class Func:
                     pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi function: {annotation}")
-            self.arguments.append(ArgMetadata(annotation, param.name, param.default))
+            self.arg_metas.append(ArgMetadata(annotation, param.name, param.default))
             self.orig_arguments.append(ArgMetadata(annotation, param.name, param.default))
 
 
@@ -505,15 +505,15 @@ class Kernel:
         )
         self.autodiff_mode = autodiff_mode
         self.grad: "Kernel | None" = None
-        self.arguments: list[ArgMetadata] = []
+        self.arg_metas: list[ArgMetadata] = []
         self.return_type = None
         self.classkernel = _classkernel
         self.extract_arguments()
         self.template_slot_locations = []
-        for i, arg in enumerate(self.arguments):
+        for i, arg in enumerate(self.arg_metas):
             if arg.annotation == template or isinstance(arg.annotation, template):
                 self.template_slot_locations.append(i)
-        self.mapper = TemplateMapper(self.arguments, self.template_slot_locations)
+        self.mapper = TemplateMapper(self.arg_metas, self.template_slot_locations)
         impl.get_runtime().kernels.append(self)
         self.reset()
         self.kernel_cpp = None
@@ -610,7 +610,7 @@ class Kernel:
                     pass
                 else:
                     raise TaichiSyntaxError(f"Invalid type annotation (argument {i}) of Taichi kernel: {annotation}")
-            self.arguments.append(ArgMetadata(annotation, param.name, param.default))
+            self.arg_metas.append(ArgMetadata(annotation, param.name, param.default))
 
     def materialize(self, key, args: tuple[Any, ...], arg_features=None):
         if key is None:
@@ -702,7 +702,7 @@ class Kernel:
         self.compiled_kernels[key] = taichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
-        assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
+        assert len(args) == len(self.arg_metas), f"{len(self.arg_metas)} arguments needed but {len(args)} provided"
 
         tmps = []
         callbacks = []
@@ -985,7 +985,7 @@ class Kernel:
         template_num = 0
         i_out = 0
         for i_in, val in enumerate(args):
-            needed_ = self.arguments[i_in].annotation
+            needed_ = self.arg_metas[i_in].annotation
             if needed_ == template or isinstance(needed_, template):
                 template_num += 1
                 i_out += 1
@@ -1053,7 +1053,7 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
-        args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
+        args = _process_args(self, is_func=False, py_args=args, py_kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
         # then recover to primal when exiting the forward mode manager
@@ -1154,13 +1154,12 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
 
         @functools.wraps(_func)
         def wrapped_func(*args, **kwargs):
-            # try:
-            return primal(*args, **kwargs)
-
-        # except (TaichiCompilationError, TaichiRuntimeError) as e:
-        #     if impl.get_runtime().print_full_traceback:
-        #         raise e
-        #     raise type(e)("\n" + str(e)) from None
+            try:
+                return primal(*args, **kwargs)
+            except (TaichiCompilationError, TaichiRuntimeError) as e:
+                if impl.get_runtime().print_full_traceback:
+                    raise e
+                raise type(e)("\n" + str(e)) from None
 
         wrapped = TaichiCallable(
             _func,
