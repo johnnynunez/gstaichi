@@ -1369,10 +1369,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
             assert not hasattr(clsobj, "_data_oriented")
             raise TaichiSyntaxError(f"Please decorate class {clsobj.__name__} with @ti.data_oriented")
 
-        wrapped = TaichiCallable(
-            _func,
-            wrapped_classkernel,
-        )
+        wrapped = TaichiCallable(_func, wrapped_classkernel)
     else:
 
         @functools.wraps(_func)
@@ -1384,10 +1381,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
                     raise e
                 raise type(e)("\n" + str(e)) from None
 
-        wrapped = TaichiCallable(
-            _func,
-            wrapped_func,
-        )
+        wrapped = TaichiCallable(_func, wrapped_func)
         wrapped.grad = adjoint
 
     wrapped._is_wrapped_kernel = True
