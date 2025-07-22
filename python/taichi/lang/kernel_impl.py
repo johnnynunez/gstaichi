@@ -112,7 +112,7 @@ class BoundFunc:
     - later on, when we cann self.add2numbers_py, here:
 
             a, add_py, add_func = ti.static(self.a, self.add2numbers_py, self.add2numbers_func)
-    
+
       ... we want to call the bound method, `self.add2numbers_py`.
     - an actual function reference, created by doing somevar = MyClass.add2numbers, can automatically
       binds to self under, when called from self in this way (remember that add2numbers_py is actually
@@ -122,7 +122,7 @@ class BoundFunc:
     - the wrapped function, wrapped in a class, will NOT automatically bind
     - what happens then, is that later when we call the wrapped function, which is unbound, `self`
       is not automatically passed in, as an argument, and things break
-    
+
     To address this we need to use the `__get__` method, in our function wrapper, ie TaichiCallable,
     and have the `__get__` method return this `BoundFunc` object. The `__get__` method handles
     running the binding for use, and effectively binds `BoundFunc` object to `self` object, by passing
@@ -131,6 +131,7 @@ class BoundFunc:
     `BoundFunc` can then be used as a normal bound func - even though it's just an object instance -
     using its `__call__` method.
     """
+
     def __init__(self, fn: Callable, instance: Any, taichi_callable: "TaichiCallable"):
         self.fn = fn
         self.instance = instance
@@ -154,6 +155,7 @@ class TaichiCallable:
     """
     See docstring for `BoundFunc` for what this is being used for.
     """
+
     def __init__(self, fn: Callable, wrapper: Callable) -> None:
         # self.func: Func | None = None
         self.fn = fn
@@ -203,7 +205,7 @@ def func(fn: Callable, is_real_function: bool = False) -> TaichiCallable:
     is_classfunc = _inside_class(level_of_class_stackframe=3 + is_real_function)
 
     fun = Func(fn, _classfunc=is_classfunc, is_real_function=is_real_function)
-    taichi_callable = TaichiCallable(fn,fun)
+    taichi_callable = TaichiCallable(fn, fun)
     taichi_callable._is_taichi_function = True
     taichi_callable._is_real_function = is_real_function
     return taichi_callable
