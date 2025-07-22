@@ -342,22 +342,7 @@ class Func:
         )
 
         struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
-        # asdasdf
-        # assert ctx.func is not None
-        # sig = inspect.signature(ctx.func.func)
-        # parameters = sig.parameters
-        # print("calculating struct locals")
-        # for param_name, parameter in parameters.items():
-        #     print('param_name', param_name, "parameter.annotation", parameter.annotation)
-        #     if dataclasses.is_dataclass(parameter.annotation):
-        #         print("found dataclass")
-        #         for field in dataclasses.fields(parameter.annotation):
-        #             field_name = field.name
-        #             child_name = f"__ti_{param_name}_{field_name}"
-        #             print("child_name", child_name)
-        #             struct_locals.add(child_name)
         print("struct_locals", struct_locals)
-        # print("ctx.func.func", ctx.func.func)
 
         tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
         ret = transform_tree(tree, ctx)
@@ -550,13 +535,11 @@ class Kernel:
 
     def expand_dataclasses(self, params: dict[str, Any]) -> dict[str, Any]:
         print("Kernel.expand_dataclasses params=", params)
-        # print("params", params)
         new_params = {}
         arg_names = params.keys()
         for i, arg_name in enumerate(arg_names):
             param = params[arg_name]
             annotation = param.annotation
-            # print("annotation", annotation)
             if isinstance(annotation, type) and hasattr(annotation, "__dataclass_fields__"):
                 print("  is dataclass")
                 for field in dataclasses.fields(annotation):
@@ -572,11 +555,9 @@ class Kernel:
                     print("    ", field_name, "=", str(new_param)[:50])
             else:
                 new_params[arg_name] = param
-        # print("new_params", new_params)
         return new_params
 
     def extract_arguments(self) -> None:
-        # print("Kernel.extract_arguments()")
         sig = inspect.signature(self.func)
         if sig.return_annotation not in (inspect._empty, None):
             self.return_type = sig.return_annotation
@@ -591,9 +572,6 @@ class Kernel:
                 if return_type is Ellipsis:
                     raise TaichiSyntaxError("Ellipsis is not supported in return type annotations")
         params = dict(sig.parameters)
-        # orig_len = len(params)
-        # params = self.expand_dataclasses(params)
-        # is_dataclass = len(params) != orig_len
         arg_names = params.keys()
         for i, arg_name in enumerate(arg_names):
             param = params[arg_name]
@@ -608,7 +586,6 @@ class Kernel:
             if param.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 raise TaichiSyntaxError('Taichi kernels only support "positional or keyword" parameters')
             annotation = param.annotation
-            # print("annotation", annotation)
             if param.annotation is inspect.Parameter.empty:
                 if i == 0 and self.classkernel:  # The |self| parameter
                     annotation = template()
