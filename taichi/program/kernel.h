@@ -9,6 +9,7 @@
 #include "taichi/program/texture.h"
 #include "taichi/aot/graph_data.h"
 #include "taichi/program/launch_context_builder.h"
+#include "taichi/codegen/compiled_kernel_data.h"
 
 namespace taichi::lang {
 
@@ -19,6 +20,8 @@ class TI_DLL_EXPORT Kernel : public Callable {
   std::vector<SNode *> no_activate;
 
   bool is_accessor{false};
+
+  std::unique_ptr<CompiledKernelData> compiled_kernel_data{nullptr};
 
   Kernel(Program &program,
          const std::function<void()> &func,

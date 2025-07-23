@@ -66,8 +66,12 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
+from taichi.lang.fast_caching.fast_cacher import FastCacher
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
+
+
+fast_cacher = FastCacher()
 
 
 class BoundFunc:
@@ -799,12 +803,27 @@ class Kernel:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
     def materialize(self, key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
+        start = time.time()
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
 
+        self.fast_checksum = fast_cacher.walk_functions(self.func)
+        if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
+            print('fast_checksum', self.fast_checksum)
+            print(self.func.__name__)
+            print('elapsed', time.time() - start)
+            print("key", key)
+            # return
+
         if key in self.compiled_kernels:
             return
+
+        prog = impl.get_runtime().prog
+        compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
+        print("compiled_kernel_data", compiled_kernel_data)
+        if compiled_kernel_data:
+            ...
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         _logging.trace(f"Compiling kernel {kernel_name} in {self.autodiff_mode}...")
@@ -882,7 +901,8 @@ class Kernel:
                 self.runtime._current_kernel = None
                 self.runtime.compiling_callable = None
 
-        taichi_kernel = impl.get_runtime().prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
+        print("prog.create_kernel")
+        taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
 
@@ -1179,8 +1199,11 @@ class Kernel:
 
         try:
             prog = impl.get_runtime().prog
+            print("prog.compile_kernel")
             # Compile kernel (& Online Cache & Offline Cache)
             compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
+            prog.store_fast_cache(self.fast_checksum, self.kernel_cpp, prog.config(), prog.get_device_caps(), compiled_kernel_data)
+            prog.dump_cache_data_to_disk()
             # Launch kernel
             prog.launch_kernel(compiled_kernel_data, launch_ctx)
         except Exception as e:
