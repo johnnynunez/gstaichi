@@ -72,15 +72,21 @@ from taichi.types.utils import is_signed
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
-class BoundFunc:
+class TaichiCallable:
     """
-    This class is used to enable wrapping a bindable function with a class.
+    BoundTaichiCallable is used to enable wrapping a bindable function with a class.
 
-    We have the following requirements:
-    - pass wrapped functions around
-    - assign attributes to these functions, such as `_if_real_function`, `_primal`, etc
-    - use strong typing, and type checkers, such as pyright/mypy
-    - the wrapped functions should be able to be used with class instances
+    Design requirements for TaichiCallable:
+    - wrap/contain a reference to a class Func instance, and allow (the TaichiCallable) being passed around
+      like normal function pointer
+    - expose attributes of the wrapped class Func, such as `_if_real_function`, `_primal`, etc
+    - allow for (now limited) strong typing, and enable type checkers, such as pyright/mypy
+        - currently TaichiCallable is a shared type used for all functions marked with @ti.func, @ti.kernel,
+          python functions (?)
+        - note: current type-checking implementation does not distinguish between different type flavors of
+          TaichiCallable, with different values of `_if_real_function`, `_primal`, etc
+    - handle not only class-less functions, but also class-instance methods (where determining the `self`
+      reference is a challenge)
 
     Let's take the following example:
 
@@ -105,59 +111,41 @@ class BoundFunc:
 
     (taken from test_ptr_assign.py).
 
-    When @ti.func runs, the function `add2numbers_func` exists, but there is not yet any `self`
+    When the @ti.func decorator is parsed, the function `add2numbers_func` exists, but there is not yet any `self`
     - it is not possible for the method to be bound, to a `self` instance
-    - however, it is at this point that we create the wrapped function, via the @ti.func annotation,
-      which runs the `func` function
-    - later on, when we cann self.add2numbers_py, here:
+    - however, the @ti.func annotation, runs the kernel_imp.py::func function --- it is at this point
+      that Taichi's original code creates a class Func instance (that wraps the add2numbers_func)
+      and immediately we create a TaichiCallable instance that wraps the Func instance.
+    - effectively, we have two layers of wrapping TaichiCallable->Func->function pointer
+      (actual function definition)
+    - later on, when we call self.add2numbers_py, here:
 
             a, add_py, add_func = ti.static(self.a, self.add2numbers_py, self.add2numbers_func)
 
       ... we want to call the bound method, `self.add2numbers_py`.
-    - an actual function reference, created by doing somevar = MyClass.add2numbers, can automatically
-      binds to self under, when called from self in this way (remember that add2numbers_py is actually
-      the wrapped function, returned by the `func` function, run by `@ti.func`)
-    - however, in order to be able to add strongly typed attributes to the wrapped function, we need
-      to wrap the wrapped function in a class
-    - the wrapped function, wrapped in a class, will NOT automatically bind
-    - what happens then, is that later when we call the wrapped function, which is unbound, `self`
-      is not automatically passed in, as an argument, and things break
+    - an actual python function reference, created by doing somevar = MyClass.add2numbers, can automatically
+      binds to self, when called from self in this way (however, add2numbers_py is actually a class
+      Func instance, wrapping python function reference -- now also all wrapped by a TaichiCallable
+      instance -- returned by the kernel_impl.py::func function, run by @ti.func)
+    - however, in order to be able to add strongly typed attributes to the wrapped python function, we need
+      to wrap the wrapped python function in a class
+    - the wrapped python function, wrapped in a TaichiCallable class (which is callable, and will
+      execute the underlying double-wrapped python function), will NOT automatically bind
+    - when we invoke TaichiCallable, the wrapped function is invoked. The wrapped function is unbound, and
+      so `self` is not automatically passed in, as an argument, and things break
 
     To address this we need to use the `__get__` method, in our function wrapper, ie TaichiCallable,
-    and have the `__get__` method return this `BoundFunc` object. The `__get__` method handles
-    running the binding for use, and effectively binds `BoundFunc` object to `self` object, by passing
-    in the instance, as an argument into `__init__`.
+    and have the `__get__` method return the `BoundTaichiCallable` object. The `__get__` method handles
+    running the binding for us, and effectively binds `BoundFunc` object to `self` object, by passing
+    in the instance, as an argument into `BoundTaichiCallable.__init__`.
 
     `BoundFunc` can then be used as a normal bound func - even though it's just an object instance -
-    using its `__call__` method.
-    """
-
-    def __init__(self, fn: Callable, instance: Any, taichi_callable: "TaichiCallable"):
-        self.fn = fn
-        self.instance = instance
-        self.taichi_callable = taichi_callable
-
-    def __call__(self, *args, **kwargs):
-        return self.fn(self.instance, *args, **kwargs)
-
-    def __getattr__(self, k: str) -> Any:
-        res = getattr(self.taichi_callable, k)
-        return res
-
-    def __setattr__(self, k: str, v: Any) -> None:
-        if k in ("fn", "instance", "taichi_callable"):
-            object.__setattr__(self, k, v)
-        else:
-            setattr(self.taichi_callable, k, v)
-
-
-class TaichiCallable:
-    """
-    See docstring for `BoundFunc` for what this is being used for.
+    using its `__call__` method. Effectively, at the time of actually invoking the underlying python
+    function, we have 3 layers of wrapper instances:
+        BoundTaichiCallabe -> TaichiCallable -> Func -> python function reference/definition
     """
 
     def __init__(self, fn: Callable, wrapper: Callable) -> None:
-        # self.func: Func | None = None
         self.fn = fn
         self.wrapper = wrapper
         self._is_real_function = False
@@ -176,7 +164,27 @@ class TaichiCallable:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return BoundFunc(self.wrapper, instance, self)
+        return BoundTaichiCallable(instance, self)
+
+
+class BoundTaichiCallable:
+    def __init__(self, instance: Any, taichi_callable: "TaichiCallable"):
+        self.wrapper = taichi_callable.wrapper
+        self.instance = instance
+        self.taichi_callable = taichi_callable
+
+    def __call__(self, *args, **kwargs):
+        return self.wrapper(self.instance, *args, **kwargs)
+
+    def __getattr__(self, k: str) -> Any:
+        res = getattr(self.taichi_callable, k)
+        return res
+
+    def __setattr__(self, k: str, v: Any) -> None:
+        if k in ("fn", "instance", "taichi_callable"):
+            object.__setattr__(self, k, v)
+        else:
+            setattr(self.taichi_callable, k, v)
 
 
 def func(fn: Callable, is_real_function: bool = False) -> TaichiCallable:
@@ -1425,7 +1433,7 @@ def kernel(fn: Callable):
 
 
 class _BoundedDifferentiableMethod:
-    def __init__(self, kernel_owner: Any, wrapped_kernel_func: TaichiCallable | BoundFunc):
+    def __init__(self, kernel_owner: Any, wrapped_kernel_func: TaichiCallable | BoundTaichiCallable):
         clsobj = type(kernel_owner)
         if not getattr(clsobj, "_data_oriented", False):
             raise TaichiSyntaxError(f"Please decorate class {clsobj.__name__} with @ti.data_oriented")
@@ -1495,7 +1503,7 @@ def data_oriented(cls):
                 wrapped = x.__func__
             else:
                 wrapped = x
-            assert isinstance(wrapped, (BoundFunc, TaichiCallable))
+            assert isinstance(wrapped, (BoundTaichiCallable, TaichiCallable))
             wrapped._is_staticmethod = is_staticmethod
             if wrapped._is_classkernel:
                 ret = _BoundedDifferentiableMethod(self, wrapped)
