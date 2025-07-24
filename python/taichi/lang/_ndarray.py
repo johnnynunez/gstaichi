@@ -15,9 +15,7 @@ from taichi.types.utils import is_real, is_signed
 
 if TYPE_CHECKING:
     from taichi.lang.matrix import MatrixNdarray, VectorNdarray
-
-
-TensorNdarray = Union["ScalarNdarray", VectorNdarray, MatrixNdarray]
+    TensorNdarray = Union["ScalarNdarray", VectorNdarray, MatrixNdarray]
 
 
 class Ndarray:
