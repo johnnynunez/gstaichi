@@ -181,7 +181,8 @@ class BoundTaichiCallable:
         return res
 
     def __setattr__(self, k: str, v: Any) -> None:
-        if k in ("fn", "instance", "taichi_callable"):
+        # Note: these have to match the name of any attributes on this class.
+        if k in ("wrapper", "instance", "taichi_callable"):
             object.__setattr__(self, k, v)
         else:
             setattr(self.taichi_callable, k, v)
