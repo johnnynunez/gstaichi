@@ -479,6 +479,13 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_slot_locations</span><span class="p">:</span>
             <span class="n">template_var_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
             <span class="n">global_vars</span><span class="p">[</span><span class="n">template_var_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">for</span> <span class="n">arg_i</span><span class="p">,</span> <span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">annotation</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">member_field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">annotation</span><span class="p">):</span>
+                    <span class="n">child_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">arg_i</span><span class="p">],</span> <span class="n">member_field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">flat_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;__ti_</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">member_field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">global_vars</span><span class="p">[</span><span class="n">flat_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_value</span>
 
     <span class="k">return</span> <span class="n">tree</span><span class="p">,</span> <span class="n">ASTTransformerContext</span><span class="p">(</span>
         <span class="n">excluded_parameters</span><span class="o">=</span><span class="n">excluded_parameters</span><span class="p">,</span>
@@ -571,11 +578,11 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">extract_struct_locals_from_context</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Uses ctx.func.func to get the function signature</span>
-<span class="sd">    Searches this for any dataclasses</span>
-<span class="sd">    - if it finds any dataclasses, then converts them into expanded names</span>
-<span class="sd">    - e.g. my_struct: MyStruct, and MyStruct contains a, b, c would become:</span>
-<span class="sd">        {&quot;__ti_my_struct_a&quot;, &quot;__ti_my_struct_b, &quot;__ti_my_struct_c&quot;}</span>
+<span class="sd">    - Uses ctx.func.func to get the function signature.</span>
+<span class="sd">    - Searches this for any dataclasses:</span>
+<span class="sd">      - If it finds any dataclasses, then converts them into expanded names.</span>
+<span class="sd">      - E.g. my_struct: MyStruct, and MyStruct contains a, b, c would become:</span>
+<span class="sd">          {&quot;__ti_my_struct_a&quot;, &quot;__ti_my_struct_b, &quot;__ti_my_struct_c&quot;}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
@@ -1188,6 +1195,7 @@
                 <span class="n">element_dim</span> <span class="o">=</span> <span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">ndim</span>
                 <span class="n">array_shape</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">element_dim</span><span class="p">:]</span> <span class="k">if</span> <span class="n">is_soa</span> <span class="k">else</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="n">element_dim</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="c1"># numpy</span>
                 <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">c_contiguous</span><span class="p">:</span>
                     <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_external_array_with_shape</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">nbytes</span><span class="p">,</span> <span class="n">array_shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">v</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">f_contiguous</span><span class="p">:</span>
@@ -1258,9 +1266,7 @@
                         <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">())</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">has_paddle</span><span class="p">():</span>
                 <span class="kn">import</span><span class="w"> </span><span class="nn">paddle</span>  <span class="c1"># pylint: disable=C0415  # type: ignore</span>
 
@@ -1293,26 +1299,22 @@
                         <span class="n">indices</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">_ptr</span><span class="p">()),</span> <span class="n">v</span><span class="o">.</span><span class="n">element_size</span><span class="p">()</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">array_shape</span><span class="p">,</span> <span class="mi">0</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_matrix</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">needed</span><span class="p">):</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">cast_float</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
                 <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">cast_int</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
@@ -1338,6 +1340,12 @@
         <span class="n">set_later_list</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">recursive_set_args</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">provided_arg_type</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Returns the number of kernel args set</span>
+<span class="sd">            e.g. templates don&#39;t set kernel args, so returns 0</span>
+<span class="sd">            a single ndarray is 1 kernel arg, so returns 1</span>
+<span class="sd">            a struct of 3 ndarrays would set 3 kernel args, so return 3</span>
+<span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">in_argpack</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
             <span class="k">nonlocal</span> <span class="n">actual_argument_slot</span><span class="p">,</span> <span class="n">exceed_max_arg_num</span><span class="p">,</span> <span class="n">set_later_list</span>
             <span class="k">if</span> <span class="n">actual_argument_slot</span> <span class="o">&gt;=</span> <span class="n">max_arg_num</span><span class="p">:</span>
@@ -1378,11 +1386,12 @@
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">):</span>
                 <span class="k">assert</span> <span class="n">provided_arg_type</span> <span class="o">==</span> <span class="n">needed_arg_type</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">)):</span>
                     <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
                     <span class="n">field_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                    <span class="n">recursive_set_args</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field_value</span><span class="p">,</span> <span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">j</span><span class="p">,))</span>
-                <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">))</span>
+                    <span class="n">idx</span> <span class="o">+=</span> <span class="n">recursive_set_args</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field_value</span><span class="p">,</span> <span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">idx</span><span class="p">,))</span>
+                <span class="k">return</span> <span class="n">idx</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_ndarray</span><span class="o">.</span><span class="n">Ndarray</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
                     <span class="n">set_later_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">set_arg_ndarray</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,)))</span>
@@ -1421,6 +1430,8 @@
                     <span class="p">)</span>
                 <span class="n">needed_arg_type</span><span class="o">.</span><span class="n">set_kernel_struct_args</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">launch_ctx</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">needed_arg_type</span> <span class="o">==</span> <span class="n">template</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
+                <span class="k">return</span> <span class="mi">0</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument type mismatch. Expecting </span><span class="si">{</span><span class="n">needed_arg_type</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
         <span class="n">template_num</span> <span class="o">=</span> <span class="mi">0</span>
