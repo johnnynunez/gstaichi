@@ -1,6 +1,6 @@
 # type: ignore
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -15,6 +15,8 @@ from taichi.types.utils import is_real, is_signed
 
 if TYPE_CHECKING:
     from taichi.lang.matrix import MatrixNdarray, VectorNdarray
+
+    TensorNdarray = Union["ScalarNdarray", VectorNdarray, MatrixNdarray]
 
 
 class Ndarray:
@@ -32,7 +34,7 @@ class Ndarray:
         self.dtype = None
         self.arr = None
         self.layout = Layout.AOS
-        self.grad: "ScalarNdarray" | "VectorNdarray" | "MatrixNdarray" | None = None
+        self.grad: "TensorNdarray | None" = None
 
     def get_type(self):
         return NdarrayTypeMetadata(self.element_type, self.shape, self.grad is not None)
