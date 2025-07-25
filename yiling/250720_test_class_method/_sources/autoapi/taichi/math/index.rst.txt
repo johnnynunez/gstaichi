@@ -1,0 +1,22 @@
+taichi.math
+===========
+
+.. py:module:: taichi.math
+
+.. autoapi-nested-parse::
+
+   Taichi math module.
+
+   The math module supports glsl-style vectors, matrices and functions.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/taichi/math/mathimpl/index
+
+
