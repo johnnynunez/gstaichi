@@ -1,0 +1,6 @@
+taichi.sparse
+=============
+
+.. py:module:: taichi.sparse
+
+
