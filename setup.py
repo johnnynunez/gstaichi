@@ -50,8 +50,8 @@ print(packages)
 package_dir = "python"
 
 def get_version():
-    from setuptools_scm import get_version as scm_get_version
     try:
+        from setuptools_scm import get_version as scm_get_version
         version = scm_get_version()
         # Parse version string (e.g., "1.2.3" or "1.2.3.dev0+g1234567")
         version_parts = version.split("+")[0].split(".dev")[0].split(".")
