@@ -18,6 +18,7 @@ from distutils.dir_util import remove_tree
 
 from setuptools import find_packages
 from setuptools.command.develop import develop
+from setuptools_scm import get_version
 from skbuild import setup
 from skbuild.command.egg_info import egg_info
 from wheel.bdist_wheel import bdist_wheel
@@ -32,27 +33,14 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 
-def get_version():
-    if os.getenv("RELEASE_VERSION"):
-        version = os.environ["RELEASE_VERSION"]
-    else:
-        version_file = os.path.join(os.path.dirname(__file__), "version.txt")
-        with open(version_file, "r") as f:
-            version = f.read().strip()
-    return version.lstrip("v")
-
-
 project_name = os.getenv("PROJECT_NAME", "taichi")
-version = get_version()
-TI_VERSION_MAJOR, TI_VERSION_MINOR, TI_VERSION_PATCH = version.split(".")
 
 data_files = glob.glob("python/_lib/runtime/*")
 print(data_files)
@@ -61,6 +49,16 @@ print(packages)
 
 # Our python package root dir is python/
 package_dir = "python"
+
+try:
+    version = get_version()
+    # Parse version string (e.g., "1.2.3" or "1.2.3.dev0+g1234567")
+    version_parts = version.split("+")[0].split(".dev")[0].split(".")
+    major = version_parts[0] if len(version_parts) > 0 else "0"
+    minor = version_parts[1] if len(version_parts) > 1 else "0"
+    patch = version_parts[2] if len(version_parts) > 2 else "0"
+except Exception:
+    major, minor, patch = "0", "0", "0"
 
 
 def remove_tmp(taichi_dir):
@@ -204,9 +202,9 @@ def get_cmake_args():
     sys.argv[2:2] = build_options
 
     cmake_args += [
-        f"-DTI_VERSION_MAJOR={TI_VERSION_MAJOR}",
-        f"-DTI_VERSION_MINOR={TI_VERSION_MINOR}",
-        f"-DTI_VERSION_PATCH={TI_VERSION_PATCH}",
+        f"-DTI_VERSION_MAJOR={major}",
+        f"-DTI_VERSION_MINOR={minor}",
+        f"-DTI_VERSION_PATCH={patch}",
     ]
 
     if sys.platform == "darwin" and use_xcode:
@@ -277,12 +275,15 @@ setup(
     name=project_name,
     packages=packages,
     package_dir={"": package_dir},
-    version=version,
     description="The Taichi Programming Language",
     author="Taichi developers",
-    author_email="yuanmhu@gmail.com",
-    url="https://github.com/taichi-dev/taichi",
+    url="https://github.com/Genesis-Embedded-AI/taichi",
     python_requires=">=3.10,<4.0",
+    setup_requires=["setuptools_scm>=6.0"],
+    use_scm_version={
+        "write_to": "hugh_test_github_actions/_version.py",
+        "write_to_template": "__version__ = '{version}'\n",
+    },
     install_requires=[
         "numpy",
         "colorama",

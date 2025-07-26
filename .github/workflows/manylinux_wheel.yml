@@ -7,6 +7,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  release:
+    types: [created]
 permissions:
   contents: write
 jobs:
@@ -120,6 +122,41 @@ jobs:
       - name: manylinux test
         run: |
           bash .github/workflows/scripts_new/manylinux_wheel/5_test.sh
+  publish_pypi:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'release' && github.event.action == 'created'
+    needs: test_wheel
+    environment: publish_pypi
+    permissions:
+      id-token: write
+      contents: read
+    concurrency:
+      # group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        include:
+          - PYTHON_CP_VERSION: 'cp310'
+            PYTHON_VERSION: '3.10'
+          # - PYTHON_CP_VERSION: 'cp311'
+          #   PYTHON_VERSION: '3.11'
+          # - PYTHON_CP_VERSION: 'cp312'
+          #   PYTHON_VERSION: '3.12'
+          # - PYTHON_CP_VERSION: 'cp313'
+          #   PYTHON_VERSION: '3.13'
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: manylinux_wheel_${{ matrix.PYTHON_CP_VERSION }}
+      - name: Publish pypi
+        run: |
+          set -x
+          pip install twine
+          twine check *.whl
+          twine upload --verbose --repository-url https://test.pypi.org/legacy/ *.whl
   api_docs:
     uses: ./.github/workflows/api_doc.yml
     needs: upload_to_storage
