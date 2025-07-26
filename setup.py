@@ -39,7 +39,7 @@ classifiers = [
 ]
 
 
-project_name = os.getenv("PROJECT_NAME", "taichi")
+project_name = os.getenv("PROJECT_NAME", "gstaichi")
 
 data_files = glob.glob("python/_lib/runtime/*")
 print(data_files)
