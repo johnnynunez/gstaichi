@@ -284,7 +284,7 @@ setup(
     python_requires=">=3.10,<4.0",
     setup_requires=["setuptools_scm>=6.0"],
     use_scm_version={
-        "write_to": "hugh_test_github_actions/_version.py",
+        "write_to": "python/taichi/_version.py",
         "write_to_template": "__version__ = '{version}'\n",
     },
     install_requires=[
