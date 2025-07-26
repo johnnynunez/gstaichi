@@ -14,11 +14,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # MAC_OS_VERSION: [15]
+        MAC_OS_VERSION: [15]
         # PYTHON_VERSION: ['3.10', '3.11', '3.12', '3.13']
-        include:
-          - MAC_OS_VERSION: 14
-            PYTHON_VERSION: '3.10'
+        PYTHON_VERSION: ['3.10']
+        # include:
+        #   - MAC_OS_VERSION: 14
+        #     PYTHON_VERSION: '3.10'
     name: Mac OS Build
     runs-on: macos-${{ matrix.MAC_OS_VERSION }}
     steps:
@@ -57,11 +58,12 @@ jobs:
     environment: aws_storage
     strategy:
       matrix:
-        # MAC_OS_VERSION: [15]
+        MAC_OS_VERSION: [15]
         # PYTHON_CP_VERSION: [cp310, cp311, cp312, cp313]
-        include:
-          - MAC_OS_VERSION: 14
-            PYTHON_CP_VERSION: cp310
+        PYTHON_CP_VERSION: [cp310]
+        # include:
+        #   - MAC_OS_VERSION: 14
+        #     PYTHON_CP_VERSION: cp310
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -95,21 +97,15 @@ jobs:
       cancel-in-progress: true
     strategy:
       matrix:
-        include:
-          - PYTHON_CP_VERSION: 'cp310'
-            PYTHON_VERSION: '3.10'
-          # - PYTHON_CP_VERSION: 'cp311'
-          #   PYTHON_VERSION: '3.11'
-          # - PYTHON_CP_VERSION: 'cp312'
-          #   PYTHON_VERSION: '3.12'
-          # - PYTHON_CP_VERSION: 'cp313'
-          #   PYTHON_VERSION: '3.13'
+        MAC_OS_VERSION: [15]
+        # PYTHON_CP_VERSION: [cp310, cp311, cp312, cp313]
+        PYTHON_CP_VERSION: [cp310]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: mac_wheel_${{ matrix.PYTHON_CP_VERSION }}
+          name: mac_wheel_${{ matrix.MAC_OS_VERSION }}_${{ matrix.PYTHON_CP_VERSION }}
       - name: Publish pypi
         run: |
           set -x
