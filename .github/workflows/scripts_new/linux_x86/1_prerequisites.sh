@@ -40,4 +40,4 @@ sudo apt install -y \
     python3-dev \
     python3-pip
 
-pip3 install scikit-build
+pip3 install scikit-build setuptools_scm

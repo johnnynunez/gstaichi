@@ -29,6 +29,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: manylinux wheel prerequisites
         run: |
+          export PATH=/opt/python/${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION }}/bin:$PATH
+          python -V
           bash .github/workflows/scripts_new/manylinux_wheel/1_prerequisites.sh
       - name: manylinux wheel build
         run: |

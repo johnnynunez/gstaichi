@@ -22,6 +22,6 @@ uname -a
 clang --version
 ls -la
 python -V
-pip3.10 install scikit-build
+pip3.10 install scikit-build setuptools_scm
 pip3.10 install numpy
 brew install llvm@15
