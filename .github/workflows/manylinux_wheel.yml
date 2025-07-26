@@ -156,7 +156,7 @@ jobs:
       - name: Publish pypi
         run: |
           set -x
-          pip install twine
+          pip install -U pip setuptools twine
           twine check *.whl
           twine upload --verbose --repository-url https://test.pypi.org/legacy/ *.whl
   api_docs:
