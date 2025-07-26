@@ -316,6 +316,7 @@ setup(
     },
     keywords=["graphics", "simulation"],
     license="Apache Software License (http://www.apache.org/licenses/LICENSE-2.0)",
+    license_files=("LICENSE",),
     include_package_data=True,
     entry_points={
         "console_scripts": [
