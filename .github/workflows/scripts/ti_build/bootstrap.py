@@ -247,7 +247,7 @@ def early_init():
     This must be called before any other non-stdlib imports.
     """
     detect_crippled_python()
-    ensure_dependencies("tqdm", "requests", "mslex", "psutil>=5.9.5")
+    ensure_dependencies("tqdm", "requests", "mslex", "psutil>=5.9.5", "setuptools_scm>=6.0")
     chdir_to_root()
     monkey_patch_environ()
 
