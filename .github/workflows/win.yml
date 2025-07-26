@@ -109,9 +109,9 @@ jobs:
         id: set_cp_version
         run: |
           pip install packaging
-          $cp = python -c "from packaging import tags; print(next(tags.sys_tags()).interpreter)"
-          echo "PYTHON_CP_VERSION=$cp"
-          echo "PYTHON_CP_VERSION=$cp" >> $env:GITHUB_OUTPUT
+          cp=$(python -c "from packaging import tags; print(next(tags.sys_tags()).interpreter)")
+          echo "PYTHON_CP_VERSION=${cp}"
+          echo "PYTHON_CP_VERSION=${cp}" >> $GITHUB_OUTPUT
       - uses: actions/download-artifact@v4
         with:
           name: win_wheel_${{ steps.set_cp_version.outputs.PYTHON_CP_VERSION }}
