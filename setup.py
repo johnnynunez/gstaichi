@@ -291,6 +291,7 @@ setup(
         "rich",
         "setuptools>=68.0.0",  # Required for Python 3.12+ compatibility
         "cffi>=1.16.0",
+        "setuptools_scm>=6.0",
     ],
     extras_require={
         "docs": [
