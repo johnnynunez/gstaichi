@@ -18,7 +18,6 @@ from distutils.dir_util import remove_tree
 
 from setuptools import find_packages
 from setuptools.command.develop import develop
-from setuptools_scm import get_version
 from skbuild import setup
 from skbuild.command.egg_info import egg_info
 from wheel.bdist_wheel import bdist_wheel
@@ -50,15 +49,18 @@ print(packages)
 # Our python package root dir is python/
 package_dir = "python"
 
-try:
-    version = get_version()
-    # Parse version string (e.g., "1.2.3" or "1.2.3.dev0+g1234567")
-    version_parts = version.split("+")[0].split(".dev")[0].split(".")
-    major = version_parts[0] if len(version_parts) > 0 else "0"
-    minor = version_parts[1] if len(version_parts) > 1 else "0"
-    patch = version_parts[2] if len(version_parts) > 2 else "0"
-except Exception:
-    major, minor, patch = "0", "0", "0"
+def get_version():
+    from setuptools_scm import get_version as scm_get_version
+    try:
+        version = scm_get_version()
+        # Parse version string (e.g., "1.2.3" or "1.2.3.dev0+g1234567")
+        version_parts = version.split("+")[0].split(".dev")[0].split(".")
+        major = version_parts[0] if len(version_parts) > 0 else "0"
+        minor = version_parts[1] if len(version_parts) > 1 else "0"
+        patch = version_parts[2] if len(version_parts) > 2 else "0"
+    except Exception:
+        major, minor, patch = "0", "0", "0"
+    return major, minor, patch
 
 
 def remove_tmp(taichi_dir):
@@ -201,6 +203,7 @@ def get_cmake_args():
             build_options.extend(["-G", "Xcode", "--skip-generator-test"])
     sys.argv[2:2] = build_options
 
+    major, minor, patch = get_version()
     cmake_args += [
         f"-DTI_VERSION_MAJOR={major}",
         f"-DTI_VERSION_MINOR={minor}",
@@ -291,7 +294,6 @@ setup(
         "rich",
         "setuptools>=68.0.0",  # Required for Python 3.12+ compatibility
         "cffi>=1.16.0",
-        "setuptools_scm>=6.0",
     ],
     extras_require={
         "docs": [
