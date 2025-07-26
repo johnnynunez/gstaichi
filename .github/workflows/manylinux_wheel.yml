@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-22.04
     container: quay.io/pypa/manylinux_2_28_x86_64:latest
     concurrency:
-      # group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-build
-      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-build
-      cancel-in-progress: true
+      # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-build
+      group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-build
+      cancel-in-progress: ${{ github.event_name != 'release' }}
     strategy:
       matrix:
         # PYTHON_CP_VERSION: ['cp310', 'cp311', 'cp312', 'cp313']
@@ -51,9 +51,9 @@ jobs:
     needs: build_wheel
     environment: aws_storage
     concurrency:
-      # group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-upload
-      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-upload
-      cancel-in-progress: true
+      # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-upload
+      group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-upload
+      cancel-in-progress: ${{ github.event_name != 'release' }}
     strategy:
       matrix:
         # PYTHON_CP_VERSION: ['cp310', 'cp311', 'cp312', 'cp313']
@@ -83,9 +83,9 @@ jobs:
     needs: upload_to_storage
     environment: aws_storage
     concurrency:
-      # group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
-      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
-      cancel-in-progress: true
+      # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
+      group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
+      cancel-in-progress: ${{ github.event_name != 'release' }}
     strategy:
       matrix:
         include:
@@ -131,9 +131,9 @@ jobs:
       id-token: write
       contents: read
     concurrency:
-      # group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
-      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
-      cancel-in-progress: true
+      # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
+      group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
+      cancel-in-progress: ${{ github.event_name != 'release' }}
     strategy:
       matrix:
         include:

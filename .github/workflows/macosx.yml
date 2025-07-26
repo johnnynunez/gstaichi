@@ -7,8 +7,8 @@ on:
   release:
     types: [created]
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'release' }}
 jobs:
   build_mac_14_15:
     strategy:
