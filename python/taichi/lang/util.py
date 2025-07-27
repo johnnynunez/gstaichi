@@ -344,6 +344,7 @@ def taichi_scope(func):
         assert in_taichi_scope(), f"{func.__name__} cannot be called in Python-scope"
         return func(*args, **kwargs)
 
+    wrapped._is_in_taichi_scope = True
     return wrapped
 
 

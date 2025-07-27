@@ -167,6 +167,23 @@ TypeFactory &Program::get_type_factory() {
   return TypeFactory::get_instance();
 }
 
+void Program::store_fast_cache(const std::string &checksum,
+  const Kernel &kernel,
+    const CompileConfig &compile_config,
+    const DeviceCapabilityConfig &caps,
+                     CompiledKernelData &ckd) {
+  auto &mgr = program_impl_->get_kernel_compilation_manager();
+  mgr.store_fast_cache(checksum, kernel, compile_config, caps, ckd);
+}
+
+CompiledKernelData &Program::load_fast_cache(
+      const std::string &checksum,
+      const CompileConfig &compile_config,
+      const DeviceCapabilityConfig &caps) {
+  auto &mgr = program_impl_->get_kernel_compilation_manager();
+  return mgr.load_fast_cache(checksum, compile_config, caps);
+}
+
 Function *Program::create_function(const FunctionKey &func_key) {
   TI_TRACE("Creating function {}...", func_key.get_full_name());
   functions_.emplace_back(std::make_unique<Function>(this, func_key));
@@ -178,10 +195,12 @@ Function *Program::create_function(const FunctionKey &func_key) {
 const CompiledKernelData &Program::compile_kernel(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
-    const Kernel &kernel_def) {
+    Kernel &kernel_def) {
   auto start_t = Time::get_time();
   TI_AUTO_PROF;
   auto &mgr = program_impl_->get_kernel_compilation_manager();
+  std::cout << "check load or compile kernel "
+            << kernel_def.get_name() << "..." << std::endl;
   const auto &ckd = mgr.load_or_compile(compile_config, caps, kernel_def);
   total_compilation_time_ += Time::get_time() - start_t;
   return ckd;
@@ -329,6 +348,10 @@ Kernel &Program::get_snode_writer(SNode *snode) {
 
 uint64 Program::fetch_result_uint64(int i) {
   return program_impl_->fetch_result_uint64(i, result_buffer);
+}
+
+void Program::dump_cache_data_to_disk() {
+  program_impl_->dump_cache_data_to_disk();
 }
 
 void Program::finalize() {

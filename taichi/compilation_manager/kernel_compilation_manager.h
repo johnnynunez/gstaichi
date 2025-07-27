@@ -61,7 +61,7 @@ class KernelCompilationManager final {
   // Load from memory || Load from disk || (Compile && Cache in memory)
   const CompiledKernelData &load_or_compile(const CompileConfig &compile_config,
                                             const DeviceCapabilityConfig &caps,
-                                            const Kernel &kernel_def);
+                                            Kernel &kernel_def);
 
   // Dump the cached data in memory to disk
   void dump();
@@ -71,20 +71,32 @@ class KernelCompilationManager final {
                            int max_bytes,
                            double cleaning_factor) const;
 
+  void store_fast_cache(
+    const std::string &checksum,
+    const Kernel &kernel,
+    const CompileConfig &compile_config,
+    const DeviceCapabilityConfig &caps,
+    CompiledKernelData &ckd);
+
+    CompiledKernelData &load_fast_cache(
+      const std::string &checksum,
+      const CompileConfig &compile_config,
+      const DeviceCapabilityConfig &caps);
+
  private:
   std::string make_filename(const std::string &kernel_key) const;
 
   std::unique_ptr<CompiledKernelData> compile_kernel(
       const CompileConfig &compile_config,
       const DeviceCapabilityConfig &caps,
-      const Kernel &kernel_def) const;
+      Kernel &kernel_def) const;
 
   std::string make_kernel_key(const CompileConfig &compile_config,
                               const DeviceCapabilityConfig &caps,
                               const Kernel &kernel_def) const;
 
   const CompiledKernelData *try_load_cached_kernel(
-      const Kernel &kernel_def,
+      Kernel &kernel_def,
       const std::string &kernel_key,
       Arch arch,
       CacheData::CacheMode cache_mode);
@@ -93,7 +105,7 @@ class KernelCompilationManager final {
       const std::string &kernel_key,
       const CompileConfig &compile_config,
       const DeviceCapabilityConfig &caps,
-      const Kernel &kernel_def);
+      Kernel &kernel_def);
 
   std::unique_ptr<CompiledKernelData> load_ckd(const std::string &kernel_key,
                                                Arch arch);
