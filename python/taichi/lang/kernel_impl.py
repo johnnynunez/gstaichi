@@ -21,6 +21,7 @@ import taichi.lang
 import taichi.lang._ndarray
 import taichi.lang._texture
 from taichi.lang.ast.ast_transformer import ASTTransformer
+from taichi.lang.ast.function_def_transformer import FunctionDefTransformer
 import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
@@ -632,16 +633,17 @@ class Kernel:
             # return
 
         prog = impl.get_runtime().prog
+        self.compiled_kernel_data = None
         # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
         print("prog.config()", prog.config())
         print("prog.get_device_caps()", prog.get_device_caps())
-        self.compiled_kernel_data = prog.load_fast_cache(
-            self.fast_checksum,
-            self.func.__name__,
-            prog.config(),
-            prog.get_device_caps(),
-        )
-        print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
+        # self.compiled_kernel_data = prog.load_fast_cache(
+        #     self.fast_checksum,
+        #     self.func.__name__,
+        #     prog.config(),
+        #     prog.get_device_caps(),
+        # )
+        # print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
     #           const std::string &checksum,
     #   const std::string &kernel_name,
     #   const CompileConfig &compile_config,
@@ -719,23 +721,28 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
-                if False:
+                if True:
                     struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
                     tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
+                    ctx.only_parse_function_def = self.compiled_kernel_data is not None
                     transform_tree(tree, ctx)
                     if not ctx.is_real_function:
                         if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                             raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
                 else:
-                    class FunctionDefTransformer(ast.NodeTransformer):
+                    class FunctionDefWalker(ast.NodeTransformer):
                         def visit_FunctionDef(self, node: ast.FunctionDef):
                             print("got functiondef ", node.name)
-                            ast_transformer.build_FunctionDef(ctx, node)
+                            # ast_transformer.build_FunctionDef(ctx, node)
+                            # ast_transformer.
+                            function_def_transformer._transform_as_kernel(ctx, node, node.args)
                             return self.generic_visit(node)
 
                     ast_transformer = ASTTransformer()
                     function_def_transformer = FunctionDefTransformer()
-                    function_def_transformer.visit(tree)
+                    function_def_walker = FunctionDefWalker()
+                    function_def_walker.visit(tree)
+                    asdasdf
                     # ast.fix_missing_locations(new_tree)
             finally:
                 self.runtime.inside_kernel = False

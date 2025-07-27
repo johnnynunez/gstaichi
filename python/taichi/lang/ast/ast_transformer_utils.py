@@ -197,6 +197,8 @@ class ASTTransformerContext:
         self.is_real_function = is_real_function
         self.kernel_args: list = []
 
+        self.only_parse_function_def = False  # set to True when loading from fast cache
+
     # e.g.: FunctionDef, Module, Global
     def variable_scope_guard(self):
         return VariableScopeGuard(self.local_scopes)
