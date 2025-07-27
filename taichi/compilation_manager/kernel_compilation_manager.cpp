@@ -181,7 +181,7 @@ std::unique_ptr<CompiledKernelData> KernelCompilationManager::compile_kernel(
   auto ir = compiler.compile(compile_config, kernel_def);
   auto ckd = compiler.compile(compile_config, caps, kernel_def, *ir);
   TI_ASSERT(ckd->check() == CompiledKernelData::Err::kNoError);
-  kernel_def.compiled_kernel_data = ckd->clone();
+  // kernel_def.compiled_kernel_data = ckd->clone();
   return ckd;
 }
 

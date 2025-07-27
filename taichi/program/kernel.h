@@ -21,7 +21,7 @@ class TI_DLL_EXPORT Kernel : public Callable {
 
   bool is_accessor{false};
 
-  std::unique_ptr<CompiledKernelData> compiled_kernel_data{nullptr};
+  // std::unique_ptr<CompiledKernelData> compiled_kernel_data{nullptr};
 
   Kernel(Program &program,
          const std::function<void()> &func,

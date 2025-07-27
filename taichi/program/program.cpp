@@ -205,24 +205,24 @@ const CompiledKernelData &Program::compile_kernel(
   const auto &ckd = mgr.load_or_compile(compile_config, caps, kernel_def);
 
   
-  BinaryOutputSerializer os;
-  os.initialize();
-  os(kernel_def.arch);
-  // os(kernel_def.argpack_types);
-  os(kernel_def.args_size);
-  os(kernel_def.args_type);
-  os(kernel_def.autodiff_mode);
-  // os(kernel_def.compiled_kernel_data);
-  // os(kernel_def.context);
-  os(kernel_def.is_accessor);
-  os(kernel_def.name);
-  // os(kernel_def.nested_parameters);
-  os(kernel_def.parameter_list);
-  os(kernel_def.ret_size);
-  os(kernel_def.ret_type);
-  os(kernel_def.rets);
-  os.finalize();
-  std::cout << "serialized kernel args length " << os.data.size() << std::endl;
+  // BinaryOutputSerializer os;
+  // os.initialize();
+  // os(kernel_def.arch);
+  // // os(kernel_def.argpack_types);
+  // os(kernel_def.args_size);
+  // os(kernel_def.args_type);
+  // os(kernel_def.autodiff_mode);
+  // // os(kernel_def.compiled_kernel_data);
+  // // os(kernel_def.context);
+  // os(kernel_def.is_accessor);
+  // os(kernel_def.name);
+  // // os(kernel_def.nested_parameters);
+  // os(kernel_def.parameter_list);
+  // os(kernel_def.ret_size);
+  // os(kernel_def.ret_type);
+  // os(kernel_def.rets);
+  // os.finalize();
+  // std::cout << "serialized kernel args length " << os.data.size() << std::endl;
 
 
   total_compilation_time_ += Time::get_time() - start_t;
