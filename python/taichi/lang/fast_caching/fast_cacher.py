@@ -4,10 +4,19 @@ import importlib
 import inspect
 import re
 import time
-from typing import cast
+from typing import cast, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from taichi.lang.kernel_impl import TaichiCallable
 
 
 indent_re = re.compile(r"^ +")
+
+
+def pure(fn: "TaichiCallable") -> "TaichiCallable":
+    print('fn', fn, type(fn))
+    fn.is_pure = True
+    return fn
 
 
 class FastCacher:
@@ -88,9 +97,10 @@ class FastCacher:
                 # print("module_name", module_name, type(module_name))
                 # print("fn", fn.__dict__.keys(), type(fn), type(unwrap(fn)))
                 func_obj = None
-                if unwrap(fn).__closure__:
+                closure = unwrap(fn).__closure__
+                if closure:
                     freevars = unwrap(fn).__code__.co_freevars
-                    closure_values = [cell.cell_contents for cell in unwrap(fn).__closure__]
+                    closure_values = [cell.cell_contents for cell in closure]
                     closure_dict = dict(zip(freevars, closure_values))
                     if func_name in closure_dict:
                         func_obj = closure_dict[func_name]

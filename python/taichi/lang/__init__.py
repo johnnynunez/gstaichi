@@ -18,6 +18,7 @@ from taichi.lang.snode import *
 from taichi.lang.source_builder import *
 from taichi.lang.struct import *
 from taichi.types.enums import DeviceCapability, Format, Layout
+from taichi.lang.fast_caching.fast_cacher import pure
 
 __all__ = [
     s

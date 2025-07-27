@@ -107,6 +107,7 @@ class TaichiCallable:
         self._adjoint: Kernel | None = None
         self.grad: Kernel | None = None
         self._is_staticmethod = False
+        self.is_pure = False
         functools.update_wrapper(self, fn)
 
     def __call__(self, *args, **kwargs):
@@ -635,6 +636,7 @@ class Kernel:
         prog = impl.get_runtime().prog
         self.compiled_kernel_data = None
         # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
+        print("dir(self.func)", dir(self.func))
         if getattr(self, "enable_fast_cache", False):
             print("check fast cache")
             print("prog.config()", prog.config())
