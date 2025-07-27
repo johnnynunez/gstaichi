@@ -127,4 +127,4 @@ jobs:
           pip --version
           python -c 'import setuptools; print(setuptools.__version__)'
           twine check *.whl
-          twine upload --verbose --repository-url https://pypi.org/legacy/ *.whl
+          twine upload --verbose *.whl
