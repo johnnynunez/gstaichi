@@ -501,6 +501,7 @@ class Kernel:
     counter = 0
 
     def __init__(self, _func: Callable, autodiff_mode: AutodiffMode, _classkernel=False) -> None:
+        self.taichi_callable: TaichiCallable | None = None
         self.func = _func
         self.kernel_counter = Kernel.counter
         Kernel.counter += 1
@@ -625,19 +626,22 @@ class Kernel:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
 
-        self.fast_checksum = fast_cacher.walk_functions(self.func)
-        if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
-            print('fast_checksum', self.fast_checksum)
-            print(self.func.__name__)
-            print('elapsed', time.time() - start)
-            print("key", key)
-            # return
-
-        prog = impl.get_runtime().prog
         self.compiled_kernel_data = None
-        # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
-        print("dir(self.func)", dir(self.func))
-        if getattr(self, "enable_fast_cache", False):
+        self.fast_checksum = None
+        if self.taichi_callable and self.taichi_callable.is_pure:
+            print("pure function:", self.func.__name__)
+            self.fast_checksum = fast_cacher.walk_functions(self.func)
+            if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
+                print('fast_checksum', self.fast_checksum)
+                print(self.func.__name__)
+                print('elapsed', time.time() - start)
+                print("key", key)
+                # return
+
+            prog = impl.get_runtime().prog
+            # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
+            print("dir(self.func)", dir(self.func), self)
+            # if getattr(self, "enable_fast_cache", False):
             print("check fast cache")
             print("prog.config()", prog.config())
             print("prog.get_device_caps()", prog.get_device_caps())
@@ -1071,14 +1075,15 @@ class Kernel:
             if not self.compiled_kernel_data:
                 print("no compiled kernel data => compiling, or loading from cache")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
-                print("storing to fast cache", self.fast_checksum)
-                prog.store_fast_cache(
-                    self.fast_checksum,
-                    self.kernel_cpp,
-                    prog.config(),
-                    prog.get_device_caps(),
-                    self.compiled_kernel_data
-                )
+                if self.fast_checksum:
+                    print("storing to fast cache", self.fast_checksum)
+                    prog.store_fast_cache(
+                        self.fast_checksum,
+                        self.kernel_cpp,
+                        prog.config(),
+                        prog.get_device_caps(),
+                        self.compiled_kernel_data
+                    )
             else:
                 print("using ckd from warm cache")
             # prog.dump_cache_data_to_disk()
@@ -1252,6 +1257,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
     wrapped._is_classkernel = is_classkernel
     wrapped._primal = primal
     wrapped._adjoint = adjoint
+    primal.taichi_callable = wrapped
     return wrapped
 
 
