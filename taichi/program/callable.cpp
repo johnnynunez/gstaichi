@@ -162,6 +162,7 @@ void Callable::finalize_rets() {
 }
 
 void Callable::finalize_params() {
+  std::cout << "Callable::finalize_params()" << std::endl;
   TI_ASSERT(temp_argpack_stack_.size() == 0 &&
             temp_indices_stack_.size() == 0 &&
             temp_argpack_name_stack_.size() == 0);

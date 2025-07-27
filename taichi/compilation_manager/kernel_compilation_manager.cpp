@@ -73,10 +73,10 @@ const CompiledKernelData &KernelCompilationManager::load_or_compile(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     Kernel &kernel_def) {
-  std::cout << "load_or_compile: " << kernel_def.get_name() << std::endl;
-  auto cache_mode = get_cache_mode(compile_config, kernel_def);
+  std::cout << "load_or_compile: " << kernel_def.get_name() << " ir is ast? " << kernel_def.ir_is_ast() << std::endl;
+  auto cache_mode = get_cache_mode(compile_config, kernel_def.ir_is_ast());
   const auto kernel_key = make_kernel_key(compile_config, caps, kernel_def);
-  auto cached_kernel = try_load_cached_kernel(kernel_def, kernel_key,
+  auto cached_kernel = try_load_cached_kernel(kernel_def.get_name(), kernel_key,
                                               compile_config.arch, cache_mode);
   return cached_kernel ? *cached_kernel
                        : compile_and_cache_kernel(kernel_key, compile_config,
@@ -204,7 +204,8 @@ std::string KernelCompilationManager::make_kernel_key(
 }
 
 const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
-    Kernel &kernel_def,
+    // Kernel &kernel_def,
+    const std::string &kernel_name,
     const std::string &kernel_key,
     Arch arch,
     CacheData::CacheMode cache_mode) {
@@ -214,8 +215,8 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
     auto iter = kernels.find(kernel_key);
     if (iter != kernels.end()) {
       TI_DEBUG("Create kernel '{}' from in-memory cache (key='{}')",
-               kernel_def.get_name(), kernel_key);
-      kernel_def.compiled_kernel_data = iter->second.compiled_kernel_data->clone();
+               kernel_name, kernel_key);
+      // kernel_def.compiled_kernel_data = iter->second.compiled_kernel_data->clone();
       return iter->second.compiled_kernel_data.get();
     }
   }
@@ -227,16 +228,16 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
       auto &k = iter->second;
       if (k.compiled_kernel_data) {
         TI_DEBUG("Create kernel '{}' from cache (key='{}')",
-                 kernel_def.get_name(), kernel_key);
+                 kernel_name, kernel_key);
         return k.compiled_kernel_data.get();
       } else if (auto loaded = load_ckd(kernel_key, arch)) {
         TI_DEBUG("Create kernel '{}' from cache (key='{}')",
-                 kernel_def.get_name(), kernel_key);
+                 kernel_name, kernel_key);
         TI_ASSERT(loaded->arch() == arch);
         k.last_used_at = std::time(nullptr);
         k.compiled_kernel_data = std::move(loaded);
         updated_data_.push_back(&k);
-        kernel_def.compiled_kernel_data = k.compiled_kernel_data->clone();
+        // kernel_def.compiled_kernel_data = k.compiled_kernel_data->clone();
         return k.compiled_kernel_data.get();
       }
     }
@@ -249,7 +250,7 @@ const CompiledKernelData &KernelCompilationManager::compile_and_cache_kernel(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     Kernel &kernel_def) {
-  auto cache_mode = get_cache_mode(compile_config, kernel_def);
+  auto cache_mode = get_cache_mode(compile_config, kernel_def.ir_is_ast());
   TI_DEBUG_IF(cache_mode == CacheData::MemAndDiskCache,
               "Cache kernel '{}' (key='{}')", kernel_def.get_name(),
               kernel_key);
@@ -278,19 +279,20 @@ void KernelCompilationManager::store_fast_cache(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     CompiledKernelData &ckd) {
-  auto cache_mode = get_cache_mode(compile_config, kernel);
+    std::cout << "store_fast_cache kernel.ir_is_ast() " << kernel.ir_is_ast() << std::endl;
+  auto cache_mode = get_cache_mode(compile_config, kernel.ir_is_ast());
   TI_INFO_IF(cache_mode == CacheData::MemAndDiskCache,
               "store_fast_cache Cache kernel '{}' (key='{}')", kernel.get_name(),
               checksum);
   TI_INFO("Store fast cache for kernel '{}' (key='{}')", kernel.get_name(),
            checksum);
-  std::cout << " kernel.compiled_kernel data " << kernel.compiled_kernel_data.get() << std::endl;
+  // std::cout << " kernel.compiled_kernel data " << kernel.compiled_kernel_data.get() << std::endl;
   // TI_ASSERT(caching_kernels_.find(checksum) == caching_kernels_.end());
   KernelCacheData k;
   // caching_kernels_[checksum] = std::move(k);
   k.kernel_key = checksum;
   k.created_at = k.last_used_at = std::time(nullptr);
-  k.compiled_kernel_data = kernel.compiled_kernel_data->clone();
+  k.compiled_kernel_data = ckd.clone();
   k.size = 0;
   k.cache_mode = cache_mode;
   caching_kernels_[checksum] = std::move(k);
@@ -299,12 +301,16 @@ void KernelCompilationManager::store_fast_cache(
 
 const CompiledKernelData *KernelCompilationManager::load_fast_cache(
       const std::string &checksum,
-      const Kernel &kernel,
+      // const Kernel &kernel,
+      const std::string &kernel_name,
       const CompileConfig &compile_config,
       const DeviceCapabilityConfig &caps) {
-  auto iter = caching_kernels_.find(checksum);
-  return try_load_cached_kernel(kernel, checksum, compile_config.arch,
-                                get_cache_mode(compile_config, kernel));
+  // auto iter = caching_kernels_.find(checksum);
+  // return nullptr;
+  return try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
+                                get_cache_mode(compile_config, true));
+  // try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
+  //                               get_cache_mode(compile_config, true));
 }
 
 std::unique_ptr<CompiledKernelData> KernelCompilationManager::load_ckd(
@@ -332,8 +338,8 @@ std::unique_ptr<CompiledKernelData> KernelCompilationManager::load_ckd(
 
 CacheData::CacheMode KernelCompilationManager::get_cache_mode(
     const CompileConfig &compile_config,
-    const Kernel &kernel_def) {
-  return compile_config.offline_cache && kernel_def.ir_is_ast()
+    bool kernel_ir_is_ast) {
+  return compile_config.offline_cache && kernel_ir_is_ast
              ? CacheData::MemAndDiskCache
              : CacheData::MemCache;
 }

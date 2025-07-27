@@ -631,14 +631,29 @@ class Kernel:
             print("key", key)
             # return
 
+        prog = impl.get_runtime().prog
+        # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
+        print("prog.config()", prog.config())
+        print("prog.get_device_caps()", prog.get_device_caps())
+        self.compiled_kernel_data = prog.load_fast_cache(
+            self.fast_checksum,
+            self.func.__name__,
+            prog.config(),
+            prog.get_device_caps(),
+        )
+        print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
+    #           const std::string &checksum,
+    #   const std::string &kernel_name,
+    #   const CompileConfig &compile_config,
+    #   const DeviceCapabilityConfig &caps);
+
+        # print("compiled_kernel_data", compiled_kernel_data)
+        # if self.compiled_kernel_data:
+        #     self.compiled_kernels[key] = self.compiled_kernel_data
+        #     ...
+
         if key in self.compiled_kernels:
             return
-
-        prog = impl.get_runtime().prog
-        compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
-        print("compiled_kernel_data", compiled_kernel_data)
-        if compiled_kernel_data:
-            ...
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         _logging.trace(f"Compiling kernel {kernel_name} in {self.autodiff_mode}...")
@@ -1038,11 +1053,21 @@ class Kernel:
             assert prog is not None
             print("prog.compile_kernel")
             # Compile kernel (& Online Cache & Offline Cache)
-            compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
-            prog.store_fast_cache(self.fast_checksum, self.kernel_cpp, prog.config(), prog.get_device_caps(), compiled_kernel_data)
-            prog.dump_cache_data_to_disk()
+            if not self.compiled_kernel_data:
+                print("no compiled kernel data => compiling, or loading from cache")
+                self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
+                # prog.store_fast_cache(
+                #     self.fast_checksum,
+                #     self.kernel_cpp,
+                #     prog.config(),
+                #     prog.get_device_caps(),
+                #     self.compiled_kernel_data
+                # )
+            else:
+                print("using ckd from warm cache")
+            # prog.dump_cache_data_to_disk()
             # Launch kernel
-            prog.launch_kernel(compiled_kernel_data, launch_ctx)
+            prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
         except Exception as e:
             e = handle_exception_from_cpp(e)
             if impl.get_runtime().print_full_traceback:
@@ -1115,7 +1140,9 @@ class Kernel:
             _logging.warn("""opt_level = 1 is enforced to enable gradient computation.""")
             impl.current_cfg().opt_level = 1
         key = self.ensure_compiled(*args)
+        print("getting kernel_cpp from compiled kernels using key", key)
         kernel_cpp = self.compiled_kernels[key]
+        print("got kernel_cpp", kernel_cpp)
         return self.launch_kernel(kernel_cpp, *args)
 
 

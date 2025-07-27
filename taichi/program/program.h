@@ -120,10 +120,11 @@ class TI_DLL_EXPORT Program {
     const Kernel &kernel,
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
-                     CompiledKernelData &ckd);
+    CompiledKernelData &ckd);
 
-  CompiledKernelData &load_fast_cache(
+  const CompiledKernelData *load_fast_cache(
       const std::string &checksum,
+      const std::string &kernel_name,
       const CompileConfig &compile_config,
       const DeviceCapabilityConfig &caps);
 

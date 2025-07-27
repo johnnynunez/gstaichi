@@ -33,13 +33,15 @@ Kernel::Kernel(Program &program,
 Kernel::Kernel(Program &program,
                std::unique_ptr<IRNode> &&ir,
                const std::string &primal_name,
-               AutodiffMode autodiff_mode) {
+               AutodiffMode autodiff_mode,
+               bool ir_is_ast) {
   this->arch = program.compile_config().arch;
   this->autodiff_mode = autodiff_mode;
   this->ir = std::move(ir);
   this->program = &program;
   is_accessor = false;
-  ir_is_ast_ = false;  // CHI IR
+  ir_is_ast_ = ir_is_ast;  // true means CHI IR, false is front end IR
+  std::cout << "Kernel from CHI IR" << std::endl;
 
   TI_ASSERT(this->ir->is<Block>());
   this->ir->as<Block>()->set_parent_callable(this);
@@ -124,7 +126,8 @@ void Kernel::init(Program &program,
   } else if (autodiff_mode == AutodiffMode::kReverse) {
     name = primal_name + "_reverse_grad";
   }
-
+  std::cout << "parameter list size A " << this->parameter_list.size() << std::endl;
   func();
+  std::cout << "parameter list size B " << this->parameter_list.size() << std::endl;
 }
 }  // namespace taichi::lang
