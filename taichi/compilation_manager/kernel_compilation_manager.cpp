@@ -128,6 +128,7 @@ void KernelCompilationManager::dump() {
   // Dump cached CompiledKernelData to disk
   for (auto &[_, k] : kernels) {
     if (k.compiled_kernel_data) {
+      std::cout << "dump " << k.kernel_key << std::endl;
       auto cache_filename = make_filename(k.kernel_key);
       std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
       TI_ASSERT(fs.is_open());
@@ -290,6 +291,7 @@ void KernelCompilationManager::store_fast_cache(
   // TI_ASSERT(caching_kernels_.find(checksum) == caching_kernels_.end());
   KernelCacheData k;
   // caching_kernels_[checksum] = std::move(k);
+  std::cout << "store fast cache kernel key " << checksum << " cache mode " << cache_mode << std::endl;
   k.kernel_key = checksum;
   k.created_at = k.last_used_at = std::time(nullptr);
   k.compiled_kernel_data = ckd.clone();
@@ -307,8 +309,12 @@ const CompiledKernelData *KernelCompilationManager::load_fast_cache(
       const DeviceCapabilityConfig &caps) {
   // auto iter = caching_kernels_.find(checksum);
   // return nullptr;
-  return try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
-                                get_cache_mode(compile_config, true));
+  auto cache_mode = get_cache_mode(compile_config, true);
+  auto res = try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
+                                cache_mode);
+  std::cout << "try_load_cached_kernel " << kernel_name << " checksum" << checksum << " arch " << arch_name(compile_config.arch)
+    << " cache mode " << cache_mode << " res " << res << std::endl;
+  return res;
   // try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
   //                               get_cache_mode(compile_config, true));
 }

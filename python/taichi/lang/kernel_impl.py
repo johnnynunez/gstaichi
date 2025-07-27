@@ -635,15 +635,18 @@ class Kernel:
         prog = impl.get_runtime().prog
         self.compiled_kernel_data = None
         # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
-        print("prog.config()", prog.config())
-        print("prog.get_device_caps()", prog.get_device_caps())
-        # self.compiled_kernel_data = prog.load_fast_cache(
-        #     self.fast_checksum,
-        #     self.func.__name__,
-        #     prog.config(),
-        #     prog.get_device_caps(),
-        # )
-        # print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
+        if getattr(self, "enable_fast_cache", False):
+            print("check fast cache")
+            print("prog.config()", prog.config())
+            print("prog.get_device_caps()", prog.get_device_caps())
+            self.compiled_kernel_data = prog.load_fast_cache(
+                self.fast_checksum,
+                self.func.__name__,
+                prog.config(),
+                prog.get_device_caps(),
+            )
+            if self.compiled_kernel_data:
+                print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
     #           const std::string &checksum,
     #   const std::string &kernel_name,
     #   const CompileConfig &compile_config,
@@ -725,7 +728,10 @@ class Kernel:
                     struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
                     tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
                     ctx.only_parse_function_def = self.compiled_kernel_data is not None
+                    start = time.time()
                     transform_tree(tree, ctx)
+                    elapsed = time.time() - start
+                    print("transform tree time", elapsed)
                     if not ctx.is_real_function:
                         if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                             raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
@@ -1063,18 +1069,21 @@ class Kernel:
             if not self.compiled_kernel_data:
                 print("no compiled kernel data => compiling, or loading from cache")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
-                # prog.store_fast_cache(
-                #     self.fast_checksum,
-                #     self.kernel_cpp,
-                #     prog.config(),
-                #     prog.get_device_caps(),
-                #     self.compiled_kernel_data
-                # )
+                print("storing to fast cache", self.fast_checksum)
+                prog.store_fast_cache(
+                    self.fast_checksum,
+                    self.kernel_cpp,
+                    prog.config(),
+                    prog.get_device_caps(),
+                    self.compiled_kernel_data
+                )
             else:
                 print("using ckd from warm cache")
             # prog.dump_cache_data_to_disk()
             # Launch kernel
+            print("launching...")
             prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
+            print("... launched")
         except Exception as e:
             e = handle_exception_from_cpp(e)
             if impl.get_runtime().print_full_traceback:
