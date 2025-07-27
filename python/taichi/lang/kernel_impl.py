@@ -20,6 +20,7 @@ import numpy as np
 import taichi.lang
 import taichi.lang._ndarray
 import taichi.lang._texture
+from taichi.lang.ast.ast_transformer import ASTTransformer
 import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
@@ -703,12 +704,24 @@ class Kernel:
                     output_file.write_text(
                         json.dumps({"elapsed_txt": elapsed_txt, "elapsed_json": elapsed_json}, indent=2)
                     )
-                struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
-                tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
-                transform_tree(tree, ctx)
-                if not ctx.is_real_function:
-                    if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
-                        raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
+                if False:
+                    struct_locals = _kernel_impl_dataclass.populate_struct_locals(ctx)
+                    tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
+                    transform_tree(tree, ctx)
+                    if not ctx.is_real_function:
+                        if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
+                            raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
+                else:
+                    class FunctionDefTransformer(ast.NodeTransformer):
+                        def visit_FunctionDef(self, node: ast.FunctionDef):
+                            print("got functiondef ", node.name)
+                            ast_transformer.build_FunctionDef(ctx, node)
+                            return self.generic_visit(node)
+
+                    ast_transformer = ASTTransformer()
+                    function_def_transformer = FunctionDefTransformer()
+                    function_def_transformer.visit(tree)
+                    # ast.fix_missing_locations(new_tree)
             finally:
                 self.runtime.inside_kernel = False
                 self.runtime.current_kernel = None
