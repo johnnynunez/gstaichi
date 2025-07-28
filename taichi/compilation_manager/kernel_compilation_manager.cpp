@@ -73,7 +73,7 @@ const CompiledKernelData &KernelCompilationManager::load_or_compile(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     Kernel &kernel_def) {
-  std::cout << "load_or_compile: " << kernel_def.get_name() << " ir is ast? " << kernel_def.ir_is_ast() << std::endl;
+  // std::cout << "load_or_compile: " << kernel_def.get_name() << " ir is ast? " << kernel_def.ir_is_ast() << std::endl;
   auto cache_mode = get_cache_mode(compile_config, kernel_def.ir_is_ast());
   const auto kernel_key = make_kernel_key(compile_config, caps, kernel_def);
   auto cached_kernel = try_load_cached_kernel(kernel_def.get_name(), kernel_key,
@@ -128,7 +128,7 @@ void KernelCompilationManager::dump() {
   // Dump cached CompiledKernelData to disk
   for (auto &[_, k] : kernels) {
     if (k.compiled_kernel_data) {
-      std::cout << "dump " << k.kernel_key << std::endl;
+      // std::cout << "dump " << k.kernel_key << std::endl;
       auto cache_filename = make_filename(k.kernel_key);
       std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
       TI_ASSERT(fs.is_open());
@@ -147,9 +147,9 @@ void KernelCompilationManager::dump() {
   if (!kernels.empty()) {
     write_to_binary_file(data, filepath);
   }
-  std::cout << "Dumped " << kernels.size()
-            << " cached kernels to disk, total size: " << data.size
-            << " bytes" << std::endl;
+  // std::cout << "Dumped " << kernels.size()
+  //           << " cached kernels to disk, total size: " << data.size
+  //           << " bytes" << std::endl;
 }
 
 void KernelCompilationManager::clean_offline_cache(
@@ -210,7 +210,7 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
     const std::string &kernel_key,
     Arch arch,
     CacheData::CacheMode cache_mode) {
-  std::cout << "try_load_cached_kernel: " << kernel_key << std::endl;
+  // std::cout << "try_load_cached_kernel: " << kernel_key << std::endl;
   {  // Find in memory-cache (caching_kernels_)
     const auto &kernels = caching_kernels_;
     auto iter = kernels.find(kernel_key);
@@ -280,7 +280,7 @@ void KernelCompilationManager::store_fast_cache(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
     CompiledKernelData &ckd) {
-    std::cout << "store_fast_cache kernel.ir_is_ast() " << kernel.ir_is_ast() << std::endl;
+    // std::cout << "store_fast_cache kernel.ir_is_ast() " << kernel.ir_is_ast() << std::endl;
   auto cache_mode = get_cache_mode(compile_config, kernel.ir_is_ast());
   TI_INFO_IF(cache_mode == CacheData::MemAndDiskCache,
               "store_fast_cache Cache kernel '{}' (key='{}')", kernel.get_name(),
@@ -312,8 +312,8 @@ const CompiledKernelData *KernelCompilationManager::load_fast_cache(
   auto cache_mode = get_cache_mode(compile_config, true);
   auto res = try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
                                 cache_mode);
-  std::cout << "try_load_cached_kernel " << kernel_name << " checksum" << checksum << " arch " << arch_name(compile_config.arch)
-    << " cache mode " << cache_mode << " res " << res << std::endl;
+  // std::cout << "try_load_cached_kernel " << kernel_name << " checksum" << checksum << " arch " << arch_name(compile_config.arch)
+  //   << " cache mode " << cache_mode << " res " << res << std::endl;
   return res;
   // try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
   //                               get_cache_mode(compile_config, true));
