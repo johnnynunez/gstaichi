@@ -200,8 +200,8 @@ const CompiledKernelData &Program::compile_kernel(
   auto start_t = Time::get_time();
   TI_AUTO_PROF;
   auto &mgr = program_impl_->get_kernel_compilation_manager();
-  std::cout << "check load or compile kernel "
-            << kernel_def.get_name() << "..." << std::endl;
+  // std::cout << "check load or compile kernel "
+  //           << kernel_def.get_name() << "..." << std::endl;
   const auto &ckd = mgr.load_or_compile(compile_config, caps, kernel_def);
 
   

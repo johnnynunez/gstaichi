@@ -737,7 +737,7 @@ class Kernel:
                     start = time.time()
                     transform_tree(tree, ctx)
                     elapsed = time.time() - start
-                    print("transform tree time", elapsed)
+                    # print("transform tree time", elapsed)
                     if not ctx.is_real_function:
                         if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                             raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
@@ -763,7 +763,7 @@ class Kernel:
 
         prog = impl.get_runtime().prog
         assert prog is not None
-        print("prog.create_kernel")
+        # print("prog.create_kernel")
         taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         self.compiled_kernels[key] = taichi_kernel
@@ -1073,7 +1073,7 @@ class Kernel:
             # print("prog.compile_kernel")
             # Compile kernel (& Online Cache & Offline Cache)
             if not self.compiled_kernel_data:
-                print("no compiled kernel data => compiling, or loading from cache")
+                # print("no compiled kernel data => compiling, or loading from cache")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)

@@ -126,8 +126,8 @@ void Kernel::init(Program &program,
   } else if (autodiff_mode == AutodiffMode::kReverse) {
     name = primal_name + "_reverse_grad";
   }
-  std::cout << "parameter list size A " << this->parameter_list.size() << std::endl;
+  // std::cout << "parameter list size A " << this->parameter_list.size() << std::endl;
   func();
-  std::cout << "parameter list size B " << this->parameter_list.size() << std::endl;
+  // std::cout << "parameter list size B " << this->parameter_list.size() << std::endl;
 }
 }  // namespace taichi::lang
