@@ -16,9 +16,11 @@ from taichi.types import ndarray_type, texture_type, vector
 from taichi.types.annotations import template
 from taichi.types.enums import Format
 from taichi.types.primitive_types import f16, f32, f64, i32, u8
+from taichi.lang import pure
 
 
 # A set of helper (meta)functions
+@pure
 @kernel
 def fill_field(field: template(), val: template()):
     value = ops.cast(val, field.dtype)
