@@ -1546,7 +1546,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">StructType</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
                     <span class="k">return</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">provided_arg_type</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">needed_arg_type</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
