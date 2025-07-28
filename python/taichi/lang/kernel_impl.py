@@ -1070,13 +1070,13 @@ class Kernel:
         try:
             prog = impl.get_runtime().prog
             assert prog is not None
-            print("prog.compile_kernel")
+            # print("prog.compile_kernel")
             # Compile kernel (& Online Cache & Offline Cache)
             if not self.compiled_kernel_data:
                 print("no compiled kernel data => compiling, or loading from cache")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
                 if self.fast_checksum:
-                    print("storing to fast cache", self.fast_checksum)
+                    # print("storing to fast cache", self.fast_checksum)
                     prog.store_fast_cache(
                         self.fast_checksum,
                         self.kernel_cpp,
@@ -1084,13 +1084,13 @@ class Kernel:
                         prog.get_device_caps(),
                         self.compiled_kernel_data
                     )
-            else:
-                print("using ckd from warm cache")
+            # else:
+                # print("using ckd from warm cache")
             # prog.dump_cache_data_to_disk()
             # Launch kernel
-            print("launching...")
+            # print("launching...")
             prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
-            print("... launched")
+            # print("... launched")
         except Exception as e:
             e = handle_exception_from_cpp(e)
             if impl.get_runtime().print_full_traceback:
@@ -1163,9 +1163,9 @@ class Kernel:
             _logging.warn("""opt_level = 1 is enforced to enable gradient computation.""")
             impl.current_cfg().opt_level = 1
         key = self.ensure_compiled(*args)
-        print("getting kernel_cpp from compiled kernels using key", key)
+        # print("getting kernel_cpp from compiled kernels using key", key)
         kernel_cpp = self.compiled_kernels[key]
-        print("got kernel_cpp", kernel_cpp)
+        # print("got kernel_cpp", kernel_cpp)
         return self.launch_kernel(kernel_cpp, *args)
 
 
