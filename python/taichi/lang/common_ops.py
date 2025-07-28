@@ -178,43 +178,43 @@ class TaichiOperations:
         return ops.atomic_or(self, other)
 
     # In-place operators in python scope returns NotImplemented to fall back to normal operators
+    # TODO: why can't these be used in Python? 🤔
     def __iadd__(self, other):
         if in_python_scope():
             return NotImplemented
-        self._atomic_add(other)
+        self._assign(ops.add(self, other))
         return self
 
     def __imul__(self, other):
         if in_python_scope():
             return NotImplemented
-        self._atomic_mul(other)
+        self._assign(ops.mul(self, other))
         return self
 
     def __isub__(self, other):
         if in_python_scope():
             return NotImplemented
-        self._atomic_sub(other)
+        self._assign(ops.sub(self, other))
         return self
 
     def __iand__(self, other):
         if in_python_scope():
             return NotImplemented
-        self._atomic_and(other)
+        self._assign(ops.bit_and(self, other))
         return self
 
     def __ixor__(self, other):
         if in_python_scope():
             return NotImplemented
-        self._atomic_xor(other)
+        self._assign(ops.xor(self, other))
         return self
 
     def __ior__(self, other):
         if in_python_scope():
             return NotImplemented
-        self._atomic_or(other)
+        self._assign(ops.bit_or(self, other))
         return self
 
-    # we don't support atomic_mul/truediv/floordiv/mod yet:
     def __imul__(self, other):
         if in_python_scope():
             return NotImplemented
