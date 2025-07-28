@@ -14,7 +14,7 @@ indent_re = re.compile(r"^ +")
 
 
 def pure(fn: "TaichiCallable") -> "TaichiCallable":
-    print('fn', fn, type(fn))
+    # print('fn', fn, type(fn))
     fn.is_pure = True
     return fn
 
@@ -164,7 +164,7 @@ class FastCacher:
         checksum_concat = "".join(function_checksum_l)
         hash = hashlib.sha256(checksum_concat.encode('utf-8')).hexdigest()
         elapsed = time.time() - start
-        print(fn.__name__, 'elapsed', elapsed, 'hash', hash[:20])
+        # print(fn.__name__, 'elapsed', elapsed, 'hash', hash[:20])
         # for flat_name in self.checksummed_paths:
         #     print(flat_name)
         return hash

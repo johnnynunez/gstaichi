@@ -497,6 +497,9 @@ def _get_global_vars(_func: Callable) -> dict[str, Any]:
     return global_vars
 
 
+LAST_PRINT = time.time()
+
+
 class Kernel:
     counter = 0
 
@@ -527,6 +530,8 @@ class Kernel:
         self.kernel_cpp = None
         self.compiled_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
         self.has_print = False
+
+        # self.last_print = time.time()
 
     def ast_builder(self) -> ASTBuilder:
         assert self.kernel_cpp is not None
@@ -621,6 +626,7 @@ class Kernel:
             self.arg_metas.append(ArgMetadata(annotation, param.name, param.default))
 
     def materialize(self, key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
+        global LAST_PRINT
         start = time.time()
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
@@ -631,9 +637,9 @@ class Kernel:
         if self.taichi_callable and self.taichi_callable.is_pure:
             # print("pure function:", self.func.__name__)
             self.fast_checksum = fast_cacher.walk_functions(self.func)
-            if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
+            # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
                 # print('fast_checksum', self.fast_checksum)
-                print(self.func.__name__, 'elapsed', time.time() - start)
+                # print(self.func.__name__, 'elapsed', time.time() - start)
                 # print("key", key)
                 # return
 
@@ -765,6 +771,10 @@ class Kernel:
         # print("prog.create_kernel")
         taichi_kernel = prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
+        elapsed = time.time() - start
+        this_time = time.time()
+        print(this_time - LAST_PRINT, "compiled", kernel_name, elapsed)
+        LAST_PRINT = this_time
         self.compiled_kernels[key] = taichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
