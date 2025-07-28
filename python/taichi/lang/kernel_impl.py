@@ -629,30 +629,29 @@ class Kernel:
         self.compiled_kernel_data = None
         self.fast_checksum = None
         if self.taichi_callable and self.taichi_callable.is_pure:
-            print("pure function:", self.func.__name__)
+            # print("pure function:", self.func.__name__)
             self.fast_checksum = fast_cacher.walk_functions(self.func)
             if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
-                print('fast_checksum', self.fast_checksum)
-                print(self.func.__name__)
-                print('elapsed', time.time() - start)
-                print("key", key)
+                # print('fast_checksum', self.fast_checksum)
+                print(self.func.__name__, 'elapsed', time.time() - start)
+                # print("key", key)
                 # return
 
             prog = impl.get_runtime().prog
             # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
-            print("dir(self.func)", dir(self.func), self)
+            # print("dir(self.func)", dir(self.func), self)
             # if getattr(self, "enable_fast_cache", False):
-            print("check fast cache")
-            print("prog.config()", prog.config())
-            print("prog.get_device_caps()", prog.get_device_caps())
+            # print("check fast cache")
+            # print("prog.config()", prog.config())
+            # print("prog.get_device_caps()", prog.get_device_caps())
             self.compiled_kernel_data = prog.load_fast_cache(
                 self.fast_checksum,
                 self.func.__name__,
                 prog.config(),
                 prog.get_device_caps(),
             )
-            if self.compiled_kernel_data:
-                print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
+            # if self.compiled_kernel_data:
+            #     print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
     #           const std::string &checksum,
     #   const std::string &kernel_name,
     #   const CompileConfig &compile_config,
