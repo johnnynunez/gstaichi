@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>taichi.lang.kernel_impl &#8212; Taichi 0.1.21 documentation</title>
+    <title>taichi.lang.kernel_impl &#8212; Taichi 0.1.0 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=b3d22ae5"></script>
+    <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -62,7 +62,7 @@
     <link rel="prev" title="taichi.lang.kernel_arguments" href="../kernel_arguments/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.21" />
+  <meta name="docsearch:version" content="0.1.0" />
   </head>
   
   
@@ -124,7 +124,7 @@
   
   
   
-    <p class="title logo__title">Taichi 0.1.21 documentation</p>
+    <p class="title logo__title">Taichi 0.1.0 documentation</p>
   
 </a></div>
     
@@ -428,13 +428,13 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.func" title="taichi.lang.kernel_impl.func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">func</span></code></a>(fn[, is_real_function])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.func" title="taichi.lang.kernel_impl.func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">func</span></code></a>(→ TaichiCallable)</p></td>
 <td><p>Marks a function as callable in Taichi-scope.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.real_func" title="taichi.lang.kernel_impl.real_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">real_func</span></code></a>(fn)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.real_func" title="taichi.lang.kernel_impl.real_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">real_func</span></code></a>(→ TaichiCallable)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.pyfunc" title="taichi.lang.kernel_impl.pyfunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pyfunc</span></code></a>(fn)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.pyfunc" title="taichi.lang.kernel_impl.pyfunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pyfunc</span></code></a>(→ TaichiCallable)</p></td>
 <td><p>Marks a function as callable in both Taichi and Python scopes.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#taichi.lang.kernel_impl.kernel" title="taichi.lang.kernel_impl.kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kernel</span></code></a>(fn)</p></td>
@@ -451,7 +451,7 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="taichi.lang.kernel_impl.func">
-<span class="sig-prename descclassname"><span class="pre">taichi.lang.kernel_impl.</span></span><span class="sig-name descname"><span class="pre">func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_real_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/kernel_impl.html#func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.kernel_impl.func" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">taichi.lang.kernel_impl.</span></span><span class="sig-name descname"><span class="pre">func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_real_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TaichiCallable</span></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/kernel_impl.html#func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.kernel_impl.func" title="Link to this definition">#</a></dt>
 <dd><p>Marks a function as callable in Taichi-scope.</p>
 <p>This decorator transforms a Python function into a Taichi one. Taichi
 will JIT compile it into native instructions.</p>
@@ -483,12 +483,12 @@ will JIT compile it into native instructions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="taichi.lang.kernel_impl.real_func">
-<span class="sig-prename descclassname"><span class="pre">taichi.lang.kernel_impl.</span></span><span class="sig-name descname"><span class="pre">real_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/kernel_impl.html#real_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.kernel_impl.real_func" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">taichi.lang.kernel_impl.</span></span><span class="sig-name descname"><span class="pre">real_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TaichiCallable</span></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/kernel_impl.html#real_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.kernel_impl.real_func" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="taichi.lang.kernel_impl.pyfunc">
-<span class="sig-prename descclassname"><span class="pre">taichi.lang.kernel_impl.</span></span><span class="sig-name descname"><span class="pre">pyfunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/kernel_impl.html#pyfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.kernel_impl.pyfunc" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">taichi.lang.kernel_impl.</span></span><span class="sig-name descname"><span class="pre">pyfunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TaichiCallable</span></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/kernel_impl.html#pyfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.kernel_impl.pyfunc" title="Link to this definition">#</a></dt>
 <dd><p>Marks a function as callable in both Taichi and Python scopes.</p>
 <p>When called inside the Taichi scope, Taichi will JIT compile it into
 native instructions. Otherwise it will be invoked directly as a
