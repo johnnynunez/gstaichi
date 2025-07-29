@@ -30,6 +30,8 @@ Attributes
    taichi.lang.misc.cuda
    taichi.lang.misc.amdgpu
    taichi.lang.misc.metal
+   taichi.lang.misc.opengl
+   taichi.lang.misc.gles
    taichi.lang.misc.vulkan
    taichi.lang.misc.dx11
    taichi.lang.misc.dx12
@@ -145,6 +147,14 @@ Module Contents
 
    The Apple Metal backend.
 
+.. py:data:: opengl
+
+   The OpenGL backend. OpenGL 4.3 required.
+
+.. py:data:: gles
+
+   The OpenGL ES backend. OpenGL ES 3.1 required.
+
 .. py:data:: vulkan
 
    The Vulkan backend.
@@ -160,7 +170,7 @@ Module Contents
 .. py:data:: gpu
 
    A list of GPU backends supported on the current system.
-   Currently contains 'cuda', 'metal', 'vulkan', 'dx11', 'dx12', 'amdgpu'.
+   Currently contains 'cuda', 'metal', 'opengl', 'vulkan', 'dx11', 'dx12', 'gles', 'amdgpu'.
 
    When this is used, Taichi automatically picks the matching GPU backend. If no
    GPU is detected, Taichi falls back to the CPU backend.

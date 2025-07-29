@@ -428,5 +428,5 @@ Module Contents
 
 .. py:data:: build_stmt
 
-.. py:function:: build_stmts(ctx: taichi.lang.ast.ast_transformer_utils.ASTTransformerContext, stmts: list[ast.stmt])
+.. py:function:: build_stmts(ctx: taichi.lang.ast.ast_transformer_utils.ASTTransformerContext, stmts: list)
 

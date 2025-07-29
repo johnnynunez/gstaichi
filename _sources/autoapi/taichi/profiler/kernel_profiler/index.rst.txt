@@ -51,7 +51,12 @@ Module Contents
 
        >>> ti.profiler.print_kernel_profiler_info('trace')
 
-   .. note:: For advanced mode of `KernelProfiler`, please visit https://docs.taichi-lang.org/docs/profiler#advanced-mode.
+   .. note::
+
+      Currently the result of `KernelProfiler` could be incorrect on OpenGL
+      backend due to its lack of support for `ti.sync()`.
+      
+      For advanced mode of `KernelProfiler`, please visit https://docs.taichi-lang.org/docs/profiler#advanced-mode.
 
 
 .. py:function:: query_kernel_profiler_info(name)
@@ -93,6 +98,9 @@ Module Contents
 
       [1] To get the correct result, query_kernel_profiler_info() must be used in conjunction with
       clear_kernel_profiler_info().
+      
+      [2] Currently the result of `KernelProfiler` could be incorrect on OpenGL
+      backend due to its lack of support for `ti.sync()`.
 
 
 .. py:function:: clear_kernel_profiler_info()
