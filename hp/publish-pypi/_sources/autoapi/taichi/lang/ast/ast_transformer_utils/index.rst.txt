@@ -28,7 +28,7 @@ Module Contents
 
 .. py:class:: Builder
 
-.. py:class:: VariableScopeGuard(scopes)
+.. py:class:: VariableScopeGuard(scopes: list[dict[str, Any]])
 
    .. py:attribute:: scopes
 
@@ -40,7 +40,7 @@ Module Contents
 
 
 
-.. py:class:: StaticScopeGuard(status)
+.. py:class:: StaticScopeGuard(status: StaticScopeStatus)
 
    .. py:attribute:: status
 
@@ -97,7 +97,7 @@ Module Contents
 
 
 
-.. py:class:: LoopScopeGuard(scopes, non_static_guard=None)
+.. py:class:: LoopScopeGuard(scopes: list[dict[str, Any]], non_static_guard=None)
 
    .. py:attribute:: scopes
 
@@ -151,6 +151,7 @@ Module Contents
 
 
    .. py:attribute:: local_scopes
+      :type:  list[dict[str, Any]]
       :value: []
 
 
@@ -244,6 +245,7 @@ Module Contents
 
 
    .. py:attribute:: kernel_args
+      :type:  list
       :value: []
 
 
@@ -257,45 +259,45 @@ Module Contents
    .. py:method:: non_static_if_guard(if_node: ast.If)
 
 
-   .. py:method:: non_static_control_flow_guard()
+   .. py:method:: non_static_control_flow_guard() -> NonStaticControlFlowGuard
 
 
-   .. py:method:: static_scope_guard()
+   .. py:method:: static_scope_guard() -> StaticScopeGuard
 
 
-   .. py:method:: current_scope()
+   .. py:method:: current_scope() -> dict[str, Any]
 
 
-   .. py:method:: current_loop_scope()
+   .. py:method:: current_loop_scope() -> dict[str, Any]
 
 
-   .. py:method:: loop_status()
+   .. py:method:: loop_status() -> LoopStatus
 
 
-   .. py:method:: set_loop_status(status)
+   .. py:method:: set_loop_status(status: LoopStatus) -> None
 
 
-   .. py:method:: is_in_static_for()
+   .. py:method:: is_in_static_for() -> bool
 
 
-   .. py:method:: is_in_non_static_control_flow()
+   .. py:method:: is_in_non_static_control_flow() -> bool
 
 
-   .. py:method:: is_in_static_scope()
+   .. py:method:: is_in_static_scope() -> bool
 
 
-   .. py:method:: is_var_declared(name)
+   .. py:method:: is_var_declared(name: str) -> bool
 
 
-   .. py:method:: create_variable(name, var)
+   .. py:method:: create_variable(name: str, var: Any) -> None
 
 
-   .. py:method:: check_loop_var(loop_var)
+   .. py:method:: check_loop_var(loop_var: str) -> None
 
 
-   .. py:method:: get_var_by_name(name: str)
+   .. py:method:: get_var_by_name(name: str) -> Any
 
 
-   .. py:method:: get_pos_info(node) -> str
+   .. py:method:: get_pos_info(node: ast.AST) -> str
 
 
