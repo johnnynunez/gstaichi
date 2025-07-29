@@ -144,16 +144,16 @@ class TaichiCallable:
     """
 
     def __init__(self, fn: Callable, wrapper: Callable) -> None:
-        self.fn = fn
-        self.wrapper = wrapper
-        self._is_real_function = False
-        self._is_taichi_function = False
-        self._is_wrapped_kernel = False
-        self._is_classkernel = False
+        self.fn: Callable = fn
+        self.wrapper: Callable = wrapper
+        self._is_real_function: bool = False
+        self._is_taichi_function: bool = False
+        self._is_wrapped_kernel: bool = False
+        self._is_classkernel: bool = False
         self._primal: Kernel | None = None
         self._adjoint: Kernel | None = None
         self.grad: Kernel | None = None
-        self._is_staticmethod = False
+        self._is_staticmethod: bool = False
         functools.update_wrapper(self, fn)
 
     def __call__(self, *args, **kwargs):
@@ -576,6 +576,8 @@ AnnotationType = Union[
     "texture_type.RWTextureType",
     ndarray_type.NdarrayType,
     sparse_matrix_builder,
+    str,
+    Type,
     Any,
 ]
 
@@ -1222,7 +1224,11 @@ class Kernel:
             if isinstance(needed_arg_type, StructType):
                 if in_argpack:
                     return 1
-                if not isinstance(v, needed_arg_type):  # type: ignore Might be invalid? Maybe should rewrite as: not needed.__instancecheck__(v) ?
+                # Unclear how to make the following pass typing checks
+                # StructType implements __instancecheck__, which should be a classmethod, but
+                # is currently an instance method
+                # TODO: look into this more deeply at some point
+                if not isinstance(v, needed_arg_type):  # type: ignore
                     raise TaichiRuntimeTypeError(
                         f"Argument {provided_arg_type} cannot be converted into required type {needed_arg_type}"
                     )
