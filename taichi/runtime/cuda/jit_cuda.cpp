@@ -1,6 +1,7 @@
 #include "taichi/runtime/cuda/jit_cuda.h"
 #include "taichi/runtime/llvm/llvm_context.h"
 #include "taichi/codegen/ir_dump.h"
+#include <chrono>
 
 namespace taichi::lang {
 
@@ -199,6 +200,7 @@ std::string convert(std::string new_name) {
 
 std::string JITSessionCUDA::compile_module_to_ptx(
     std::unique_ptr<llvm::Module> &module) {
+  auto start = std::chrono::high_resolution_clock::now();
   TI_AUTO_PROF
   // Part of this function is borrowed from Halide::CodeGen_PTX_Dev.cpp
   if (llvm::verifyModule(*module, &llvm::errs())) {
@@ -360,6 +362,9 @@ std::string JITSessionCUDA::compile_module_to_ptx(
 
   // Null-terminate the ptx source
   buffer.push_back(0);
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "Compiling module to PTX took " << duration.count() << " microseconds" << std::endl;
   return buffer;
 }
 

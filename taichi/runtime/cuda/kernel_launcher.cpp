@@ -1,5 +1,6 @@
 #include "taichi/runtime/cuda/kernel_launcher.h"
 #include "taichi/rhi/cuda/cuda_context.h"
+#include <chrono>
 
 namespace taichi::lang {
 namespace cuda {
@@ -200,7 +201,11 @@ KernelLauncher::Handle KernelLauncher::register_llvm_kernel(
 
     auto data = compiled.get_internal_data().compiled_data.clone();
     auto parameters = compiled.get_internal_data().args;
+    auto start = std::chrono::high_resolution_clock::now();
     auto *jit_module = executor->create_jit_module(std::move(data.module));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Creating JIT module took {} microseconds" << duration.count() << std::endl;
 
     // Populate ctx
     ctx.jit_module = jit_module;
