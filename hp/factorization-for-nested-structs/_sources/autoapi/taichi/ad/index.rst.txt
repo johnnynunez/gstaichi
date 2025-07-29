@@ -1,0 +1,6 @@
+taichi.ad
+=========
+
+.. py:module:: taichi.ad
+
+

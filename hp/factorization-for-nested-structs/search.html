@@ -6,9 +6,7 @@
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>Taichi &#8212; Taichi 0.1.0 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Search - Taichi 0.1.0 documentation</title>
   
   
   
@@ -55,12 +53,12 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'search';</script>
+  <script src="_static/searchtools.js"></script>
+  <script src="_static/language_data.js"></script>
+  <script src="searchindex.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="User guide" href="user_guide/index.html" />
+    <link rel="search" title="Search" href="#" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -82,7 +80,7 @@
   <dialog id="pst-search-dialog">
     
 <form class="bd-search d-flex align-items-center"
-      action="search.html"
+      action="#"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -118,7 +116,7 @@
     
   
 
-<a class="navbar-brand logo" href="#">
+<a class="navbar-brand logo" href="index.html">
   
   
   
@@ -194,10 +192,6 @@
     </div>
   
 
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
   
 </div>
 
@@ -285,25 +279,42 @@
               <div class="bd-header-article d-print-none"></div>
               
               
-              
-                
-<div id="searchbox"></div>
-                <article class="bd-article">
-                  
-  <section class="tex2jax_ignore mathjax_ignore" id="taichi">
-<h1>Taichi<a class="headerlink" href="#taichi" title="Link to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Taichi</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">User guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
-</ul>
-</div>
-</section>
+  <div class="bd-search-container">
+    <h1>Search</h1>
+    <noscript>
+      <div class="admonition error">
+        <p class="admonition-title">Error</p>
+        <p>Please activate JavaScript to enable the search functionality.</p>
+      </div>
+    </noscript>
+    
+<form class="bd-search d-flex align-items-center"
+      action="#"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    <div id="search-results"></div>
+  </div>
+  <script>
+    // Activate the search field on page load
+    let searchInput = document.querySelector("form.bd-search input");
+    if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+        console.log("[PST]: Set focus on search field.");
+    }
+  </script>
 
-
-                </article>
-              
               
               
               
@@ -311,36 +322,12 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="right-next"
-       href="user_guide/index.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">User guide</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
             </div>
             
             
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/index.md.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div></div>
-
-</div></div>
               
             
           </div>

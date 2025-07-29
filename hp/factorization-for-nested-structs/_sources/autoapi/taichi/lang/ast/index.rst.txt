@@ -1,0 +1,21 @@
+taichi.lang.ast
+===============
+
+.. py:module:: taichi.lang.ast
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/taichi/lang/ast/ast_transformer/index
+   /autoapi/taichi/lang/ast/ast_transformer_utils/index
+   /autoapi/taichi/lang/ast/call_transformer/index
+   /autoapi/taichi/lang/ast/checkers/index
+   /autoapi/taichi/lang/ast/function_def_transformer/index
+   /autoapi/taichi/lang/ast/symbol_resolver/index
+   /autoapi/taichi/lang/ast/transform/index
+
+
