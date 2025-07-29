@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>taichi.profiler.kernel_profiler &#8212; Taichi 0.1.22 documentation</title>
+    <title>taichi.profiler.kernel_profiler &#8212; Taichi 0.1.0 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=842aa08f"></script>
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.22" />
+  <meta name="docsearch:version" content="0.1.0" />
   </head>
   
   
@@ -121,7 +121,7 @@
   
   
   
-    <p class="title logo__title">Taichi 0.1.22 documentation</p>
+    <p class="title logo__title">Taichi 0.1.0 documentation</p>
   
 </a></div>
     
@@ -696,9 +696,6 @@
 <span class="sd">        &gt;&gt;&gt; ti.profiler.print_kernel_profiler_info(&#39;trace&#39;)</span>
 
 <span class="sd">    Note:</span>
-<span class="sd">        Currently the result of `KernelProfiler` could be incorrect on OpenGL</span>
-<span class="sd">        backend due to its lack of support for `ti.sync()`.</span>
-
 <span class="sd">        For advanced mode of `KernelProfiler`, please visit https://docs.taichi-lang.org/docs/profiler#advanced-mode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">get_default_kernel_profiler</span><span class="p">()</span><span class="o">.</span><span class="n">print_info</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span></div>
@@ -744,9 +741,6 @@
 <span class="sd">    Note:</span>
 <span class="sd">        [1] To get the correct result, query_kernel_profiler_info() must be used in conjunction with</span>
 <span class="sd">        clear_kernel_profiler_info().</span>
-
-<span class="sd">        [2] Currently the result of `KernelProfiler` could be incorrect on OpenGL</span>
-<span class="sd">        backend due to its lack of support for `ti.sync()`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">get_default_kernel_profiler</span><span class="p">()</span><span class="o">.</span><span class="n">query_info</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
 
