@@ -1063,6 +1063,8 @@ class Kernel:
                 return 0
             raise ValueError(f"Argument type mismatch. Expecting {needed}, got {type(v)}.")
 
+        taichi.lang.sync()
+        args_start_time = time.time()
         template_num = 0
         i_out = 0
         for i_in, val in enumerate(args):
@@ -1080,6 +1082,9 @@ class Kernel:
             raise TaichiRuntimeError(
                 f"The number of elements in kernel arguments is too big! Do not exceed {max_arg_num} on {_ti_core.arch_name(impl.current_cfg().arch)} backend."
             )
+        taichi.lang.sync()
+        args_time = time.time() - args_start_time
+        print("args_time", args_time, self.func.__name__)
 
         try:
             prog = impl.get_runtime().prog
@@ -1087,7 +1092,7 @@ class Kernel:
             # print("prog.compile_kernel")
             # Compile kernel (& Online Cache & Offline Cache)
             if not self.compiled_kernel_data:
-                # print("no compiled kernel data => compiling, or loading from cache")
+                print("no compiled kernel data => compiling, or loading from cache")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)
@@ -1103,7 +1108,11 @@ class Kernel:
             # prog.dump_cache_data_to_disk()
             # Launch kernel
             # print("launching...")
+            taichi.lang.sync()
+            start_prog_launch_kernel = time.time()
             prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
+            taichi.lang.sync()
+            print("time prog.launch_kernel", time.time() - start_prog_launch_kernel)
             # print("... launched")
         except Exception as e:
             e = handle_exception_from_cpp(e)
