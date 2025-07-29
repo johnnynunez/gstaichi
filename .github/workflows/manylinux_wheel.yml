@@ -124,48 +124,6 @@ jobs:
       - name: manylinux test
         run: |
           bash .github/workflows/scripts_new/manylinux_wheel/5_test.sh
-  publish_pypi:
-    runs-on: ubuntu-24.04
-    if: github.event_name == 'release' && github.event.action == 'created'
-    needs: test_wheel
-    environment: publish_pypi
-    permissions:
-      id-token: write
-      contents: read
-    concurrency:
-      # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
-      group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
-      cancel-in-progress: ${{ github.event_name != 'release' }}
-    strategy:
-      matrix:
-        PYTHON_VERSION: ['3.10']
-        # PYTHON_VERSION: ['3.10', '3.11', '3.12', '3.13']
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - name: Python check
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ MATRIX.PYTHON_VERSION}}
-      - name: Set Python CP version
-        id: set_cp_version
-        run: |
-          pip install packaging
-          cp=$(python -c "from packaging import tags; print(next(tags.sys_tags()).interpreter)")
-          echo "PYTHON_CP_VERSION=${cp}"
-          echo "PYTHON_CP_VERSION=${cp}" >> $GITHUB_OUTPUT
-      - uses: actions/download-artifact@v4
-        with:
-          name: manylinux_wheel_${{ steps.set_cp_version.outputs.PYTHON_CP_VERSION }}
-      - name: Publish pypi
-        run: |
-          set -x
-          pip install -U pip setuptools twine
-          twine --version
-          pip --version
-          python -c 'import setuptools; print(setuptools.__version__)'
-          twine check *.whl
-          twine upload --verbose *.whl
   api_docs:
     uses: ./.github/workflows/api_doc.yml
     needs: upload_to_storage
@@ -182,3 +140,22 @@ jobs:
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  publish_pypi:
+    uses: ./.github/workflows/publish_pypi.yml
+    if: github.event_name == 'release' && github.event.action == 'created'
+    needs: test_wheel
+    permissions:
+      id-token: write
+      contents: read
+    concurrency:
+      # group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-test
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        # PYTHON_CP_VERSION: ["cp310", "cp311", "cp312", "cp313"]
+        PYTHON_CP_VERSION: ["cp310"]
+      fail-fast: false
+    with:
+      artifact_name: manylinux_wheel_${{ matrix.PYTHON_CP_VERSION }}
+    secrets: inherit
