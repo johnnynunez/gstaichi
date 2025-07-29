@@ -1,6 +1,6 @@
 # type: ignore
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -15,6 +15,8 @@ from taichi.types.utils import is_real, is_signed
 
 if TYPE_CHECKING:
     from taichi.lang.matrix import MatrixNdarray, VectorNdarray
+
+    TensorNdarray = Union["ScalarNdarray", VectorNdarray, MatrixNdarray]
 
 
 class Ndarray:
@@ -32,7 +34,7 @@ class Ndarray:
         self.dtype = None
         self.arr = None
         self.layout = Layout.AOS
-        self.grad: "ScalarNdarray" | "VectorNdarray" | "MatrixNdarray" | None = None
+        self.grad: "TensorNdarray | None" = None
 
     def get_type(self):
         return NdarrayTypeMetadata(self.element_type, self.shape, self.grad is not None)
@@ -80,11 +82,11 @@ class Ndarray:
         elif _ti_core.is_tensor(self.element_type):
             self._fill_by_kernel(val)
         elif self.dtype == primitive_types.f32:
-            impl.get_runtime()._prog.fill_float(self.arr, val)
+            impl.get_runtime().prog.fill_float(self.arr, val)
         elif self.dtype == primitive_types.i32:
-            impl.get_runtime()._prog.fill_int(self.arr, val)
+            impl.get_runtime().prog.fill_int(self.arr, val)
         elif self.dtype == primitive_types.u32:
-            impl.get_runtime()._prog.fill_uint(self.arr, val)
+            impl.get_runtime().prog.fill_uint(self.arr, val)
         else:
             self._fill_by_kernel(val)
 
@@ -192,7 +194,7 @@ class Ndarray:
         ndarray_to_ndarray(self, other)
         impl.get_runtime().sync()
 
-    def _set_grad(self, grad: "ScalarNdarray | VectorNdarray | MatrixNdarray"):
+    def _set_grad(self, grad: "TensorNdarray"):
         """Sets the gradient ndarray.
 
         Args:
@@ -245,7 +247,7 @@ class ScalarNdarray(Ndarray):
     def __init__(self, dtype, arr_shape):
         super().__init__()
         self.dtype = cook_dtype(dtype)
-        self.arr = impl.get_runtime()._prog.create_ndarray(
+        self.arr = impl.get_runtime().prog.create_ndarray(
             self.dtype, arr_shape, layout=Layout.NULL, zero_fill=True, dbg_info=_ti_core.DebugInfo(get_traceback())
         )
         self.shape = tuple(self.arr.shape)
@@ -256,9 +258,9 @@ class ScalarNdarray(Ndarray):
             impl is not None
             and impl.get_runtime is not None
             and impl.get_runtime() is not None
-            and impl.get_runtime()._prog is not None
+            and impl.get_runtime().prog is not None
         ):
-            impl.get_runtime()._prog.delete_ndarray(self.arr)
+            impl.get_runtime().prog.delete_ndarray(self.arr)
 
     @property
     def element_shape(self):

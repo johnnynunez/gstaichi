@@ -32,11 +32,10 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 
@@ -295,6 +294,19 @@ setup(
         "setuptools>=68.0.0",  # Required for Python 3.12+ compatibility
         "cffi>=1.16.0",
     ],
+    extras_require={
+        "docs": [
+            "sphinx",
+            "sphinx-copybutton",
+            "myst_parser",
+            "sphinx-subfigure",
+            "sphinxcontrib-video",
+            "sphinx-togglebutton",
+            "sphinx-design",
+            "pydata-sphinx-theme",
+            "sphinx-autoapi",
+        ],
+    },
     data_files=[
         (os.path.join("_lib", "runtime"), data_files),
     ],

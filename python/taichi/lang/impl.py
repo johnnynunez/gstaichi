@@ -24,7 +24,7 @@ from taichi.lang.exception import (
 from taichi.lang.expr import Expr, make_expr_group
 from taichi.lang.field import Field, ScalarField
 from taichi.lang.kernel_arguments import SparseMatrixProxy
-from taichi.lang.kernel_impl import BoundFunc, Kernel, TaichiCallable
+from taichi.lang.kernel_impl import BoundTaichiCallable, Kernel, TaichiCallable
 from taichi.lang.matrix import (
     Matrix,
     MatrixField,
@@ -721,7 +721,7 @@ def create_field_member(dtype, name, needs_grad, needs_dual):
             # adjoint checkbit
             x_grad_checkbit = Expr(prog.make_id_expr(""))
             dtype = u8
-            if prog.config().arch in (_ti_core.opengl, _ti_core.vulkan, _ti_core.gles):
+            if prog.config().arch == _ti_core.vulkan:
                 dtype = i32
             x_grad_checkbit.ptr = _ti_core.expr_field(x_grad_checkbit.ptr, cook_dtype(dtype))
             x_grad_checkbit.ptr.set_name(name + ".grad_checkbit")
@@ -1160,8 +1160,7 @@ def static(x, *xs) -> Any:
         return x
     if isinstance(x, Field):
         return x
-    if isinstance(x, (FunctionType, MethodType, BoundFunc, TaichiCallable)):
-        print(" is instanace FunctionType or MethodType", x, type(x))
+    if isinstance(x, (FunctionType, MethodType, BoundTaichiCallable, TaichiCallable)):
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")
 

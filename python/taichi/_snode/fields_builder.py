@@ -38,7 +38,7 @@ class FieldsBuilder:
     """
 
     def __init__(self):
-        self.ptr: SNodeCxx = _snode_registry.create_root(impl.get_runtime()._prog)
+        self.ptr: SNodeCxx = _snode_registry.create_root(impl.get_runtime().prog)
         self.root = snode.SNode(self.ptr)
         self.finalized = False
         self.empty = True
@@ -53,9 +53,9 @@ class FieldsBuilder:
             A list of the roots of the finalized SNodeTree.
         """
         roots_ptr = []
-        size = impl.get_runtime()._prog.get_snode_tree_size()
+        size = impl.get_runtime().prog.get_snode_tree_size()
         for i in range(size):
-            res = impl.get_runtime()._prog.get_snode_root(i)
+            res = impl.get_runtime().prog.get_snode_root(i)
             roots_ptr.append(snode.SNode(res))
         return roots_ptr
 
