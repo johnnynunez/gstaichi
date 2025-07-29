@@ -13,7 +13,6 @@ import time
 import types
 import typing
 import warnings
-import weakref
 from typing import Any, Callable, Type, Union
 
 import numpy as np
@@ -21,8 +20,6 @@ import numpy as np
 import taichi.lang
 import taichi.lang._ndarray
 import taichi.lang._texture
-import taichi.lang.expr
-import taichi.lang.snode
 import taichi.types.annotations
 from taichi import _logging
 from taichi._lib import core as _ti_core
@@ -33,6 +30,7 @@ from taichi._lib.core.taichi_python import (
     KernelLaunchContext,
 )
 from taichi.lang import impl, ops, runtime_ops
+from taichi.lang._template_mapper import TaichiCallableTemplateMapper
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
 from taichi.lang.any_array import AnyArray
 from taichi.lang.argpack import ArgPack, ArgPackType
@@ -55,7 +53,7 @@ from taichi.lang.kernel_arguments import KernelArgument
 from taichi.lang.matrix import MatrixType
 from taichi.lang.shell import _shell_pop_print
 from taichi.lang.struct import StructType
-from taichi.lang.util import cook_dtype, has_paddle, has_pytorch, to_taichi_type
+from taichi.lang.util import cook_dtype, has_paddle, has_pytorch
 from taichi.types import (
     ndarray_type,
     primitive_types,
@@ -66,7 +64,6 @@ from taichi.types import (
 from taichi.types.compound_types import CompoundType
 from taichi.types.enums import AutodiffMode, Layout
 from taichi.types.utils import is_signed
-from taichi.lang._template_mapper import TaichiCallableTemplateMapper
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
@@ -581,9 +578,6 @@ AnnotationType = Union[
     Type,
     Any,
 ]
-
-
-
 
 
 def _get_global_vars(_func: Callable) -> dict[str, Any]:

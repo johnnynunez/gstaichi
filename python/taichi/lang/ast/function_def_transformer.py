@@ -27,8 +27,7 @@ from taichi.types import annotations, ndarray_type, primitive_types, texture_typ
 class FunctionDefTransformer:
     @staticmethod
     def decl_and_create_variable(
-        ctx: ASTTransformerContext,
-        annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth
+        ctx: ASTTransformerContext, annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth
     ) -> tuple[bool, Any]:
         full_name = prefix_name + "_" + name
         if not isinstance(annotation, primitive_types.RefType):
@@ -99,8 +98,7 @@ class FunctionDefTransformer:
             items_to_put_in_dict: list[tuple[str, str, Any]] = []
             for j, (name, anno) in enumerate(argument_type.members.items()):
                 result, obj = FunctionDefTransformer.decl_and_create_variable(
-                    ctx,
-                    anno, name, this_arg_features[j], invoke_later_dict, "__argpack_" + name, 1
+                    ctx, anno, name, this_arg_features[j], invoke_later_dict, "__argpack_" + name, 1
                 )
                 if not result:
                     d[name] = None
@@ -188,9 +186,9 @@ class FunctionDefTransformer:
     ) -> None:
         if isinstance(argument_type, annotations.template):
             ctx.create_variable(argument_name, data)
-            return
+            return None
 
-        elif dataclasses.is_dataclass(argument_type):
+        if dataclasses.is_dataclass(argument_type):
             dataclass_type = argument_type
             for field in dataclasses.fields(dataclass_type):
                 data_child = getattr(data, field.name)
@@ -209,7 +207,7 @@ class FunctionDefTransformer:
                 field.type.check_matched(data_child.get_type(), field.name)
                 var_name = f"__ti_{argument_name}_{field.name}"
                 ctx.create_variable(var_name, data_child)
-            return
+            return None
 
         # Ndarray arguments are passed by reference.
         if isinstance(argument_type, (ndarray_type.NdarrayType)):
@@ -222,9 +220,7 @@ class FunctionDefTransformer:
                     any_array.AnyArray,
                 ),
             ):
-                raise TaichiSyntaxError(
-                    f"Argument {arg.arg} of type {argument_type} is not recognized."
-                )
+                raise TaichiSyntaxError(f"Argument {arg.arg} of type {argument_type} is not recognized.")
             argument_type.check_matched(data.get_type(), argument_name)
             ctx.create_variable(argument_name, data)
             return None
