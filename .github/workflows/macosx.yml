@@ -98,6 +98,7 @@ jobs:
       matrix:
         # PYTHON_CP_VERSION: ["cp310", "cp311", "cp312", "cp313"]
         PYTHON_CP_VERSION: ["cp310"]
+        MAC_OS_VERSION: [15]
       fail-fast: false
     with:
       artifact_name: mac_wheel_${{ matrix.MAC_OS_VERSION }}_${{ matrix.PYTHON_CP_VERSION }}
