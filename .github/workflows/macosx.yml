@@ -100,5 +100,5 @@ jobs:
         PYTHON_CP_VERSION: ["cp310"]
       fail-fast: false
     with:
-      artifact_name: mac_wheel_${{ matrix.PYTHON_CP_VERSION }}
+      artifact_name: mac_wheel_${{ matrix.MAC_OS_VERSION }}_${{ matrix.PYTHON_CP_VERSION }}
     secrets: inherit
