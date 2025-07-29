@@ -1151,6 +1151,9 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
+        taichi.lang.sync()
+        print("__call__", self.func.__name__)
+        start = time.time()
         args = _process_args(self, is_func=False, py_args=args, py_kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
@@ -1180,7 +1183,10 @@ class Kernel:
         # print("getting kernel_cpp from compiled kernels using key", key)
         kernel_cpp = self.compiled_kernels[key]
         # print("got kernel_cpp", kernel_cpp)
-        return self.launch_kernel(kernel_cpp, *args)
+        res = self.launch_kernel(kernel_cpp, *args)
+        taichi.lang.sync()
+        print("elapsed for __call__", time.time() - start)
+        return res
 
 
 # For a Taichi class definition like below:
