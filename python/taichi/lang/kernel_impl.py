@@ -1183,7 +1183,12 @@ class Kernel:
         # print("getting kernel_cpp from compiled kernels using key", key)
         kernel_cpp = self.compiled_kernels[key]
         # print("got kernel_cpp", kernel_cpp)
+        taichi.lang.sync()
+        before_launch = time.time()
         res = self.launch_kernel(kernel_cpp, *args)
+        taichi.lang.sync()
+        launch_kernel_elapsed = time.time() - before_launch
+        print("launch kernel time", launch_kernel_elapsed)
         taichi.lang.sync()
         print("elapsed for __call__", time.time() - start)
         return res
