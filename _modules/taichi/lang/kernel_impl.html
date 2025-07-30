@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>taichi.lang.kernel_impl &#8212; Taichi 0.1.23 documentation</title>
+    <title>taichi.lang.kernel_impl &#8212; Taichi 0.1.0 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=20522496"></script>
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.23" />
+  <meta name="docsearch:version" content="0.1.0" />
   </head>
   
   
@@ -121,7 +121,7 @@
   
   
   
-    <p class="title logo__title">Taichi 0.1.23 documentation</p>
+    <p class="title logo__title">Taichi 0.1.0 documentation</p>
   
 </a></div>
     
@@ -310,9 +310,7 @@
                 <article class="bd-article">
                   
   <h1>Source code for taichi.lang.kernel_impl</h1><div class="highlight"><pre>
-<span></span><span class="c1"># type: ignore</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
@@ -340,7 +338,14 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">taichi.types.annotations</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi</span><span class="w"> </span><span class="kn">import</span> <span class="n">_logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">core</span> <span class="k">as</span> <span class="n">_ti_core</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASTBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ASTBuilder</span><span class="p">,</span>
+    <span class="n">FunctionKey</span><span class="p">,</span>
+    <span class="n">KernelLaunchContext</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Kernel</span> <span class="k">as</span> <span class="n">KernelCxx</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">impl</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">runtime_ops</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang._wrap_inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">getsourcefile</span><span class="p">,</span> <span class="n">getsourcelines</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.any_array</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyArray</span>
@@ -376,10 +381,128 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.types.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutodiffMode</span><span class="p">,</span> <span class="n">Layout</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.types.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_signed</span>
 
+<span class="n">CompiledKernelKeyType</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">AutodiffMode</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TaichiCallable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    BoundTaichiCallable is used to enable wrapping a bindable function with a class.</span>
+
+<span class="sd">    Design requirements for TaichiCallable:</span>
+<span class="sd">    - wrap/contain a reference to a class Func instance, and allow (the TaichiCallable) being passed around</span>
+<span class="sd">      like normal function pointer</span>
+<span class="sd">    - expose attributes of the wrapped class Func, such as `_if_real_function`, `_primal`, etc</span>
+<span class="sd">    - allow for (now limited) strong typing, and enable type checkers, such as pyright/mypy</span>
+<span class="sd">        - currently TaichiCallable is a shared type used for all functions marked with @ti.func, @ti.kernel,</span>
+<span class="sd">          python functions (?)</span>
+<span class="sd">        - note: current type-checking implementation does not distinguish between different type flavors of</span>
+<span class="sd">          TaichiCallable, with different values of `_if_real_function`, `_primal`, etc</span>
+<span class="sd">    - handle not only class-less functions, but also class-instance methods (where determining the `self`</span>
+<span class="sd">      reference is a challenge)</span>
+
+<span class="sd">    Let&#39;s take the following example:</span>
+
+<span class="sd">    def test_ptr_class_func():</span>
+<span class="sd">    @ti.data_oriented</span>
+<span class="sd">    class MyClass:</span>
+<span class="sd">        def __init__(self):</span>
+<span class="sd">            self.a = ti.field(dtype=ti.f32, shape=(3))</span>
+
+<span class="sd">        def add2numbers_py(self, x, y):</span>
+<span class="sd">            return x + y</span>
+
+<span class="sd">        @ti.func</span>
+<span class="sd">        def add2numbers_func(self, x, y):</span>
+<span class="sd">            return x + y</span>
+
+<span class="sd">        @ti.kernel</span>
+<span class="sd">        def func(self):</span>
+<span class="sd">            a, add_py, add_func = ti.static(self.a, self.add2numbers_py, self.add2numbers_func)</span>
+<span class="sd">            a[0] = add_py(2, 3)</span>
+<span class="sd">            a[1] = add_func(3, 7)</span>
+
+<span class="sd">    (taken from test_ptr_assign.py).</span>
+
+<span class="sd">    When the @ti.func decorator is parsed, the function `add2numbers_func` exists, but there is not yet any `self`</span>
+<span class="sd">    - it is not possible for the method to be bound, to a `self` instance</span>
+<span class="sd">    - however, the @ti.func annotation, runs the kernel_imp.py::func function --- it is at this point</span>
+<span class="sd">      that Taichi&#39;s original code creates a class Func instance (that wraps the add2numbers_func)</span>
+<span class="sd">      and immediately we create a TaichiCallable instance that wraps the Func instance.</span>
+<span class="sd">    - effectively, we have two layers of wrapping TaichiCallable-&gt;Func-&gt;function pointer</span>
+<span class="sd">      (actual function definition)</span>
+<span class="sd">    - later on, when we call self.add2numbers_py, here:</span>
+
+<span class="sd">            a, add_py, add_func = ti.static(self.a, self.add2numbers_py, self.add2numbers_func)</span>
+
+<span class="sd">      ... we want to call the bound method, `self.add2numbers_py`.</span>
+<span class="sd">    - an actual python function reference, created by doing somevar = MyClass.add2numbers, can automatically</span>
+<span class="sd">      binds to self, when called from self in this way (however, add2numbers_py is actually a class</span>
+<span class="sd">      Func instance, wrapping python function reference -- now also all wrapped by a TaichiCallable</span>
+<span class="sd">      instance -- returned by the kernel_impl.py::func function, run by @ti.func)</span>
+<span class="sd">    - however, in order to be able to add strongly typed attributes to the wrapped python function, we need</span>
+<span class="sd">      to wrap the wrapped python function in a class</span>
+<span class="sd">    - the wrapped python function, wrapped in a TaichiCallable class (which is callable, and will</span>
+<span class="sd">      execute the underlying double-wrapped python function), will NOT automatically bind</span>
+<span class="sd">    - when we invoke TaichiCallable, the wrapped function is invoked. The wrapped function is unbound, and</span>
+<span class="sd">      so `self` is not automatically passed in, as an argument, and things break</span>
+
+<span class="sd">    To address this we need to use the `__get__` method, in our function wrapper, ie TaichiCallable,</span>
+<span class="sd">    and have the `__get__` method return the `BoundTaichiCallable` object. The `__get__` method handles</span>
+<span class="sd">    running the binding for us, and effectively binds `BoundFunc` object to `self` object, by passing</span>
+<span class="sd">    in the instance, as an argument into `BoundTaichiCallable.__init__`.</span>
+
+<span class="sd">    `BoundFunc` can then be used as a normal bound func - even though it&#39;s just an object instance -</span>
+<span class="sd">    using its `__call__` method. Effectively, at the time of actually invoking the underlying python</span>
+<span class="sd">    function, we have 3 layers of wrapper instances:</span>
+<span class="sd">        BoundTaichiCallabe -&gt; TaichiCallable -&gt; Func -&gt; python function reference/definition</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">wrapper</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_real_function</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_taichi_function</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_wrapped_kernel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_classkernel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_primal</span><span class="p">:</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adjoint</span><span class="p">:</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grad</span><span class="p">:</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_staticmethod</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">functools</span><span class="o">.</span><span class="n">update_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">BoundTaichiCallable</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BoundTaichiCallable</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">taichi_callable</span><span class="p">:</span> <span class="s2">&quot;TaichiCallable&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span> <span class="o">=</span> <span class="n">taichi_callable</span><span class="o">.</span><span class="n">wrapper</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="n">instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taichi_callable</span> <span class="o">=</span> <span class="n">taichi_callable</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taichi_callable</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Note: these have to match the name of any attributes on this class.</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;wrapper&quot;</span><span class="p">,</span> <span class="s2">&quot;instance&quot;</span><span class="p">,</span> <span class="s2">&quot;taichi_callable&quot;</span><span class="p">):</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taichi_callable</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="func">
 <a class="viewcode-back" href="../../../autoapi/taichi/lang/kernel_impl/index.html#taichi.lang.kernel_impl.func">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">func</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">is_real_function</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">func</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">is_real_function</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TaichiCallable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Marks a function as callable in Taichi-scope.</span>
 
 <span class="sd">    This decorator transforms a Python function into a Taichi one. Taichi</span>
@@ -405,28 +528,23 @@
     <span class="n">is_classfunc</span> <span class="o">=</span> <span class="n">_inside_class</span><span class="p">(</span><span class="n">level_of_class_stackframe</span><span class="o">=</span><span class="mi">3</span> <span class="o">+</span> <span class="n">is_real_function</span><span class="p">)</span>
 
     <span class="n">fun</span> <span class="o">=</span> <span class="n">Func</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">_classfunc</span><span class="o">=</span><span class="n">is_classfunc</span><span class="p">,</span> <span class="n">is_real_function</span><span class="o">=</span><span class="n">is_real_function</span><span class="p">)</span>
-
-    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">decorated</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">fun</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="n">decorated</span><span class="o">.</span><span class="n">_is_taichi_function</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">decorated</span><span class="o">.</span><span class="n">_is_real_function</span> <span class="o">=</span> <span class="n">is_real_function</span>
-    <span class="n">decorated</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">fun</span>
-    <span class="k">return</span> <span class="n">decorated</span></div>
+    <span class="n">taichi_callable</span> <span class="o">=</span> <span class="n">TaichiCallable</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fun</span><span class="p">)</span>
+    <span class="n">taichi_callable</span><span class="o">.</span><span class="n">_is_taichi_function</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">taichi_callable</span><span class="o">.</span><span class="n">_is_real_function</span> <span class="o">=</span> <span class="n">is_real_function</span>
+    <span class="k">return</span> <span class="n">taichi_callable</span></div>
 
 
 
 <div class="viewcode-block" id="real_func">
 <a class="viewcode-back" href="../../../autoapi/taichi/lang/kernel_impl/index.html#taichi.lang.kernel_impl.real_func">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">real_func</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">real_func</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TaichiCallable</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">is_real_function</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="pyfunc">
 <a class="viewcode-back" href="../../../autoapi/taichi/lang/kernel_impl/index.html#taichi.lang.kernel_impl.pyfunc">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">pyfunc</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pyfunc</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TaichiCallable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Marks a function as callable in both Taichi and Python scopes.</span>
 
 <span class="sd">    When called inside the Taichi scope, Taichi will JIT compile it into</span>
@@ -443,34 +561,29 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">is_classfunc</span> <span class="o">=</span> <span class="n">_inside_class</span><span class="p">(</span><span class="n">level_of_class_stackframe</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="n">fun</span> <span class="o">=</span> <span class="n">Func</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">_classfunc</span><span class="o">=</span><span class="n">is_classfunc</span><span class="p">,</span> <span class="n">_pyfunc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">decorated</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">fun</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="n">decorated</span><span class="o">.</span><span class="n">_is_taichi_function</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">decorated</span><span class="o">.</span><span class="n">_is_real_function</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">decorated</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">fun</span>
-    <span class="k">return</span> <span class="n">decorated</span></div>
+    <span class="n">taichi_callable</span> <span class="o">=</span> <span class="n">TaichiCallable</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fun</span><span class="p">)</span>
+    <span class="n">taichi_callable</span><span class="o">.</span><span class="n">_is_taichi_function</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">taichi_callable</span><span class="o">.</span><span class="n">_is_real_function</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">taichi_callable</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_tree_and_ctx</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Func | Kernel&quot;</span><span class="p">,</span>
+    <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
     <span class="n">excluded_parameters</span><span class="o">=</span><span class="p">(),</span>
     <span class="n">is_kernel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">arg_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">ast_builder</span><span class="p">:</span> <span class="n">ASTBuilder</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">is_real_function</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ast</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ASTTransformerContext</span><span class="p">]:</span>
     <span class="n">file</span> <span class="o">=</span> <span class="n">getsourcefile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
     <span class="n">src</span><span class="p">,</span> <span class="n">start_lineno</span> <span class="o">=</span> <span class="n">getsourcelines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
     <span class="n">src</span> <span class="o">=</span> <span class="p">[</span><span class="n">textwrap</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">tabsize</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">9999</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">src</span><span class="p">]</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">)))</span>
 
     <span class="n">func_body</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">func_body</span><span class="o">.</span><span class="n">decorator_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">func_body</span><span class="o">.</span><span class="n">decorator_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: ignore , kick that can down the road...</span>
 
     <span class="n">global_vars</span> <span class="o">=</span> <span class="n">_get_global_vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
 
@@ -517,10 +630,11 @@
     <span class="k">return</span> <span class="n">new_arguments</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_process_args</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Func | Kernel&quot;</span><span class="p">,</span> <span class="n">is_func</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_args</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Func | Kernel&quot;</span><span class="p">,</span> <span class="n">is_func</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
     <span class="k">if</span> <span class="n">is_func</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">expand_func_arguments</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span>
     <span class="n">fused_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">argument</span><span class="o">.</span><span class="n">default</span> <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">]</span>
+    <span class="n">ret</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">argument</span><span class="o">.</span><span class="n">default</span> <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">]</span>
     <span class="n">len_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">len_args</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">fused_args</span><span class="p">):</span>
@@ -558,7 +672,7 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">unpack_ndarray_struct</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">struct_locals</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ast</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
     <span class="k">class</span><span class="w"> </span><span class="nc">AttributeToNameTransformer</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeTransformer</span><span class="p">):</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">visit_Attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">visit_Attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Attribute</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">node</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">):</span>
@@ -599,7 +713,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Func</span><span class="p">:</span>
     <span class="n">function_counter</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">_classfunc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">_pyfunc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_real_function</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">_classfunc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">_pyfunc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_real_function</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">_func</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func_id</span> <span class="o">=</span> <span class="n">Func</span><span class="o">.</span><span class="n">function_counter</span>
         <span class="n">Func</span><span class="o">.</span><span class="n">function_counter</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -619,7 +733,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">taichi_functions</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># The |Function| class in C++</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">has_print</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">_process_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_func</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">impl</span><span class="o">.</span><span class="n">inside_kernel</span><span class="p">():</span>
@@ -652,7 +766,7 @@
                 <span class="k">raise</span> <span class="n">TaichiSyntaxError</span><span class="p">(</span><span class="s2">&quot;Function has a return type but does not have a return statement&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">func_call_rvalue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">func_call_rvalue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">FunctionKey</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="c1"># Skip the template args, e.g., |self|</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_real_function</span>
         <span class="n">non_template_args</span> <span class="o">=</span> <span class="p">[]</span>
@@ -700,7 +814,7 @@
             <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">do_compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">arg_features</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">FunctionKey</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">arg_features</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">tree</span><span class="p">,</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">_get_tree_and_ctx</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">is_kernel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">arg_features</span><span class="o">=</span><span class="n">arg_features</span><span class="p">,</span> <span class="n">is_real_function</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_real_function</span>
         <span class="p">)</span>
@@ -722,10 +836,12 @@
         <span class="k">if</span> <span class="n">sig</span><span class="o">.</span><span class="n">return_annotation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">Signature</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">return_annotation</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GenericAlias</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">_GenericAlias</span><span class="p">))</span>
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="o">.</span><span class="n">__origin__</span> <span class="ow">is</span> <span class="nb">tuple</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GenericAlias</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">_GenericAlias</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="o">.</span><span class="n">__origin__</span> <span class="ow">is</span> <span class="nb">tuple</span>  <span class="c1"># type: ignore</span>
             <span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="o">.</span><span class="n">__args__</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="o">.</span><span class="n">__args__</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">,)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">return_type</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">):</span>
@@ -783,6 +899,8 @@
     <span class="s2">&quot;texture_type.RWTextureType&quot;</span><span class="p">,</span>
     <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">,</span>
     <span class="n">sparse_matrix_builder</span><span class="p">,</span>
+    <span class="nb">str</span><span class="p">,</span>
+    <span class="n">Type</span><span class="p">,</span>
     <span class="n">Any</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -800,13 +918,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arguments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">KernelArgument</span><span class="p">],</span> <span class="n">template_slot_locations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">arguments</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">template_slot_locations</span> <span class="o">=</span> <span class="n">template_slot_locations</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">KernelArgument</span><span class="p">]</span> <span class="o">=</span> <span class="n">arguments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_args</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template_slot_locations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">template_slot_locations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">extract_arg</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">annotation</span><span class="p">:</span> <span class="n">AnnotationType</span><span class="p">,</span> <span class="n">arg_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_arg</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">annotation</span><span class="p">:</span> <span class="n">AnnotationType</span><span class="p">,</span> <span class="n">arg_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">annotation</span> <span class="o">==</span> <span class="n">template</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">snode</span><span class="o">.</span><span class="n">SNode</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">arg</span><span class="o">.</span><span class="n">ptr</span>
@@ -935,13 +1053,13 @@
         <span class="c1"># Use &#39;#&#39; as a placeholder because other kinds of arguments are not involved in template instantiation</span>
         <span class="k">return</span> <span class="s2">&quot;#&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
-        <span class="n">extracted</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="n">extracted</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">arg</span><span class="p">,</span> <span class="n">kernel_arg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">):</span>
             <span class="n">extracted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extract_arg</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">kernel_arg</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span> <span class="n">kernel_arg</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">extracted</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_args</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_args</span><span class="si">}</span><span class="s2"> argument(s) needed but </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> provided.&quot;</span><span class="p">)</span>
 
@@ -952,7 +1070,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">key</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_global_vars</span><span class="p">(</span><span class="n">_func</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_global_vars</span><span class="p">(</span><span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="c1"># Discussions: https://github.com/taichi-dev/taichi/issues/282</span>
     <span class="n">global_vars</span> <span class="o">=</span> <span class="n">_func</span><span class="o">.</span><span class="vm">__globals__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -969,7 +1087,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Kernel</span><span class="p">:</span>
     <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">autodiff_mode</span><span class="p">,</span> <span class="n">_classkernel</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">autodiff_mode</span><span class="p">:</span> <span class="n">AutodiffMode</span><span class="p">,</span> <span class="n">_classkernel</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">_func</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernel_counter</span> <span class="o">=</span> <span class="n">Kernel</span><span class="o">.</span><span class="n">counter</span>
         <span class="n">Kernel</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -993,23 +1111,23 @@
         <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernel_cpp</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernels</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernels</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">CompiledKernelKeyType</span><span class="p">,</span> <span class="n">KernelCxx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">has_print</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ast_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ASTBuilder</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_cpp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_cpp</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span> <span class="o">=</span> <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernels</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">extract_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">sig</span><span class="o">.</span><span class="n">return_annotation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">_empty</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">return_annotation</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GenericAlias</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">_GenericAlias</span><span class="p">))</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GenericAlias</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">_GenericAlias</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="o">.</span><span class="n">__origin__</span> <span class="ow">is</span> <span class="nb">tuple</span>
             <span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span><span class="o">.</span><span class="n">__args__</span>
@@ -1067,7 +1185,7 @@
                     <span class="k">raise</span> <span class="n">TaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid type annotation (argument </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">) of Taichi kernel: </span><span class="si">{</span><span class="n">annotation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">KernelArgument</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">default</span><span class="p">))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">materialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">arg_features</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">materialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">CompiledKernelKeyType</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">arg_features</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">autodiff_mode</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">materialize</span><span class="p">()</span>
@@ -1107,7 +1225,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">ast_builder</span> <span class="o">=</span> <span class="n">kernel_cxx</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
 
-                <span class="k">def</span><span class="w"> </span><span class="nf">ast_to_dict</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">ast_to_dict</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">_python_primitive_types</span><span class="p">):</span>
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">):</span>
                         <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">ast_to_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">iter_fields</span><span class="p">(</span><span class="n">node</span><span class="p">)}</span>
                         <span class="k">return</span> <span class="p">{</span>
@@ -1155,7 +1273,7 @@
         <span class="k">assert</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernels</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">taichi_kernel</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">launch_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_kernel</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">launch_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_kernel</span><span class="p">:</span> <span class="n">KernelCxx</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span><span class="si">}</span><span class="s2"> arguments needed but </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> provided&quot;</span>
 
         <span class="n">tmps</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1163,24 +1281,27 @@
 
         <span class="n">actual_argument_slot</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">launch_ctx</span> <span class="o">=</span> <span class="n">t_kernel</span><span class="o">.</span><span class="n">make_launch_context</span><span class="p">()</span>
-        <span class="n">max_arg_num</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="n">max_arg_num</span> <span class="o">=</span> <span class="mi">512</span>
         <span class="n">exceed_max_arg_num</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_ndarray</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_ndarray</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">:</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_ndarray</span><span class="o">.</span><span class="n">Ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">v_primal</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">arr</span>
             <span class="n">v_grad</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">arr</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">grad</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">v_grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_ndarray</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v_primal</span><span class="p">)</span>
+                <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_ndarray</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v_primal</span><span class="p">)</span>  <span class="c1"># type: ignore , solvable probably, just not today</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_ndarray_with_grad</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v_primal</span><span class="p">,</span> <span class="n">v_grad</span><span class="p">)</span>
+                <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_ndarray_with_grad</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v_primal</span><span class="p">,</span> <span class="n">v_grad</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">:</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_texture</span><span class="o">.</span><span class="n">Texture</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">tex</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_rw_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_rw_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">:</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_texture</span><span class="o">.</span><span class="n">Texture</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_rw_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">tex</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_ext_array</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">needed</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_ext_array</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">needed</span><span class="p">:</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># v is things like torch Tensor and numpy array</span>
+            <span class="c1"># Not adding type for this, since adds additional dependencies</span>
+            <span class="c1">#</span>
             <span class="c1"># Element shapes are already specialized in Taichi codegen.</span>
             <span class="c1"># The shape information for element dims are no longer needed.</span>
             <span class="c1"># Therefore we strip the element shapes from the shape vector,</span>
@@ -1268,6 +1389,8 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">has_paddle</span><span class="p">():</span>
+                <span class="c1"># Do we want to continue to support paddle? :thinking_face:</span>
+                <span class="c1"># #maybeprunable</span>
                 <span class="kn">import</span><span class="w"> </span><span class="nn">paddle</span>  <span class="c1"># pylint: disable=C0415  # type: ignore</span>
 
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">paddle</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -1303,15 +1426,15 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_matrix</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">needed</span><span class="p">):</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">cast_float</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_matrix</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">,</span> <span class="n">needed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">cast_float</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
                 <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">cast_int</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">cast_int</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -1333,13 +1456,13 @@
             <span class="n">v</span> <span class="o">=</span> <span class="n">needed</span><span class="p">(</span><span class="o">*</span><span class="n">v</span><span class="p">)</span>
             <span class="n">needed</span><span class="o">.</span><span class="n">set_kernel_struct_args</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">launch_ctx</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_sparse_matrix_builder</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_sparse_matrix_builder</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Pass only the base pointer of the ti.types.sparse_matrix_builder() argument</span>
             <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_uint</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">_get_ndarray_addr</span><span class="p">())</span>
 
         <span class="n">set_later_list</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">recursive_set_args</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">provided_arg_type</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">recursive_set_args</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">provided_arg_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Returns the number of kernel args set</span>
 <span class="sd">            e.g. templates don&#39;t set kernel args, so returns 0</span>
@@ -1424,7 +1547,11 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">StructType</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
                     <span class="k">return</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">):</span>
+                <span class="c1"># Unclear how to make the following pass typing checks</span>
+                <span class="c1"># StructType implements __instancecheck__, which should be a classmethod, but</span>
+                <span class="c1"># is currently an instance method</span>
+                <span class="c1"># TODO: look into this more deeply at some point</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
                     <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">provided_arg_type</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">needed_arg_type</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
@@ -1483,7 +1610,7 @@
 
         <span class="k">return</span> <span class="n">ret</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">construct_kernel_ret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launch_ctx</span><span class="p">,</span> <span class="n">ret_type</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">construct_kernel_ret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">launch_ctx</span><span class="p">:</span> <span class="n">KernelLaunchContext</span><span class="p">,</span> <span class="n">ret_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ret_type</span><span class="p">,</span> <span class="n">CompoundType</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">ret_type</span><span class="o">.</span><span class="n">from_kernel_struct_ret</span><span class="p">(</span><span class="n">launch_ctx</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ret_type</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">integer_types</span><span class="p">:</span>
@@ -1494,7 +1621,7 @@
             <span class="k">return</span> <span class="n">launch_ctx</span><span class="o">.</span><span class="n">get_struct_ret_float</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">TaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid return type on index=</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_compiled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_compiled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">AutodiffMode</span><span class="p">]:</span>
         <span class="n">instance_id</span><span class="p">,</span> <span class="n">arg_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">instance_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">autodiff_mode</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">materialize</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">arg_features</span><span class="o">=</span><span class="n">arg_features</span><span class="p">)</span>
@@ -1503,7 +1630,7 @@
     <span class="c1"># For small kernels (&lt; 3us), the performance can be pretty sensitive to overhead in __call__</span>
     <span class="c1"># Thus this part needs to be fast. (i.e. &lt; 3us on a 4 GHz x64 CPU)</span>
     <span class="nd">@_shell_pop_print</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">_process_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_func</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># Transform the primal kernel to forward mode grad kernel</span>
@@ -1553,7 +1680,7 @@
 <span class="p">]</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_inside_class</span><span class="p">(</span><span class="n">level_of_class_stackframe</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_inside_class</span><span class="p">(</span><span class="n">level_of_class_stackframe</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">maybe_class_frame</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="n">level_of_class_stackframe</span><span class="p">)</span>
         <span class="n">statement_list</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getframeinfo</span><span class="p">(</span><span class="n">maybe_class_frame</span><span class="p">)[</span><span class="mi">3</span><span class="p">]</span>
@@ -1568,7 +1695,7 @@
     <span class="k">return</span> <span class="kc">False</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_kernel_impl</span><span class="p">(</span><span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">level_of_class_stackframe</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_kernel_impl</span><span class="p">(</span><span class="n">_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">level_of_class_stackframe</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TaichiCallable</span><span class="p">:</span>
     <span class="c1"># Can decorators determine if a function is being defined inside a class?</span>
     <span class="c1"># https://stackoverflow.com/a/8793684/12003165</span>
     <span class="n">is_classkernel</span> <span class="o">=</span> <span class="n">_inside_class</span><span class="p">(</span><span class="n">level_of_class_stackframe</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -1580,6 +1707,7 @@
     <span class="c1"># Having |primal| contains |grad| makes the tape work.</span>
     <span class="n">primal</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">adjoint</span>
 
+    <span class="n">wrapped</span><span class="p">:</span> <span class="n">TaichiCallable</span>
     <span class="k">if</span> <span class="n">is_classkernel</span><span class="p">:</span>
         <span class="c1"># For class kernels, their primal/adjoint callables are constructed</span>
         <span class="c1"># when the kernel is accessed via the instance inside</span>
@@ -1589,17 +1717,18 @@
         <span class="c1">#</span>
         <span class="c1"># See also: _BoundedDifferentiableMethod, data_oriented.</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">_func</span><span class="p">)</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">wrapped_classkernel</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c1"># If we reach here (we should never), it means the class is not decorated</span>
             <span class="c1"># with @ti.data_oriented, otherwise getattr would have intercepted the call.</span>
             <span class="n">clsobj</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">clsobj</span><span class="p">,</span> <span class="s2">&quot;_data_oriented&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">TaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please decorate class </span><span class="si">{</span><span class="n">clsobj</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> with @ti.data_oriented&quot;</span><span class="p">)</span>
 
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="n">TaichiCallable</span><span class="p">(</span><span class="n">_func</span><span class="p">,</span> <span class="n">wrapped_classkernel</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
 
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">_func</span><span class="p">)</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">wrapped_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">primal</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="n">TaichiCompilationError</span><span class="p">,</span> <span class="n">TaichiRuntimeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1607,6 +1736,7 @@
                     <span class="k">raise</span> <span class="n">e</span>
                 <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="n">TaichiCallable</span><span class="p">(</span><span class="n">_func</span><span class="p">,</span> <span class="n">wrapped_func</span><span class="p">)</span>
         <span class="n">wrapped</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">adjoint</span>
 
     <span class="n">wrapped</span><span class="o">.</span><span class="n">_is_wrapped_kernel</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1651,7 +1781,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_BoundedDifferentiableMethod</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_owner</span><span class="p">,</span> <span class="n">wrapped_kernel_func</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_owner</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">wrapped_kernel_func</span><span class="p">:</span> <span class="n">TaichiCallable</span> <span class="o">|</span> <span class="n">BoundTaichiCallable</span><span class="p">):</span>
         <span class="n">clsobj</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">kernel_owner</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">clsobj</span><span class="p">,</span> <span class="s2">&quot;_data_oriented&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please decorate class </span><span class="si">{</span><span class="n">clsobj</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> with @ti.data_oriented&quot;</span><span class="p">)</span>
@@ -1663,15 +1793,18 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_staticmethod</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primal</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel_owner</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
         <span class="k">except</span> <span class="p">(</span><span class="n">TaichiCompilationError</span><span class="p">,</span> <span class="n">TaichiRuntimeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">print_full_traceback</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">e</span>
             <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Kernel</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adjoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adjoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel_owner</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
@@ -1720,11 +1853,11 @@
                 <span class="n">wrapped</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="vm">__func__</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">wrapped</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wrapped</span><span class="p">,</span> <span class="p">(</span><span class="n">BoundTaichiCallable</span><span class="p">,</span> <span class="n">TaichiCallable</span><span class="p">))</span>
             <span class="n">wrapped</span><span class="o">.</span><span class="n">_is_staticmethod</span> <span class="o">=</span> <span class="n">is_staticmethod</span>
-            <span class="k">assert</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">wrapped</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">wrapped</span><span class="o">.</span><span class="n">_is_classkernel</span><span class="p">:</span>
                 <span class="n">ret</span> <span class="o">=</span> <span class="n">_BoundedDifferentiableMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapped</span><span class="p">)</span>
-                <span class="n">ret</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">wrapped</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="n">ret</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">wrapped</span><span class="o">.</span><span class="vm">__name__</span>  <span class="c1"># type: ignore</span>
                 <span class="k">if</span> <span class="n">is_property</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">ret</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">ret</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>taichi.lang.misc &#8212; Taichi 0.1.23 documentation</title>
+    <title>taichi.lang.misc &#8212; Taichi 0.1.0 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=20522496"></script>
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.23" />
+  <meta name="docsearch:version" content="0.1.0" />
   </head>
   
   
@@ -121,7 +121,7 @@
   
   
   
-    <p class="title logo__title">Taichi 0.1.23 documentation</p>
+    <p class="title logo__title">Taichi 0.1.0 documentation</p>
   
 </a></div>
     
@@ -313,7 +313,6 @@
 <span></span><span class="c1"># type: ignore</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">atexit</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
@@ -504,22 +503,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># ----------------------</span>
 
-<div class="viewcode-block" id="opengl">
-<a class="viewcode-back" href="../../../autoapi/taichi/lang/misc/index.html#taichi.lang.misc.opengl">[docs]</a>
-<span class="n">opengl</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">opengl</span></div>
-
-<span class="sd">&quot;&quot;&quot;The OpenGL backend. OpenGL 4.3 required.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="c1"># ----------------------</span>
-
-<div class="viewcode-block" id="gles">
-<a class="viewcode-back" href="../../../autoapi/taichi/lang/misc/index.html#taichi.lang.misc.gles">[docs]</a>
-<span class="n">gles</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">gles</span></div>
-
-<span class="sd">&quot;&quot;&quot;The OpenGL ES backend. OpenGL ES 3.1 required.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="c1"># ----------------------</span>
-
 <div class="viewcode-block" id="vulkan">
 <a class="viewcode-back" href="../../../autoapi/taichi/lang/misc/index.html#taichi.lang.misc.vulkan">[docs]</a>
 <span class="n">vulkan</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">vulkan</span></div>
@@ -546,10 +529,10 @@
 
 <div class="viewcode-block" id="gpu">
 <a class="viewcode-back" href="../../../autoapi/taichi/lang/misc/index.html#taichi.lang.misc.gpu">[docs]</a>
-<span class="n">gpu</span> <span class="o">=</span> <span class="p">[</span><span class="n">cuda</span><span class="p">,</span> <span class="n">metal</span><span class="p">,</span> <span class="n">vulkan</span><span class="p">,</span> <span class="n">opengl</span><span class="p">,</span> <span class="n">dx11</span><span class="p">,</span> <span class="n">dx12</span><span class="p">,</span> <span class="n">gles</span><span class="p">,</span> <span class="n">amdgpu</span><span class="p">]</span></div>
+<span class="n">gpu</span> <span class="o">=</span> <span class="p">[</span><span class="n">cuda</span><span class="p">,</span> <span class="n">metal</span><span class="p">,</span> <span class="n">vulkan</span><span class="p">,</span> <span class="n">dx11</span><span class="p">,</span> <span class="n">dx12</span><span class="p">,</span> <span class="n">amdgpu</span><span class="p">]</span></div>
 
 <span class="sd">&quot;&quot;&quot;A list of GPU backends supported on the current system.</span>
-<span class="sd">Currently contains &#39;cuda&#39;, &#39;metal&#39;, &#39;opengl&#39;, &#39;vulkan&#39;, &#39;dx11&#39;, &#39;dx12&#39;, &#39;gles&#39;, &#39;amdgpu&#39;.</span>
+<span class="sd">Currently contains &#39;cuda&#39;, &#39;metal&#39;, &#39;vulkan&#39;, &#39;dx11&#39;, &#39;dx12&#39;, &#39;amdgpu&#39;.</span>
 
 <span class="sd">When this is used, Taichi automatically picks the matching GPU backend. If no</span>
 <span class="sd">GPU is detected, Taichi falls back to the CPU backend.</span>
@@ -1155,8 +1138,6 @@
         <span class="n">cuda</span><span class="p">:</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">with_cuda</span><span class="p">,</span>
         <span class="n">amdgpu</span><span class="p">:</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">with_amdgpu</span><span class="p">,</span>
         <span class="n">metal</span><span class="p">:</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">with_metal</span><span class="p">,</span>
-        <span class="n">opengl</span><span class="p">:</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">_ti_core</span><span class="o">.</span><span class="n">with_opengl</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-        <span class="n">gles</span><span class="p">:</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">_ti_core</span><span class="o">.</span><span class="n">with_opengl</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
         <span class="n">vulkan</span><span class="p">:</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">with_vulkan</span><span class="p">,</span>
         <span class="n">dx11</span><span class="p">:</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">with_dx11</span><span class="p">,</span>
         <span class="n">dx12</span><span class="p">:</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">with_dx12</span><span class="p">,</span>
@@ -1217,10 +1198,8 @@
     <span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
     <span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
     <span class="s2">&quot;amdgpu&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;gles&quot;</span><span class="p">,</span>
     <span class="s2">&quot;gpu&quot;</span><span class="p">,</span>
     <span class="s2">&quot;metal&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;opengl&quot;</span><span class="p">,</span>
     <span class="s2">&quot;vulkan&quot;</span><span class="p">,</span>
     <span class="s2">&quot;extension&quot;</span><span class="p">,</span>
     <span class="s2">&quot;loop_config&quot;</span><span class="p">,</span>
