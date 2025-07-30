@@ -1279,7 +1279,7 @@
 
         <span class="n">actual_argument_slot</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">launch_ctx</span> <span class="o">=</span> <span class="n">t_kernel</span><span class="o">.</span><span class="n">make_launch_context</span><span class="p">()</span>
-        <span class="n">max_arg_num</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="n">max_arg_num</span> <span class="o">=</span> <span class="mi">512</span>
         <span class="n">exceed_max_arg_num</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">set_arg_ndarray</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">v</span><span class="p">:</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_ndarray</span><span class="o">.</span><span class="n">Ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
