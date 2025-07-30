@@ -29,7 +29,7 @@ Functions
 Module Contents
 ---------------
 
-.. py:class:: SNode(ptr: taichi._lib.core.taichi_python.SNode)
+.. py:class:: SNode(ptr: taichi._lib.core.taichi_python.SNodeCxx)
 
    A Python-side SNode wrapper.
 

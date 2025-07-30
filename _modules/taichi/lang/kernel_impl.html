@@ -341,10 +341,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ASTBuilder</span><span class="p">,</span>
     <span class="n">FunctionKey</span><span class="p">,</span>
+    <span class="n">KernelCxx</span><span class="p">,</span>
     <span class="n">KernelLaunchContext</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Kernel</span> <span class="k">as</span> <span class="n">KernelCxx</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">impl</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">runtime_ops</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang._wrap_inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">getsourcefile</span><span class="p">,</span> <span class="n">getsourcelines</span>
@@ -930,7 +928,7 @@
                 <span class="k">return</span> <span class="n">arg</span><span class="o">.</span><span class="n">ptr</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">taichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">Expr</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">arg</span><span class="o">.</span><span class="n">ptr</span><span class="o">.</span><span class="n">get_underlying_ptr_address</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">Expr</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">ExprCxx</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">arg</span><span class="o">.</span><span class="n">get_underlying_ptr_address</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">TaichiCallableTemplateMapper</span><span class="o">.</span><span class="n">extract_arg</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="n">arg_name</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">arg</span><span class="p">)</span>
