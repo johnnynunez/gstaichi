@@ -315,8 +315,10 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">core</span> <span class="k">as</span> <span class="n">_ti_core</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axis</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="n">SNode</span> <span class="k">as</span> <span class="n">SNodeCxx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Axis</span><span class="p">,</span>
+    <span class="n">SNodeCxx</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">expr</span><span class="p">,</span> <span class="n">impl</span><span class="p">,</span> <span class="n">matrix</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.exception</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaichiRuntimeError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">BitpackedFields</span><span class="p">,</span> <span class="n">Field</span>

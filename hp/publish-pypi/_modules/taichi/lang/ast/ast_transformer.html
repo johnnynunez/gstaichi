@@ -2237,7 +2237,7 @@
         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">msg</span> <span class="o">+=</span> <span class="n">entry</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">Expr</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">ExprCxx</span><span class="p">):</span>
                 <span class="n">ty</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get_rvalue_type</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">ty</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">real_types</span><span class="p">:</span>
                     <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%f</span><span class="s2">&quot;</span>
