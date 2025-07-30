@@ -307,6 +307,7 @@ class FunctionDefTransformer:
 
         if ctx.is_kernel:  # ti.kernel
             FunctionDefTransformer._transform_as_kernel(ctx, node, args)
+
         else:  # ti.func
             if ctx.is_real_function:
                 FunctionDefTransformer._transform_as_kernel(ctx, node, args)
