@@ -25,6 +25,7 @@ from taichi.lang.ast.ast_transformer_utils import (
     Builder,
     LoopStatus,
     ReturnStatus,
+    get_decorator,
 )
 from taichi.lang.ast.symbol_resolver import ASTResolver
 from taichi.lang.exception import (
@@ -790,20 +791,6 @@ class ASTTransformer(Builder):
         return node.ptr
 
     @staticmethod
-    def get_decorator(ctx: ASTTransformerContext, node) -> str:
-        if not isinstance(node, ast.Call):
-            return ""
-        for wanted, name in [
-            (impl.static, "static"),
-            (impl.static_assert, "static_assert"),
-            (impl.grouped, "grouped"),
-            (ndrange, "ndrange"),
-        ]:
-            if ASTResolver.resolve_to(node.func, wanted, ctx.global_vars):
-                return name
-        return ""
-
-    @staticmethod
     def get_for_loop_targets(node: ast.Name | ast.Tuple | Any) -> list:
         """
         Returns the list of indices of the for loop |node|.
@@ -1092,10 +1079,10 @@ class ASTTransformer(Builder):
     def build_For(ctx: ASTTransformerContext, node: ast.For) -> None:
         if node.orelse:
             raise TaichiSyntaxError("'else' clause for 'for' not supported in Taichi kernels")
-        decorator = ASTTransformer.get_decorator(ctx, node.iter)
+        decorator = get_decorator(ctx, node.iter)
         double_decorator = ""
         if decorator != "" and len(node.iter.args) == 1:
-            double_decorator = ASTTransformer.get_decorator(ctx, node.iter.args[0])
+            double_decorator = get_decorator(ctx, node.iter.args[0])
 
         if decorator == "static":
             if double_decorator == "static":
@@ -1157,7 +1144,7 @@ class ASTTransformer(Builder):
     @staticmethod
     def build_If(ctx: ASTTransformerContext, node: ast.If) -> ast.If | None:
         build_stmt(ctx, node.test)
-        is_static_if = ASTTransformer.get_decorator(ctx, node.test) == "static"
+        is_static_if = get_decorator(ctx, node.test) == "static"
 
         if is_static_if:
             if node.test.ptr:
@@ -1206,7 +1193,7 @@ class ASTTransformer(Builder):
             node.ptr = ti_ops.select(node.test.ptr, node.body.ptr, node.orelse.ptr)
             return node.ptr
 
-        is_static_if = ASTTransformer.get_decorator(ctx, node.test) == "static"
+        is_static_if = get_decorator(ctx, node.test) == "static"
 
         if is_static_if:
             if node.test.ptr:
