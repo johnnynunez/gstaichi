@@ -332,8 +332,10 @@
     <span class="n">ReturnStatus</span><span class="p">,</span>
     <span class="n">get_decorator</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.ast.call_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">CallTransformer</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.ast.function_def_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">FunctionDefTransformer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.ast.ast_transformers.call_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">CallTransformer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.ast.ast_transformers.function_def_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FunctionDefTransformer</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.exception</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TaichiIndexError</span><span class="p">,</span>
     <span class="n">TaichiRuntimeTypeError</span><span class="p">,</span>
