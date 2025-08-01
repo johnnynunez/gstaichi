@@ -1,0 +1,6 @@
+taichi.algorithms
+=================
+
+.. py:module:: taichi.algorithms
+
+
