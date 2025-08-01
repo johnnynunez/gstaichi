@@ -227,42 +227,12 @@ Module Contents
 
 
 
-   .. py:method:: build_call_if_is_builtin(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node, args, keywords)
+   .. py:method:: build_Call(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node: ast.Call) -> Any | None
       :staticmethod:
 
 
 
-   .. py:method:: build_call_if_is_type(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node, args, keywords)
-      :staticmethod:
-
-
-
-   .. py:method:: is_external_func(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, func) -> bool
-      :staticmethod:
-
-
-
-   .. py:method:: warn_if_is_external_func(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node)
-      :staticmethod:
-
-
-
-   .. py:method:: canonicalize_formatted_string(raw_string: str, *raw_args: list, **raw_keywords: dict)
-      :staticmethod:
-
-
-
-   .. py:method:: expand_node_args_dataclasses(args: tuple[ast.AST, Ellipsis]) -> tuple[ast.AST, Ellipsis]
-      :staticmethod:
-
-
-
-   .. py:method:: build_Call(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node: ast.Call)
-      :staticmethod:
-
-
-
-   .. py:method:: build_FunctionDef(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node: ast.FunctionDef)
+   .. py:method:: build_FunctionDef(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node: ast.FunctionDef) -> None
       :staticmethod:
 
 
@@ -323,11 +293,6 @@ Module Contents
 
 
    .. py:method:: build_Compare(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node: ast.Compare)
-      :staticmethod:
-
-
-
-   .. py:method:: get_decorator(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, node) -> str
       :staticmethod:
 
 
@@ -428,5 +393,5 @@ Module Contents
 
 .. py:data:: build_stmt
 
-.. py:function:: build_stmts(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, stmts: list)
+.. py:function:: build_stmts(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, stmts: list[ast.stmt])
 
