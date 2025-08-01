@@ -58,7 +58,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/taichi/lang/ast/ast_transformer_utils/index';</script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
-    <link rel="next" title="taichi.lang.ast.checkers" href="../checkers/index.html" />
+    <link rel="next" title="taichi.lang.ast.ast_transformers" href="../ast_transformers/index.html" />
     <link rel="prev" title="taichi.lang.ast.ast_transformer" href="../ast_transformer/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -285,6 +285,7 @@
 <li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">taichi.lang.ast</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="../ast_transformer/index.html">taichi.lang.ast.ast_transformer</a></li>
 <li class="toctree-l4 current active"><a class="current reference internal" href="#">taichi.lang.ast.ast_transformer_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ast_transformers/index.html">taichi.lang.ast.ast_transformers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../checkers/index.html">taichi.lang.ast.checkers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../symbol_resolver/index.html">taichi.lang.ast.symbol_resolver</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../transform/index.html">taichi.lang.ast.transform</a></li>
@@ -465,6 +466,17 @@
 <td><p>Generic enumeration.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext" title="taichi.lang.ast.ast_transformer_utils.ASTTransformerContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASTTransformerContext</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.ast.ast_transformer_utils.get_decorator" title="taichi.lang.ast.ast_transformer_utils.get_decorator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_decorator</span></code></a>(→ str)</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -829,6 +841,11 @@
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="taichi.lang.ast.ast_transformer_utils.get_decorator">
+<span class="sig-prename descclassname"><span class="pre">taichi.lang.ast.ast_transformer_utils.</span></span><span class="sig-name descname"><span class="pre">get_decorator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext" title="taichi.lang.ast.ast_transformer_utils.ASTTransformerContext"><span class="pre">ASTTransformerContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../../../_modules/taichi/lang/ast/ast_transformer_utils.html#get_decorator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.ast.ast_transformer_utils.get_decorator" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </section>
 </section>
 
@@ -852,11 +869,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="../checkers/index.html"
+       href="../ast_transformers/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">taichi.lang.ast.checkers</p>
+        <p class="prev-next-title">taichi.lang.ast.ast_transformers</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -880,6 +897,7 @@
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.Builder"><code class="docutils literal notranslate"><span class="pre">Builder</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.VariableScopeGuard"><code class="docutils literal notranslate"><span class="pre">VariableScopeGuard</span></code></a><ul class="nav section-nav flex-column">
@@ -973,6 +991,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext.get_pos_info"><code class="docutils literal notranslate"><span class="pre">ASTTransformerContext.get_pos_info()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.get_decorator"><code class="docutils literal notranslate"><span class="pre">get_decorator()</span></code></a></li>
 </ul>
 </li>
 </ul>
