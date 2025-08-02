@@ -704,7 +704,7 @@ class Kernel:
                 )
             self.kernel_cpp = kernel_cxx
             self.runtime.inside_kernel = True
-            self.runtime.current_kernel = self
+            self.runtime._current_kernel = self
             assert self.runtime.compiling_callable is None
             self.runtime.compiling_callable = kernel_cxx
             try:
@@ -751,7 +751,7 @@ class Kernel:
                         raise TaichiSyntaxError("Kernel has a return type but does not have a return statement")
             finally:
                 self.runtime.inside_kernel = False
-                self.runtime.current_kernel = None
+                self.runtime._current_kernel = None
                 self.runtime.compiling_callable = None
 
         taichi_kernel = impl.get_runtime().prog.create_kernel(taichi_ast_generator, kernel_name, self.autodiff_mode)
