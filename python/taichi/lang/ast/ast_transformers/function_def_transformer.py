@@ -262,7 +262,7 @@ class FunctionDefTransformer:
                     field.type.check_matched(data_child.get_type(), field.name)
                     ctx.create_variable(flat_name, data_child)
                 elif dataclasses.is_dataclass(data_child):
-                    FunctionDefTransformer._process_func_arg(
+                    FunctionDefTransformer._transform_func_arg(
                         ctx,
                         flat_name,
                         field.type,
@@ -272,7 +272,7 @@ class FunctionDefTransformer:
                     raise TaichiSyntaxError(
                         f"Argument {field.name} of type {argument_type} {field.type} is not recognized."
                     )
-            return
+            return None
 
         # Ndarray arguments are passed by reference.
         if isinstance(argument_type, (ndarray_type.NdarrayType)):
@@ -288,7 +288,7 @@ class FunctionDefTransformer:
                 raise TaichiSyntaxError(f"Argument {argument_name} of type {argument_type} is not recognized.")
             argument_type.check_matched(data.get_type(), argument_name)
             ctx.create_variable(argument_name, data)
-            return
+            return None
 
         # Matrix arguments are passed by value.
         if isinstance(argument_type, (MatrixType)):
@@ -322,11 +322,11 @@ class FunctionDefTransformer:
                 )
 
             ctx.create_variable(argument_name, impl.expr_init_func(data))
-            return
+            return None
 
         if id(argument_type) in primitive_types.type_ids:
             ctx.create_variable(argument_name, impl.expr_init_func(ti_ops.cast(data, argument_type)))
-            return
+            return None
         # Create a copy for non-template arguments,
         # so that they are passed by value.
         var_name = argument_name

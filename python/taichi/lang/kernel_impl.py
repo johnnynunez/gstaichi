@@ -351,6 +351,7 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
 
     return tuple(fused_args)
 
+
 class Func:
     function_counter = 0
 
@@ -872,7 +873,9 @@ class Kernel:
                         int(v.grad.data_ptr()) if v.grad is not None else 0,
                     )
                 else:
-                    raise TaichiRuntimeTypeError(f"Argument of type {type(v)} cannot be converted into required type {needed}")
+                    raise TaichiRuntimeTypeError(
+                        f"Argument of type {type(v)} cannot be converted into required type {needed}"
+                    )
             elif has_paddle():
                 # Do we want to continue to support paddle? :thinking_face:
                 # #maybeprunable

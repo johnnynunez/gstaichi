@@ -20,7 +20,9 @@ from taichi.lang.ast.ast_transformer_utils import (
     get_decorator,
 )
 from taichi.lang.ast.ast_transformers.call_transformer import CallTransformer
-from taichi.lang.ast.ast_transformers.function_def_transformer import FunctionDefTransformer
+from taichi.lang.ast.ast_transformers.function_def_transformer import (
+    FunctionDefTransformer,
+)
 from taichi.lang.exception import (
     TaichiIndexError,
     TaichiRuntimeTypeError,
