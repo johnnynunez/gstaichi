@@ -347,7 +347,7 @@ class PyTaichi:
         self.default_fp = f32
         self.default_ip = i32
         self.default_up = u32
-        self.print_full_traceback = False
+        self.print_full_traceback: bool = False
         self.target_tape = None
         self.fwd_mode_manager = None
         self.grad_replaced = False
@@ -1155,9 +1155,7 @@ def static(x, *xs) -> Any:
         return x
     if isinstance(x, Field):
         return x
-
-    if isinstance(x, (FunctionType, MethodType, BoundFunc, TaichiCallable)):
-        print(" is instanace FunctionType or MethodType", x, type(x))
+    if isinstance(x, (FunctionType, MethodType, BoundTaichiCallable, TaichiCallable)):
         return x
     raise ValueError(f"Input to ti.static must be compile-time constants or global pointers, instead of {type(x)}")
 

@@ -7,7 +7,6 @@ import re
 import warnings
 from ast import unparse
 from collections import ChainMap
-from typing import Any
 
 import numpy as np
 
@@ -32,7 +31,6 @@ from taichi.types import primitive_types
 
 
 class CallTransformer:
-
     @staticmethod
     def _build_call_if_is_builtin(ctx: ASTTransformerContext, node, args, keywords):
         from taichi.lang import matrix_ops  # pylint: disable=C0415
@@ -170,7 +168,7 @@ class CallTransformer:
         the associated Python object
         """
         args_new = []
-        for i, arg in enumerate(args):
+        for arg in args:
             val = arg.ptr
             if dataclasses.is_dataclass(val):
                 dataclass_type = val
@@ -209,13 +207,16 @@ class CallTransformer:
                 build_stmts(ctx, node.keywords)
         else:
             build_stmt(ctx, node.func)
+            # creates variable for the dataclass itself (as well as other variables,
+            # not related to dataclasses). Necessary for calling further child functions
             build_stmts(ctx, node.args)
             node.args = CallTransformer._expand_Call_dataclass_args(node.args)
+            # create variables for the now-expanded dataclass members
             build_stmts(ctx, node.args)
             build_stmts(ctx, node.keywords)
 
         args = []
-        for i, arg in enumerate(node.args):
+        for arg in node.args:
             if isinstance(arg, ast.Starred):
                 arg_list = arg.ptr
                 if isinstance(arg_list, Expr) and arg_list.is_tensor():

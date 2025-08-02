@@ -4,17 +4,12 @@ import dataclasses
 import itertools
 import warnings
 from ast import unparse
-from typing import Any, Type
+from typing import Any, Iterable, Type
 
 import numpy as np
 
 from taichi._lib import core as _ti_core
-from taichi.lang import (
-    expr,
-    impl,
-    matrix,
-    mesh,
-)
+from taichi.lang import expr, impl, matrix, mesh
 from taichi.lang import ops as ti_ops
 from taichi.lang._ndrange import _Ndrange
 from taichi.lang.ast.ast_transformer_utils import (
@@ -42,7 +37,7 @@ from taichi.types import primitive_types
 from taichi.types.utils import is_integral
 
 
-def reshape_list(flat_list: list[Any], target_shape: tuple[int, ...]) -> list[Any]:
+def reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]:
     if len(target_shape) < 2:
         return flat_list
 
@@ -603,13 +598,6 @@ class ASTTransformer(Builder):
         # whether it is a method of Dynamic SNode and build the expression if it is by calling
         # build_attribute_if_is_dynamic_snode_method. If we find that it is not a method of Dynamic SNode,
         # we continue to process it as a normal attribute node.
-        # print("build_attribute node", node, type(node), "node.value", node.value)
-        # ast.At
-        # node_value = cast(ast.Name, node.value)
-        # print("node_value fields", node_value._fields)
-        # from .ast_wrapper import PtrNode
-        # assert isinstance(node, PtrNode)
-        # assert isinstance(node.value, PtrNode)
         try:
             build_stmt(ctx, node.value)
         except Exception as e:

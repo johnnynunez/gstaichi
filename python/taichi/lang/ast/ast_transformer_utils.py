@@ -279,11 +279,6 @@ class ASTTransformerContext:
         try:
             return getattr(builtins, name)
         except AttributeError:
-            print("ERROR: failed to find var", name, "lets print some diag info")
-            print("local scopes:")
-            for s in reversed(self.local_scopes):
-                print("    s.keys()", s.keys())
-            print("global_vars.keys()", self.global_vars.keys())
             raise TaichiNameError(f'Name "{name}" is not defined')
 
     def get_pos_info(self, node: ast.AST) -> str:
@@ -302,8 +297,9 @@ class ASTTransformerContext:
             return "".join([c + "\n" + h + "\n" for c, h in zip(code, hint)])
 
         if node.lineno == node.end_lineno:
-            hint = " " * col_offset + "^" * (end_col_offset - col_offset)
-            msg += gen_line(self.src[node.lineno - 1], hint)
+            if node.lineno - 1 < len(self.src):
+                hint = " " * col_offset + "^" * (end_col_offset - col_offset)
+                msg += gen_line(self.src[node.lineno - 1], hint)
         else:
             node_type = node.__class__.__name__
 
