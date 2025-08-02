@@ -319,6 +319,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">core</span> <span class="k">as</span> <span class="n">_ti_core</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DataTypeCxx</span><span class="p">,</span>
+    <span class="n">Function</span><span class="p">,</span>
+    <span class="n">KernelCxx</span><span class="p">,</span>
     <span class="n">Program</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._snode.fields_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldsBuilder</span>
@@ -648,9 +650,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_prog</span><span class="p">:</span> <span class="n">Program</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">src_info_stack</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inside_kernel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">compiling_callable</span><span class="p">:</span> <span class="s2">&quot;KernelCxx | Kernel | Function | None&quot;</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="kc">None</span>  <span class="c1"># pointer to instance of lang::Kernel/Function</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compiling_callable</span><span class="p">:</span> <span class="n">KernelCxx</span> <span class="o">|</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="n">Function</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_kernel</span><span class="p">:</span> <span class="s2">&quot;Kernel | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_vars</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grad_vars</span> <span class="o">=</span> <span class="p">[]</span>
