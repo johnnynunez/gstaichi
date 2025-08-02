@@ -313,3 +313,356 @@ def test_ndarray_struct_prim1(ti_type: Any, ti_annotation: Any) -> None:
     assert a[36] == 119
     assert a[37] == 123
     assert a[38] == 345
+
+
+@test_utils.test()
+def test_ndarray_struct_nested_ndarray():
+    a = ti.ndarray(ti.i32, shape=(55,))
+    b = ti.ndarray(ti.i32, shape=(57,))
+    c = ti.ndarray(ti.i32, shape=(211,))
+    d = ti.ndarray(ti.i32, shape=(211,))
+    e = ti.ndarray(ti.i32, shape=(251,))
+    f = ti.ndarray(ti.i32, shape=(251,))
+
+    @dataclass
+    class MyStructEF:
+        e: ti.types.NDArray[ti.i32, 1]
+        f: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class MyStructCD:
+        c: ti.types.NDArray[ti.i32, 1]
+        d: ti.types.NDArray[ti.i32, 1]
+        struct_ef: MyStructEF
+
+    @dataclass
+    class MyStructAB:
+        a: ti.types.NDArray[ti.i32, 1]
+        b: ti.types.NDArray[ti.i32, 1]
+        struct_cd: MyStructCD
+
+    @ti.func
+    def f3(
+        my_struct_ab3: MyStructAB,
+    ) -> None:
+        my_struct_ab3.a[47] += 23
+        my_struct_ab3.b[42] += 25
+        my_struct_ab3.struct_cd.c[51] += 33
+        my_struct_ab3.struct_cd.d[57] += 43
+        my_struct_ab3.struct_cd.struct_ef.e[52] += 34
+        my_struct_ab3.struct_cd.struct_ef.f[58] += 44
+
+        my_struct_ab3.a[50] = my_struct_ab3.a.shape[0]
+        my_struct_ab3.a[51] = my_struct_ab3.struct_cd.c.shape[0]
+        my_struct_ab3.a[52] = my_struct_ab3.struct_cd.struct_ef.e.shape[0]
+
+    @ti.func
+    def f2(
+        my_struct_ab2: MyStructAB,
+    ) -> None:
+        my_struct_ab2.a[27] += 13
+        my_struct_ab2.b[22] += 15
+        my_struct_ab2.struct_cd.c[31] += 23
+        my_struct_ab2.struct_cd.d[37] += 33
+        my_struct_ab2.struct_cd.struct_ef.e[32] += 24
+        my_struct_ab2.struct_cd.struct_ef.f[38] += 34
+        f3(my_struct_ab2)
+        my_struct_ab2.a[60] = my_struct_ab2.a.shape[0]
+        my_struct_ab2.a[61] = my_struct_ab2.struct_cd.c.shape[0]
+        my_struct_ab2.a[62] = my_struct_ab2.struct_cd.struct_ef.e.shape[0]
+
+    @ti.kernel
+    def k1(
+        my_struct_ab: MyStructAB,
+    ) -> None:
+        my_struct_ab.a[7] += 3
+        my_struct_ab.b[2] += 5
+        my_struct_ab.struct_cd.c[11] += 13
+        my_struct_ab.struct_cd.d[17] += 23
+        my_struct_ab.struct_cd.struct_ef.e[12] += 14
+        my_struct_ab.struct_cd.struct_ef.f[18] += 24
+        f2(my_struct_ab)
+        my_struct_ab.a[70] = my_struct_ab.a.shape[0]
+        my_struct_ab.a[71] = my_struct_ab.struct_cd.c.shape[0]
+        my_struct_ab.a[72] = my_struct_ab.struct_cd.struct_ef.e.shape[0]
+
+    my_struct_ef_param = MyStructEF(e=e, f=f)
+    my_struct_cd_param = MyStructCD(c=c, d=d, struct_ef=my_struct_ef_param)
+    my_struct_ab_param = MyStructAB(a=a, b=b, struct_cd=my_struct_cd_param)
+    k1(my_struct_ab_param)
+
+    assert a[7] == 3
+    assert b[2] == 5
+    assert c[11] == 13
+    assert d[17] == 23
+    assert e[12] == 14
+    assert f[18] == 24
+
+    assert a[27] == 13
+    assert b[22] == 15
+    assert c[31] == 23
+    assert d[37] == 33
+    assert e[32] == 24
+    assert f[38] == 34
+
+    assert a[47] == 23
+    assert b[42] == 25
+    assert c[51] == 33
+    assert d[57] == 43
+    assert e[52] == 34
+    assert f[58] == 44
+
+    # shapes
+    assert a[50] == 55
+    assert a[51] == 211
+    assert a[52] == 251
+
+    assert a[60] == 55
+    assert a[61] == 211
+    assert a[62] == 251
+
+    assert a[70] == 55
+    assert a[71] == 211
+    assert a[72] == 251
+
+
+@test_utils.test()
+def test_field_struct_nested_field() -> None:
+    a = ti.field(ti.i32, shape=(55,))
+    b = ti.field(ti.i32, shape=(57,))
+    c = ti.field(ti.i32, shape=(211,))
+    d = ti.field(ti.i32, shape=(211,))
+    e = ti.field(ti.i32, shape=(251,))
+    f = ti.field(ti.i32, shape=(251,))
+
+    @dataclass
+    class MyStructEF:
+        e: ti.Template
+        f: ti.Template
+
+    @dataclass
+    class MyStructCD:
+        c: ti.Template
+        d: ti.Template
+        struct_ef: MyStructEF
+
+    @dataclass
+    class MyStructAB:
+        a: ti.Template
+        b: ti.Template
+        struct_cd: MyStructCD
+
+    @ti.func
+    def f3(
+        my_struct_ab3: MyStructAB,
+    ) -> None:
+        my_struct_ab3.a[47] += 23
+        my_struct_ab3.b[42] += 25
+        my_struct_ab3.struct_cd.c[51] += 33
+        my_struct_ab3.struct_cd.d[57] += 43
+        my_struct_ab3.struct_cd.struct_ef.e[52] += 34
+        my_struct_ab3.struct_cd.struct_ef.f[58] += 44
+        my_struct_ab3.a[50] = my_struct_ab3.a.shape[0]
+        my_struct_ab3.a[51] = my_struct_ab3.struct_cd.c.shape[0]
+        my_struct_ab3.a[52] = my_struct_ab3.struct_cd.struct_ef.e.shape[0]
+
+    @ti.func
+    def f2(
+        my_struct_ab2: MyStructAB,
+    ) -> None:
+        my_struct_ab2.a[27] += 13
+        my_struct_ab2.b[22] += 15
+        my_struct_ab2.struct_cd.c[31] += 23
+        my_struct_ab2.struct_cd.d[37] += 33
+        my_struct_ab2.struct_cd.struct_ef.e[32] += 24
+        my_struct_ab2.struct_cd.struct_ef.f[38] += 34
+        f3(my_struct_ab2)
+        my_struct_ab2.a[60] = my_struct_ab2.a.shape[0]
+        my_struct_ab2.a[61] = my_struct_ab2.struct_cd.c.shape[0]
+        my_struct_ab2.a[62] = my_struct_ab2.struct_cd.struct_ef.e.shape[0]
+
+    @ti.kernel
+    def k1(
+        my_struct_ab: MyStructAB,
+    ) -> None:
+        my_struct_ab.a[7] += 3
+        my_struct_ab.b[2] += 5
+        my_struct_ab.struct_cd.c[11] += 13
+        my_struct_ab.struct_cd.d[17] += 23
+        my_struct_ab.struct_cd.struct_ef.e[12] += 14
+        my_struct_ab.struct_cd.struct_ef.f[18] += 24
+        f2(my_struct_ab)
+        my_struct_ab.a[70] = my_struct_ab.a.shape[0]
+        my_struct_ab.a[71] = my_struct_ab.struct_cd.c.shape[0]
+        my_struct_ab.a[72] = my_struct_ab.struct_cd.struct_ef.e.shape[0]
+
+    my_struct_ef_param = MyStructEF(e=e, f=f)
+    my_struct_cd_param = MyStructCD(c=c, d=d, struct_ef=my_struct_ef_param)
+    my_struct_ab_param = MyStructAB(a=a, b=b, struct_cd=my_struct_cd_param)
+    k1(my_struct_ab_param)
+
+    assert a[7] == 3
+    assert b[2] == 5
+    assert c[11] == 13
+    assert d[17] == 23
+    assert e[12] == 14
+    assert f[18] == 24
+
+    assert a[27] == 13
+    assert b[22] == 15
+    assert c[31] == 23
+    assert d[37] == 33
+    assert e[32] == 24
+    assert f[38] == 34
+
+    assert a[47] == 23
+    assert b[42] == 25
+    assert c[51] == 33
+    assert d[57] == 43
+    assert e[52] == 34
+    assert f[58] == 44
+
+    # shapes
+    assert a[50] == 55
+    assert a[51] == 211
+    assert a[52] == 251
+
+    assert a[60] == 55
+    assert a[61] == 211
+    assert a[62] == 251
+
+    assert a[70] == 55
+    assert a[71] == 211
+    assert a[72] == 251
+
+
+@test_utils.test()
+def test_ndarray_struct_multiple_child_structs_ndarray():
+    a = ti.ndarray(ti.i32, shape=(55,))
+    b = ti.ndarray(ti.i32, shape=(57,))
+    c = ti.ndarray(ti.i32, shape=(211,))
+    d = ti.ndarray(ti.i32, shape=(211,))
+    e = ti.ndarray(ti.i32, shape=(251,))
+    f = ti.ndarray(ti.i32, shape=(251,))
+
+    d11 = ti.ndarray(ti.i32, shape=(251,))
+    d12 = ti.ndarray(ti.i32, shape=(251,))
+    d21 = ti.ndarray(ti.i32, shape=(251,))
+    d22 = ti.ndarray(ti.i32, shape=(251,))
+    d31 = ti.ndarray(ti.i32, shape=(251,))
+    d32 = ti.ndarray(ti.i32, shape=(251,))
+
+    @dataclass
+    class D1:
+        d11: ti.types.NDArray[ti.i32, 1]
+        d12: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class D2:
+        d21: ti.types.NDArray[ti.i32, 1]
+        d22: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class D3:
+        d31: ti.types.NDArray[ti.i32, 1]
+        d32: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class C1:
+        a: ti.types.NDArray[ti.i32, 1]
+        d1: D1
+        d2: D2
+        d3: D3
+        b: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class C2:
+        c: ti.types.NDArray[ti.i32, 1]
+        d: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class C3:
+        e: ti.types.NDArray[ti.i32, 1]
+        f: ti.types.NDArray[ti.i32, 1]
+
+    @dataclass
+    class P1:
+        c1: C1
+        c2: C2
+        c3: C3
+
+    @ti.kernel
+    def k1(p1: P1) -> None:
+        p1.c1.a[0] = 22
+        p1.c1.b[0] = 33
+        p1.c2.c[0] = 44
+        p1.c2.d[0] = 55
+        p1.c3.e[0] = 66
+        p1.c3.f[0] = 77
+
+    d1 = D1(d11=d11, d12=d12)
+    d2 = D2(d21=d21, d22=d22)
+    d3 = D3(d31=d31, d32=d32)
+    c1 = C1(a=a, b=b, d1=d1, d2=d2, d3=d3)
+    c2 = C2(c=c, d=d)
+    c3 = C3(e=e, f=f)
+    p1 = P1(c1=c1, c2=c2, c3=c3)
+    k1(p1)
+    assert a[0] == 22
+    assert b[0] == 33
+    assert c[0] == 44
+    assert d[0] == 55
+    assert e[0] == 66
+    assert f[0] == 77
+
+
+@test_utils.test()
+def test_ndarray_struct_multiple_child_structs_field():
+    a = ti.field(ti.i32, shape=(55,))
+    b = ti.field(ti.i32, shape=(57,))
+    c = ti.field(ti.i32, shape=(211,))
+    d = ti.field(ti.i32, shape=(211,))
+    e = ti.field(ti.i32, shape=(251,))
+    f = ti.field(ti.i32, shape=(251,))
+
+    @dataclass
+    class C1:
+        a: ti.Template
+        b: ti.Template
+
+    @dataclass
+    class C2:
+        c: ti.Template
+        d: ti.Template
+
+    @dataclass
+    class C3:
+        e: ti.Template
+        f: ti.Template
+
+    @dataclass
+    class P1:
+        c1: C1
+        c2: C2
+        c3: C3
+
+    @ti.kernel
+    def k1(p1: P1) -> None:
+        p1.c1.a[0] = 22
+        p1.c1.b[0] = 33
+        p1.c2.c[0] = 44
+        p1.c2.d[0] = 55
+        p1.c3.e[0] = 66
+        p1.c3.f[0] = 77
+
+    c1 = C1(a=a, b=b)
+    c2 = C2(c=c, d=d)
+    c3 = C3(e=e, f=f)
+    p1 = P1(c1=c1, c2=c2, c3=c3)
+    k1(p1)
+    assert a[0] == 22
+    assert b[0] == 33
+    assert c[0] == 44
+    assert d[0] == 55
+    assert e[0] == 66
+    assert f[0] == 77

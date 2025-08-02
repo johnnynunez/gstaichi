@@ -337,8 +337,8 @@ class PyTaichi:
         self._prog: Program | None = None
         self.src_info_stack = []
         self.inside_kernel: bool = False
-        self.compiling_callable: Kernel | Function | None = None  # pointer to instance of lang::Kernel/Function
-        self._current_kernel: Kernel | None = None
+        self.compiling_callable: "KernelCxx | Kernel | Function | None" = None  # pointer to instance of lang::Kernel/Function
+        self._current_kernel: "Kernel | None" = None
         self.global_vars = []
         self.grad_vars = []
         self.dual_vars = []

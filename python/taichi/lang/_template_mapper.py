@@ -1,6 +1,6 @@
 import dataclasses
 import weakref
-from typing import Any, Union
+from typing import Any, Callable, Union
 
 import taichi.lang
 import taichi.lang._ndarray
@@ -13,7 +13,7 @@ from taichi.lang.argpack import ArgPack, ArgPackType
 from taichi.lang.exception import (
     TaichiRuntimeTypeError,
 )
-from taichi.lang.kernel_arguments import KernelArgument
+from taichi.lang.kernel_arguments import ArgMetadata
 from taichi.lang.matrix import MatrixType
 from taichi.lang.util import to_taichi_type
 from taichi.types import (
@@ -22,6 +22,10 @@ from taichi.types import (
     template,
     texture_type,
 )
+from taichi.types.enums import AutodiffMode
+
+CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
+
 
 AnnotationType = Union[
     template,
@@ -34,7 +38,7 @@ AnnotationType = Union[
 ]
 
 
-class TaichiCallableTemplateMapper:
+class TemplateMapper:
     """
     This should probably be renamed to sometihng like FeatureMapper, or
     FeatureExtractor, since:
@@ -46,14 +50,14 @@ class TaichiCallableTemplateMapper:
     - these are returned as a heterogeneous tuple, whose contents depends on the type
     """
 
-    def __init__(self, arguments: list[KernelArgument], template_slot_locations: list[int]) -> None:
-        self.arguments: list[KernelArgument] = arguments
+    def __init__(self, arguments: list[ArgMetadata], template_slot_locations: list[int]) -> None:
+        self.arguments: list[ArgMetadata] = arguments
         self.num_args: int = len(arguments)
         self.template_slot_locations: list[int] = template_slot_locations
         self.mapping: dict[tuple[Any, ...], int] = {}
 
     @staticmethod
-    def extract_arg(arg, annotation: AnnotationType, arg_name: str) -> Any:
+    def extract_arg(arg: Any, annotation: AnnotationType, arg_name: str) -> Any:
         if annotation == template or isinstance(annotation, template):
             if isinstance(arg, taichi.lang.snode.SNode):
                 return arg.ptr
@@ -62,7 +66,7 @@ class TaichiCallableTemplateMapper:
             if isinstance(arg, _ti_core.ExprCxx):
                 return arg.get_underlying_ptr_address()
             if isinstance(arg, tuple):
-                return tuple(TaichiCallableTemplateMapper.extract_arg(item, annotation, arg_name) for item in arg)
+                return tuple(TemplateMapper.extract_arg(item, annotation, arg_name) for item in arg)
             if isinstance(arg, taichi.lang._ndarray.Ndarray):
                 raise TaichiRuntimeTypeError(
                     "Ndarray shouldn't be passed in via `ti.template()`, please annotate your kernel using `ti.types.ndarray(...)` instead"
@@ -85,15 +89,18 @@ class TaichiCallableTemplateMapper:
             if not isinstance(arg, ArgPack):
                 raise TaichiRuntimeTypeError(f"Argument {arg_name} must be a argument pack, got {type(arg)}")
             return tuple(
-                TaichiCallableTemplateMapper.extract_arg(arg[name], dtype, arg_name)
+                TemplateMapper.extract_arg(arg[name], dtype, arg_name)
                 for index, (name, dtype) in enumerate(annotation.members.items())
             )
         if dataclasses.is_dataclass(annotation):
             _res_l = []
             for field in dataclasses.fields(annotation):
                 field_value = getattr(arg, field.name)
-                arg_name = f"__ti_{arg_name}_{field.name}"
-                field_extracted = TaichiCallableTemplateMapper.extract_arg(field_value, field.type, arg_name)
+                child_name = arg_name
+                if not child_name.startswith("__ti_"):
+                    child_name = f"__ti_{child_name}"
+                child_name = f"{child_name}__ti_{field.name}"
+                field_extracted = TemplateMapper.extract_arg(field_value, field.type, child_name)
                 _res_l.append(field_extracted)
             return tuple(_res_l)
         if isinstance(annotation, texture_type.TextureType):
