@@ -46,7 +46,8 @@ class HostDeviceContextBlitter {
                                hashing::Hasher<std::vector<int>>> &ext_arrays,
       const std::unordered_map<std::vector<int>,
                                size_t,
-                               hashing::Hasher<std::vector<int>>> &ext_arr_size) {
+                               hashing::Hasher<std::vector<int>>>
+          &ext_arr_size) {
     if (!ctx_attribs_->has_args()) {
       return;
     }
