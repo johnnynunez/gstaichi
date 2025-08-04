@@ -1286,12 +1286,7 @@ llvm::Value *TaskCodeGenLLVM::bitcast_to_u64(llvm::Value *val, DataType type) {
 }
 
 void TaskCodeGenLLVM::visit(ArgLoadStmt *stmt) {
-  if (stmt->arg_depth > 0) {
-    llvm_val[stmt] =
-        get_argpack_arg(stmt->arg_id, stmt->arg_depth, stmt->create_load);
-  } else {
-    llvm_val[stmt] = get_struct_arg(stmt->arg_id, stmt->create_load);
-  }
+  llvm_val[stmt] = get_struct_arg(stmt->arg_id, stmt->create_load);
 }
 
 void TaskCodeGenLLVM::visit(ReturnStmt *stmt) {
