@@ -748,13 +748,6 @@
         <span class="n">_root_fb</span> <span class="o">=</span> <span class="n">FieldsBuilder</span><span class="p">()</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_finalize_root_fb_for_aot</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">_root_fb</span><span class="o">.</span><span class="n">finalized</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;AOT: can only finalize the root FieldsBuilder once&quot;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_root_fb</span><span class="p">,</span> <span class="n">FieldsBuilder</span><span class="p">)</span>
-        <span class="n">_root_fb</span><span class="o">.</span><span class="n">_finalize_for_aot</span><span class="p">()</span>
-
-    <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_tb</span><span class="p">(</span><span class="n">_var</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_var</span><span class="p">,</span> <span class="s2">&quot;declaration_tb&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">_var</span><span class="o">.</span><span class="n">ptr</span><span class="p">))</span>
 

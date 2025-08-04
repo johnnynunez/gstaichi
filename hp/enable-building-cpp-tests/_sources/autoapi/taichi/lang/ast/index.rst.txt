@@ -12,6 +12,7 @@ Submodules
 
    /autoapi/taichi/lang/ast/ast_transformer/index
    /autoapi/taichi/lang/ast/ast_transformer_utils/index
+   /autoapi/taichi/lang/ast/ast_transformers/index
    /autoapi/taichi/lang/ast/checkers/index
    /autoapi/taichi/lang/ast/symbol_resolver/index
    /autoapi/taichi/lang/ast/transform/index

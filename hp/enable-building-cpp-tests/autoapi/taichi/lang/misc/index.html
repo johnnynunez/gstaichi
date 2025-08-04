@@ -268,23 +268,14 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">taichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../ad/index.html">taichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../algorithms/index.html">taichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../aot/index.html">taichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../aot/conventions/index.html">taichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../aot/conventions/gfxruntime140/index.html">taichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/module/index.html">taichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/utils/index.html">taichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experimental/index.html">taichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../graph/index.html">taichi.graph</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">taichi.lang</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../any_array/index.html">taichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../argpack/index.html">taichi.lang.argpack</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../ast/index.html">taichi.lang.ast</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformer/index.html">taichi.lang.ast.ast_transformer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformer_utils/index.html">taichi.lang.ast.ast_transformer_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformers/index.html">taichi.lang.ast.ast_transformers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/checkers/index.html">taichi.lang.ast.checkers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/symbol_resolver/index.html">taichi.lang.ast.symbol_resolver</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/transform/index.html">taichi.lang.ast.transform</a></li>
@@ -494,12 +485,6 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#taichi.lang.misc.vulkan" title="taichi.lang.misc.vulkan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vulkan</span></code></a></p></td>
 <td><p>The Vulkan backend.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.misc.dx11" title="taichi.lang.misc.dx11"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dx11</span></code></a></p></td>
-<td><p>The DX11 backend.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#taichi.lang.misc.dx12" title="taichi.lang.misc.dx12"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dx12</span></code></a></p></td>
-<td><p>The DX11 backend.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.misc.gpu" title="taichi.lang.misc.gpu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gpu</span></code></a></p></td>
 <td><p>A list of GPU backends supported on the current system.</p></td>
 </tr>
@@ -689,22 +674,10 @@ lower dimension d-2, it’s the second axis of this cell.</p>
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="taichi.lang.misc.dx11">
-<span class="sig-prename descclassname"><span class="pre">taichi.lang.misc.</span></span><span class="sig-name descname"><span class="pre">dx11</span></span><a class="reference internal" href="../../../../_modules/taichi/lang/misc.html#dx11"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.misc.dx11" title="Link to this definition">#</a></dt>
-<dd><p>The DX11 backend.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="taichi.lang.misc.dx12">
-<span class="sig-prename descclassname"><span class="pre">taichi.lang.misc.</span></span><span class="sig-name descname"><span class="pre">dx12</span></span><a class="reference internal" href="../../../../_modules/taichi/lang/misc.html#dx12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.misc.dx12" title="Link to this definition">#</a></dt>
-<dd><p>The DX11 backend.</p>
-</dd></dl>
-
-<dl class="py data">
 <dt class="sig sig-object py" id="taichi.lang.misc.gpu">
 <span class="sig-prename descclassname"><span class="pre">taichi.lang.misc.</span></span><span class="sig-name descname"><span class="pre">gpu</span></span><a class="reference internal" href="../../../../_modules/taichi/lang/misc.html#gpu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.misc.gpu" title="Link to this definition">#</a></dt>
 <dd><p>A list of GPU backends supported on the current system.
-Currently contains ‘cuda’, ‘metal’, ‘vulkan’, ‘dx11’, ‘dx12’, ‘amdgpu’.</p>
+Currently contains ‘cuda’, ‘metal’, ‘vulkan’, ‘amdgpu’.</p>
 <p>When this is used, Taichi automatically picks the matching GPU backend. If no
 GPU is detected, Taichi falls back to the CPU backend.</p>
 </dd></dl>
@@ -788,7 +761,7 @@ complete list, please check out
 for how BLS is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>*args</strong> (<em>List</em><em>[</em><a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.Field" title="taichi.aot.conventions.gfxruntime140.sr.Field"><em>Field</em></a><em>]</em>) – A list of sparse Taichi fields.</p>
+<dd class="field-odd"><p><strong>*args</strong> (<em>List</em><em>[</em><a class="reference internal" href="../field/index.html#taichi.lang.field.Field" title="taichi.lang.field.Field"><em>Field</em></a><em>]</em>) – A list of sparse Taichi fields.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1015,8 +988,6 @@ only available for backends supporting <cite>ti.extension.mesh</cite> and to use
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.amdgpu"><code class="docutils literal notranslate"><span class="pre">amdgpu</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.metal"><code class="docutils literal notranslate"><span class="pre">metal</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.vulkan"><code class="docutils literal notranslate"><span class="pre">vulkan</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.dx11"><code class="docutils literal notranslate"><span class="pre">dx11</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.dx12"><code class="docutils literal notranslate"><span class="pre">dx12</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.gpu"><code class="docutils literal notranslate"><span class="pre">gpu</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.cpu"><code class="docutils literal notranslate"><span class="pre">cpu</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.misc.extension"><code class="docutils literal notranslate"><span class="pre">extension</span></code></a></li>
