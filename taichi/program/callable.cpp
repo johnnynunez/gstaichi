@@ -25,8 +25,8 @@ std::vector<int> Callable::insert_arr_param(const DataType &dt,
                                             int total_dim,
                                             std::vector<int> element_shape,
                                             const std::string &name) {
-  auto p = Parameter(dt->get_compute_type(), /*is_array=*/true, 0,
-                     total_dim, element_shape);
+  auto p = Parameter(dt->get_compute_type(), /*is_array=*/true, 0, total_dim,
+                     element_shape);
   p.name = name;
   return add_parameter(p);
 }
@@ -46,9 +46,8 @@ std::vector<int> Callable::insert_ndarray_param(const DataType &dt,
   // If we could avoid using parameter_list in codegen it'll be fine
   auto *type = TypeFactory::get_instance().get_ndarray_struct_type(dtype, ndim,
                                                                    needs_grad);
-  auto p =
-      Parameter(type, /*is_array=*/true, 0, ndim + element_shape.size(),
-                element_shape, BufferFormat::unknown, needs_grad);
+  auto p = Parameter(type, /*is_array=*/true, 0, ndim + element_shape.size(),
+                     element_shape, BufferFormat::unknown, needs_grad);
   p.name = name;
   p.ptype = ParameterType::kNdarray;
   return add_parameter(p);
@@ -60,8 +59,7 @@ std::vector<int> Callable::insert_texture_param(int total_dim,
   // FIXME: using rwtexture struct type for texture parameters because C-API
   // does not distinguish between texture and rwtexture.
   auto *type = TypeFactory::get_instance().get_rwtexture_struct_type();
-  auto p = Parameter(type, /*is_array=*/true, 0, total_dim,
-                     std::vector<int>{});
+  auto p = Parameter(type, /*is_array=*/true, 0, total_dim, std::vector<int>{});
   p.name = name;
   p.ptype = ParameterType::kTexture;
   return add_parameter(p);
@@ -79,8 +77,8 @@ std::vector<int> Callable::insert_rw_texture_param(int total_dim,
                                                    const std::string &name) {
   // FIXME: we shouldn't abuse is_array for texture parameters
   auto *type = TypeFactory::get_instance().get_rwtexture_struct_type();
-  auto p = Parameter(type, /*is_array=*/true, 0, total_dim,
-                     std::vector<int>{}, format);
+  auto p = Parameter(type, /*is_array=*/true, 0, total_dim, std::vector<int>{},
+                     format);
   p.name = name;
   p.ptype = ParameterType::kRWTexture;
   return add_parameter(p);
