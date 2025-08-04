@@ -408,7 +408,6 @@ user_api[ti.ScalarNdarray] = [
     "to_numpy",
 ]
 user_api[ti.Struct] = ["entries", "field", "items", "keys", "methods", "to_dict"]
-user_api[ti.ArgPack] = ["items", "keys", "to_dict"]
 user_api[ti.StructField] = [
     "copy_from",
     "dtype",

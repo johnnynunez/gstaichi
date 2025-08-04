@@ -13,7 +13,6 @@ from taichi.lang import (
     matrix,
 )
 from taichi.lang import ops as ti_ops
-from taichi.lang.argpack import ArgPackType
 from taichi.lang.ast.ast_transformer_utils import (
     ASTTransformerContext,
 )
@@ -34,23 +33,6 @@ class FunctionDefTransformer:
         full_name = prefix_name + "_" + name
         if not isinstance(annotation, primitive_types.RefType):
             ctx.kernel_args.append(name)
-        if isinstance(annotation, ArgPackType):
-            kernel_arguments.push_argpack_arg(name)
-            d = {}
-            items_to_put_in_dict = []
-            for j, (_name, anno) in enumerate(annotation.members.items()):
-                result, obj = FunctionDefTransformer._decl_and_create_variable(
-                    ctx, anno, _name, arg_features[j], invoke_later_dict, full_name, arg_depth + 1
-                )
-                if not result:
-                    d[_name] = None
-                    items_to_put_in_dict.append((full_name + "_" + _name, _name, obj))
-                else:
-                    d[_name] = obj
-            argpack = kernel_arguments.decl_argpack_arg(annotation, d)
-            for item in items_to_put_in_dict:
-                invoke_later_dict[item[0]] = argpack, item[1], *item[2]
-            return True, argpack
         if annotation == annotations.template or isinstance(annotation, annotations.template):
             return True, ctx.global_vars[name]
         if isinstance(annotation, annotations.sparse_matrix_builder):
@@ -94,24 +76,7 @@ class FunctionDefTransformer:
         argument_type: Any,
         this_arg_features: tuple[Any, ...],
     ) -> None:
-        if isinstance(argument_type, ArgPackType):
-            kernel_arguments.push_argpack_arg(argument_name)
-            d = {}
-            items_to_put_in_dict: list[tuple[str, str, Any]] = []
-            for j, (name, anno) in enumerate(argument_type.members.items()):
-                result, obj = FunctionDefTransformer._decl_and_create_variable(
-                    ctx, anno, name, this_arg_features[j], invoke_later_dict, "__argpack_" + name, 1
-                )
-                if not result:
-                    d[name] = None
-                    items_to_put_in_dict.append(("__argpack_" + name, name, obj))
-                else:
-                    d[name] = obj
-            argpack = kernel_arguments.decl_argpack_arg(argument_type, d)
-            for item in items_to_put_in_dict:
-                invoke_later_dict[item[0]] = argpack, item[1], *item[2]
-            create_variable_later[argument_name] = argpack
-        elif dataclasses.is_dataclass(argument_type):
+        if dataclasses.is_dataclass(argument_type):
             arg_features = this_arg_features
             ctx.create_variable(argument_name, argument_type)
             for field_idx, field in enumerate(dataclasses.fields(argument_type)):

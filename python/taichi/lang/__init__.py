@@ -4,7 +4,6 @@ from taichi.lang import impl, simt
 from taichi.lang._ndarray import *
 from taichi.lang._ndrange import ndrange
 from taichi.lang._texture import Texture
-from taichi.lang.argpack import *
 from taichi.lang.exception import *
 from taichi.lang.field import *
 from taichi.lang.impl import *

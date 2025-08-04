@@ -33,7 +33,6 @@ from taichi.lang import impl, ops, runtime_ops
 from taichi.lang._template_mapper import TaichiCallableTemplateMapper
 from taichi.lang._wrap_inspect import getsourcefile, getsourcelines
 from taichi.lang.any_array import AnyArray
-from taichi.lang.argpack import ArgPack, ArgPackType
 from taichi.lang.ast import (
     ASTTransformerContext,
     KernelSimplicityASTChecker,
@@ -672,8 +671,6 @@ class Kernel:
                     pass
                 elif isinstance(annotation, StructType):
                     pass
-                elif isinstance(annotation, ArgPackType):
-                    pass
                 elif annotation == template:
                     pass
                 elif isinstance(annotation, type) and dataclasses.is_dataclass(annotation):
@@ -972,14 +969,6 @@ class Kernel:
                 exceed_max_arg_num = True
                 return 0
             actual_argument_slot += 1
-            if isinstance(needed_arg_type, ArgPackType):
-                if not isinstance(v, ArgPack):
-                    raise TaichiRuntimeTypeError.get(indices, str(needed_arg_type), str(provided_arg_type))
-                idx_new = 0
-                for j, (name, anno) in enumerate(needed_arg_type.members.items()):
-                    idx_new += recursive_set_args(anno, type(v[name]), v[name], indices + (idx_new,))
-                launch_ctx.set_arg_argpack(indices, v._ArgPack__argpack)  # type: ignore
-                return 1
             # Note: do not use sth like "needed == f32". That would be slow.
             if id(needed_arg_type) in primitive_types.real_type_ids:
                 if not isinstance(v, (float, int, np.floating, np.integer)):
