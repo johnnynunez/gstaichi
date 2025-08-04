@@ -48,7 +48,7 @@ class SparseMatrixProxy:
         return SparseMatrixEntry(self.ptr, i, j, self.dtype)
 
 
-def decl_scalar_arg(dtype, name, arg_depth):
+def decl_scalar_arg(dtype, name):
     is_ref = False
     if isinstance(dtype, RefType):
         is_ref = True
@@ -61,7 +61,7 @@ def decl_scalar_arg(dtype, name, arg_depth):
 
     argload_di = _ti_core.DebugInfo(impl.get_runtime().get_current_src_info())
     return Expr(
-        _ti_core.make_arg_load_expr(arg_id, dtype, is_ref, create_load=True, arg_depth=arg_depth, dbg_info=argload_di)
+        _ti_core.make_arg_load_expr(arg_id, dtype, is_ref, create_load=True, dbg_info=argload_di)
     )
 
 
@@ -86,33 +86,24 @@ def get_type_for_kernel_args(dtype, name):
     return dtype
 
 
-def decl_matrix_arg(matrixtype, name, arg_depth):
+def decl_matrix_arg(matrixtype, name):
     arg_type = get_type_for_kernel_args(matrixtype, name)
     arg_id = impl.get_runtime().compiling_callable.insert_scalar_param(arg_type, name)
     argload_di = _ti_core.DebugInfo(impl.get_runtime().get_current_src_info())
     arg_load = Expr(
-        _ti_core.make_arg_load_expr(arg_id, arg_type, create_load=False, arg_depth=arg_depth, dbg_info=argload_di)
+        _ti_core.make_arg_load_expr(arg_id, arg_type, create_load=False, dbg_info=argload_di)
     )
     return matrixtype.from_taichi_object(arg_load)
 
 
-def decl_struct_arg(structtype, name, arg_depth):
+def decl_struct_arg(structtype, name):
     arg_type = get_type_for_kernel_args(structtype, name)
     arg_id = impl.get_runtime().compiling_callable.insert_scalar_param(arg_type, name)
     argload_di = _ti_core.DebugInfo(impl.get_runtime().get_current_src_info())
     arg_load = Expr(
-        _ti_core.make_arg_load_expr(arg_id, arg_type, create_load=False, arg_depth=arg_depth, dbg_info=argload_di)
+        _ti_core.make_arg_load_expr(arg_id, arg_type, create_load=False, dbg_info=argload_di)
     )
     return structtype.from_taichi_object(arg_load)
-
-
-def push_argpack_arg(name):
-    impl.get_runtime().compiling_callable.insert_argpack_param_and_push(name)
-
-
-def decl_argpack_arg(argpacktype, member_dict):
-    impl.get_runtime().compiling_callable.pop_argpack_stack()
-    return argpacktype.from_taichi_object(member_dict)
 
 
 def decl_sparse_matrix(dtype, name):

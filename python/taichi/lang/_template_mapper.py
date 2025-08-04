@@ -9,7 +9,6 @@ import taichi.lang.expr
 import taichi.lang.snode
 from taichi._lib import core as _ti_core
 from taichi.lang.any_array import AnyArray
-from taichi.lang.argpack import ArgPack, ArgPackType
 from taichi.lang.exception import (
     TaichiRuntimeTypeError,
 )
@@ -25,7 +24,6 @@ from taichi.types import (
 
 AnnotationType = Union[
     template,
-    ArgPackType,
     "texture_type.TextureType",
     "texture_type.RWTextureType",
     ndarray_type.NdarrayType,
@@ -81,13 +79,6 @@ class TaichiCallableTemplateMapper:
 
             # [Primitive arguments] Return the value
             return arg
-        if isinstance(annotation, ArgPackType):
-            if not isinstance(arg, ArgPack):
-                raise TaichiRuntimeTypeError(f"Argument {arg_name} must be a argument pack, got {type(arg)}")
-            return tuple(
-                TaichiCallableTemplateMapper.extract_arg(arg[name], dtype, arg_name)
-                for index, (name, dtype) in enumerate(annotation.members.items())
-            )
         if dataclasses.is_dataclass(annotation):
             _res_l = []
             for field in dataclasses.fields(annotation):
