@@ -106,15 +106,6 @@ def decl_struct_arg(structtype, name, arg_depth):
     return structtype.from_taichi_object(arg_load)
 
 
-def push_argpack_arg(name):
-    impl.get_runtime().compiling_callable.insert_argpack_param_and_push(name)
-
-
-def decl_argpack_arg(argpacktype, member_dict):
-    impl.get_runtime().compiling_callable.pop_argpack_stack()
-    return argpacktype.from_taichi_object(member_dict)
-
-
 def decl_sparse_matrix(dtype, name):
     value_type = cook_dtype(dtype)
     ptr_type = cook_dtype(u64)
