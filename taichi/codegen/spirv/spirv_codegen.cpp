@@ -31,7 +31,6 @@ constexpr char kArgsBufferName[] = "args_buffer";
 constexpr char kRetBufferName[] = "ret_buffer";
 constexpr char kListgenBufferName[] = "listgen_buffer";
 constexpr char kExtArrBufferName[] = "ext_arr_buffer";
-constexpr char kArgPackBufferName[] = "argpack_buffer";
 
 constexpr int kMaxNumThreadsGridStrideLoop = 65536 * 2;
 
@@ -58,9 +57,6 @@ std::string buffer_instance_name(BufferInfo b) {
       return kListgenBufferName;
     case BufferType::ExtArr:
       return std::string(kExtArrBufferName) + "_" +
-             fmt::format("{}", fmt::join(b.root_id, "_"));
-    case BufferType::ArgPack:
-      return std::string(kArgPackBufferName) + "_" +
              fmt::format("{}", fmt::join(b.root_id, "_"));
     default:
       TI_NOT_IMPLEMENTED;
@@ -584,12 +580,7 @@ class TaskCodegen : public IRVisitor {
                                      stmt->arg_id.begin() + stmt->arg_depth);
     const std::vector<int> indices_r(stmt->arg_id.begin() + stmt->arg_depth,
                                      stmt->arg_id.end());
-    const auto arg_type =
-        stmt->arg_depth == 0
-            ? ctx_attribs_->args_type()->get_element_type(arg_id)
-            : ctx_attribs_->argpack_type(indices_l)
-                  ->as<lang::StructType>()
-                  ->get_element_type(indices_r);
+    const auto arg_type = ctx_attribs_->args_type()->get_element_type(arg_id);
     if (arg_type->is<PointerType>() ||
         (arg_type->is<lang::StructType>() &&
          arg_type->as<lang::StructType>()->elements().size() >= 2 &&
@@ -606,23 +597,12 @@ class TaskCodegen : public IRVisitor {
       // `val_type` must be assigned after `get_buffer_value` because
       // `args_struct_types_` needs to be initialized by `get_buffer_value`.
       SType val_type;
-      if (stmt->arg_depth > 0) {
-        // Inside argpacks, load value from argpack buffer
-        buffer_value = get_buffer_value({BufferType::ArgPack, indices_l},
-                                        PrimitiveType::i32);
-        val_type = is_bool ? ir_->i32_type()
-                           : argpack_struct_types_[indices_l][indices_r];
-        buffer_val = ir_->make_access_chain(
-            ir_->get_pointer_type(val_type, spv::StorageClassUniform),
-            buffer_value, indices_r);
-      } else {
-        // Not in argpacks, load value from args buffer
-        buffer_value = get_buffer_value(BufferType::Args, PrimitiveType::i32);
-        val_type = is_bool ? ir_->i32_type() : args_struct_types_[arg_id];
-        buffer_val = ir_->make_access_chain(
-            ir_->get_pointer_type(val_type, spv::StorageClassUniform),
-            buffer_value, arg_id);
-      }
+
+      buffer_value = get_buffer_value(BufferType::Args, PrimitiveType::i32);
+      val_type = is_bool ? ir_->i32_type() : args_struct_types_[arg_id];
+      buffer_val = ir_->make_access_chain(
+          ir_->get_pointer_type(val_type, spv::StorageClassUniform),
+          buffer_value, arg_id);
       buffer_val.flag = ValueKind::kVariablePtr;
       if (!stmt->create_load) {
         ir_->register_value(stmt->raw_name(), buffer_val);
@@ -2289,19 +2269,6 @@ class TaskCodegen : public IRVisitor {
       return ret_buffer_value_;
     }
 
-    if (buffer.type == BufferType::ArgPack) {
-      // Make sure that Args Buffer are loaded first:
-      get_buffer_value(BufferType::Args, PrimitiveType::i32);
-
-      int binding = binding_head_++;
-      buffer_binding_map_[key] = binding;
-
-      auto buffer_value = compile_argpack_struct(buffer.root_id, binding,
-                                                 buffer_instance_name(buffer));
-      buffer_value_map_[key] = buffer_value;
-      return buffer_value;
-    }
-
     // Binding head starts at 2, so we don't break args and rets
     int binding = binding_head_++;
     buffer_binding_map_[key] = binding;
@@ -2430,20 +2397,6 @@ class TaskCodegen : public IRVisitor {
               element_taichi_types[indices] = type;
               element_types[indices] = spirv_type;
             };
-    const lang::StructType *argpack_type =
-        ctx_attribs_->argpack_type(arg_id)->as<lang::StructType>();
-    for (int i = 0; i < argpack_type->elements().size(); i++) {
-      auto *type = argpack_type->elements()[i].type;
-      auto spirv_type = translate_ti_type(blk, type, has_buffer_ptr);
-      element_types[{i}] = spirv_type;
-      element_taichi_types[{i}] = type;
-      root_element_types.push_back(spirv_type);
-      if (auto struct_type = type->cast<taichi::lang::StructType>()) {
-        for (int j = 0; j < struct_type->elements().size(); ++j) {
-          add_types_to_element_types({i, j}, struct_type->elements()[j].type);
-        }
-      }
-    }
     const tinyir::Type *struct_type =
         blk.emplace_back<StructType>(root_element_types);
 
@@ -2463,8 +2416,6 @@ class TaskCodegen : public IRVisitor {
     STD140LayoutContext layout_ctx;
     auto ir2spirv_map =
         ir_translate_to_spirv(reduced_blk.get(), layout_ctx, ir_.get());
-    argpack_struct_type.id = ir2spirv_map[struct_type];
-    argpack_struct_type.dt = argpack_type;
 
     // Must use the same type in ArgLoadStmt as in the args struct,
     // otherwise the validation will fail.
