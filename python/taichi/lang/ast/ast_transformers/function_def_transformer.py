@@ -28,7 +28,7 @@ from taichi.types import annotations, ndarray_type, primitive_types, texture_typ
 class FunctionDefTransformer:
     @staticmethod
     def _decl_and_create_variable(
-        ctx: ASTTransformerContext, annotation, name, arg_features, invoke_later_dict, prefix_name, arg_depth
+        ctx: ASTTransformerContext, annotation, name, arg_features, prefix_name, arg_depth
     ) -> tuple[bool, Any]:
         full_name = prefix_name + "_" + name
         if not isinstance(annotation, primitive_types.RefType):
@@ -70,8 +70,6 @@ class FunctionDefTransformer:
     @staticmethod
     def _transform_kernel_arg(
         ctx: ASTTransformerContext,
-        invoke_later_dict: dict[str, tuple[Any, str, Callable, list[Any]]],
-        create_variable_later: dict[str, Any],
         argument_name: str,
         argument_type: Any,
         this_arg_features: tuple[Any, ...],
@@ -86,7 +84,6 @@ class FunctionDefTransformer:
                     field.type,
                     flat_name,
                     arg_features[field_idx],
-                    invoke_later_dict,
                     "",
                     0,
                 )
@@ -102,7 +99,6 @@ class FunctionDefTransformer:
                 argument_type,
                 argument_name,
                 this_arg_features if ctx.arg_features is not None else None,
-                invoke_later_dict,
                 "",
                 0,
             )
@@ -121,24 +117,14 @@ class FunctionDefTransformer:
                     kernel_arguments.decl_ret(return_type)
         impl.get_runtime().compiling_callable.finalize_rets()
 
-        invoke_later_dict: dict[str, tuple[Any, str, Any]] = dict()
-        create_variable_later = dict()
         for i, arg in enumerate(args.args):
             argument = ctx.func.arguments[i]
             FunctionDefTransformer._transform_kernel_arg(
                 ctx,
-                invoke_later_dict,
-                create_variable_later,
                 argument.name,
                 argument.annotation,
                 ctx.arg_features[i] if ctx.arg_features is not None else (),
             )
-
-        for k, v in invoke_later_dict.items():
-            argpack, name, func, params = v
-            argpack[name] = func(*params)
-        for k, v in create_variable_later.items():
-            ctx.create_variable(k, v)
 
         impl.get_runtime().compiling_callable.finalize_params()
         # remove original args
