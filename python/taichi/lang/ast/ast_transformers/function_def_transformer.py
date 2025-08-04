@@ -74,7 +74,7 @@ class FunctionDefTransformer:
         argument_type: Any,
         this_arg_features: tuple[Any, ...],
     ) -> None:
-        elif dataclasses.is_dataclass(argument_type):
+        if dataclasses.is_dataclass(argument_type):
             arg_features = this_arg_features
             ctx.create_variable(argument_name, argument_type)
             for field_idx, field in enumerate(dataclasses.fields(argument_type)):
