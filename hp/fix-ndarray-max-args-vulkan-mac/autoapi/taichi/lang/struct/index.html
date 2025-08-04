@@ -268,17 +268,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">taichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../ad/index.html">taichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../algorithms/index.html">taichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../aot/index.html">taichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../aot/conventions/index.html">taichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../aot/conventions/gfxruntime140/index.html">taichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/module/index.html">taichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/utils/index.html">taichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experimental/index.html">taichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../graph/index.html">taichi.graph</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">taichi.lang</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../any_array/index.html">taichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../argpack/index.html">taichi.lang.argpack</a></li>
@@ -599,7 +589,7 @@ directly hosts members as <cite>Field</cite> instances to support nested structs
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>field_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.Field" title="taichi.aot.conventions.gfxruntime140.sr.Field"><em>Field</em></a><em>]</em>) – Struct field members.</p></li>
+<li><p><strong>field_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="../field/index.html#taichi.lang.field.Field" title="taichi.lang.field.Field"><em>Field</em></a><em>]</em>) – Struct field members.</p></li>
 <li><p><strong>struct_methods</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>callable</em><em>]</em>) – Dictionary of functions to apply
 to each struct instance in the field.</p></li>
 <li><p><strong>name</strong> (<em>string</em><em>, </em><em>optional</em>) – The custom name of the field.</p></li>
@@ -652,7 +642,7 @@ to each struct instance in the field.</p></li>
 <p>The shape of the other field needs to be the same as <cite>self</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.Field" title="taichi.aot.conventions.gfxruntime140.sr.Field"><em>Field</em></a>) – The source field.</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="../field/index.html#taichi.lang.field.Field" title="taichi.lang.field.Field"><em>Field</em></a>) – The source field.</p>
 </dd>
 </dl>
 </dd></dl>

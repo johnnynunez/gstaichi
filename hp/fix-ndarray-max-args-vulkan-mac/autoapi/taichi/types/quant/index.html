@@ -268,17 +268,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">taichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../ad/index.html">taichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../algorithms/index.html">taichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../aot/index.html">taichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../aot/conventions/index.html">taichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../aot/conventions/gfxruntime140/index.html">taichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/module/index.html">taichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/utils/index.html">taichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experimental/index.html">taichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../graph/index.html">taichi.graph</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../lang/index.html">taichi.lang</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../lang/any_array/index.html">taichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../lang/argpack/index.html">taichi.lang.argpack</a></li>
@@ -455,14 +445,14 @@ For more details, read <a class="reference external" href="https://yuanming.taic
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>bits</strong> (<em>int</em>) – Number of bits.</p></li>
 <li><p><strong>signed</strong> (<em>bool</em>) – Signed or unsigned.</p></li>
-<li><p><strong>compute</strong> (<a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.DataType" title="taichi.aot.conventions.gfxruntime140.sr.DataType"><em>DataType</em></a>) – Type for computation.</p></li>
+<li><p><strong>compute</strong> (<em>DataType</em>) – Type for computation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The specified type.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.DataType" title="taichi.aot.conventions.gfxruntime140.sr.DataType">DataType</a></p>
+<dd class="field-odd"><p>DataType</p>
 </dd>
 </dl>
 </dd></dl>
@@ -477,7 +467,7 @@ For more details, read <a class="reference external" href="https://yuanming.taic
 <li><p><strong>bits</strong> (<em>int</em>) – Number of bits.</p></li>
 <li><p><strong>signed</strong> (<em>bool</em>) – Signed or unsigned.</p></li>
 <li><p><strong>max_value</strong> (<em>float</em>) – Maximum value of the number.</p></li>
-<li><p><strong>compute</strong> (<a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.DataType" title="taichi.aot.conventions.gfxruntime140.sr.DataType"><em>DataType</em></a>) – Type for computation.</p></li>
+<li><p><strong>compute</strong> (<em>DataType</em>) – Type for computation.</p></li>
 <li><p><strong>scale</strong> (<em>float</em>) – Scaling factor. The argument is prioritized over range.</p></li>
 </ul>
 </dd>
@@ -485,7 +475,7 @@ For more details, read <a class="reference external" href="https://yuanming.taic
 <dd class="field-even"><p>The specified type.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.DataType" title="taichi.aot.conventions.gfxruntime140.sr.DataType">DataType</a></p>
+<dd class="field-odd"><p>DataType</p>
 </dd>
 </dl>
 </dd></dl>
@@ -500,14 +490,14 @@ For more details, read <a class="reference external" href="https://yuanming.taic
 <li><p><strong>exp</strong> (<em>int</em>) – Number of exponent bits.</p></li>
 <li><p><strong>frac</strong> (<em>int</em>) – Number of fraction bits.</p></li>
 <li><p><strong>signed</strong> (<em>bool</em>) – Signed or unsigned.</p></li>
-<li><p><strong>compute</strong> (<a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.DataType" title="taichi.aot.conventions.gfxruntime140.sr.DataType"><em>DataType</em></a>) – Type for computation.</p></li>
+<li><p><strong>compute</strong> (<em>DataType</em>) – Type for computation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The specified type.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.DataType" title="taichi.aot.conventions.gfxruntime140.sr.DataType">DataType</a></p>
+<dd class="field-odd"><p>DataType</p>
 </dd>
 </dl>
 </dd></dl>
