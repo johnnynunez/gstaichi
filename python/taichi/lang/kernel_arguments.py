@@ -55,14 +55,19 @@ def decl_scalar_arg(dtype, name):
         dtype = dtype.tp
     dtype = cook_dtype(dtype)
     if is_ref:
+        print("is ref")
         arg_id = impl.get_runtime().compiling_callable.insert_pointer_param(dtype, name)
     else:
+        print('not ref')
         arg_id = impl.get_runtime().compiling_callable.insert_scalar_param(dtype, name)
 
     argload_di = _ti_core.DebugInfo(impl.get_runtime().get_current_src_info())
+    print('returning epr')
     return Expr(
         _ti_core.make_arg_load_expr(arg_id, dtype, is_ref, create_load=True, dbg_info=argload_di)
     )
+    print("res expr", res, "res.ptr", res.ptr)
+    return res
 
 
 def get_type_for_kernel_args(dtype, name):
@@ -119,7 +124,7 @@ def decl_sparse_matrix(dtype, name):
 
 def decl_ndarray_arg(element_type, ndim, name, needs_grad, boundary):
     arg_id = impl.get_runtime().compiling_callable.insert_ndarray_param(element_type, ndim, name, needs_grad)
-    return AnyArray(_ti_core.make_external_tensor_expr(element_type, ndim, arg_id, needs_grad, 0, boundary))
+    return AnyArray(_ti_core.make_external_tensor_expr(element_type, ndim, arg_id, needs_grad, boundary))
 
 
 def decl_texture_arg(num_dimensions, name):

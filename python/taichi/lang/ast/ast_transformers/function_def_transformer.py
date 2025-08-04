@@ -30,12 +30,16 @@ class FunctionDefTransformer:
     def _decl_and_create_variable(
         ctx: ASTTransformerContext, annotation, name, arg_features, prefix_name
     ) -> tuple[bool, Any]:
+        print("_decl_and_create_variable annotation", annotation, "name", name, "arg features", arg_features)
         full_name = prefix_name + "_" + name
         if not isinstance(annotation, primitive_types.RefType):
+            print("not prim")
             ctx.kernel_args.append(name)
         if annotation == annotations.template or isinstance(annotation, annotations.template):
+            print('template')
             return True, ctx.global_vars[name]
         if isinstance(annotation, annotations.sparse_matrix_builder):
+            print('sparse matri builder')
             return False, (
                 kernel_arguments.decl_sparse_matrix,
                 (
@@ -44,6 +48,7 @@ class FunctionDefTransformer:
                 ),
             )
         if isinstance(annotation, ndarray_type.NdarrayType):
+            print('ndarray type')
             return False, (
                 kernel_arguments.decl_ndarray_arg,
                 (
@@ -55,16 +60,21 @@ class FunctionDefTransformer:
                 ),
             )
         if isinstance(annotation, texture_type.TextureType):
+            print("texture type")
             return False, (kernel_arguments.decl_texture_arg, (arg_features[0], full_name))
         if isinstance(annotation, texture_type.RWTextureType):
+            print("rw texture type")
             return False, (
                 kernel_arguments.decl_rw_texture_arg,
                 (arg_features[0], arg_features[1], arg_features[2], full_name),
             )
         if isinstance(annotation, MatrixType):
+            print("matrix type")
             return True, kernel_arguments.decl_matrix_arg(annotation, name)
         if isinstance(annotation, StructType):
+            print("struct type")
             return True, kernel_arguments.decl_struct_arg(annotation, name)
+        print('scalar type')
         return True, kernel_arguments.decl_scalar_arg(annotation, name)
 
     @staticmethod
@@ -85,7 +95,6 @@ class FunctionDefTransformer:
                     flat_name,
                     arg_features[field_idx],
                     "",
-                    0,
                 )
                 if result:
                     ctx.create_variable(flat_name, obj)
@@ -100,7 +109,6 @@ class FunctionDefTransformer:
                 argument_name,
                 this_arg_features if ctx.arg_features is not None else None,
                 "",
-                0,
             )
             if result:
                 ctx.create_variable(argument_name, obj)
