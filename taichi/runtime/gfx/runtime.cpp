@@ -408,10 +408,6 @@ void GfxRuntime::launch_kernel(KernelHandle handle,
   std::unordered_map<std::vector<int>, DeviceAllocation,
                      hashing::Hasher<std::vector<int>>>
       textures;
-  // `argpacks` holds argpacks that passed to this kernel.
-  std::unordered_map<std::vector<int>, const ArgPack *,
-                     hashing::Hasher<std::vector<int>>>
-      argpacks;
 
   // Prepare context buffers & arrays
   if (ctx_blitter) {
