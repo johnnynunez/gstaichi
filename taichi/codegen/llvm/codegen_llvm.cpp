@@ -2911,42 +2911,6 @@ void TaskCodeGenLLVM::set_struct_to_buffer(
                        current_element, current_index);
 }
 
-llvm::Value *TaskCodeGenLLVM::get_argpack_arg(const std::vector<int> &arg_id,
-                                              int arg_depth,
-                                              bool create_load) {
-  const std::vector<int> indices_l(arg_id.begin(), arg_id.begin() + arg_depth);
-  const std::vector<int> indices_r(arg_id.begin() + arg_depth, arg_id.end());
-  llvm::Value *data_ptr_value;
-  auto argpack_iterator =
-      std::find_if(current_callable->argpack_types.begin(),
-                   current_callable->argpack_types.end(),
-                   [&](const auto &kv) { return kv.first == indices_l; });
-  TI_ASSERT(argpack_iterator != current_callable->argpack_types.end());
-  const auto *argpack_type = (*argpack_iterator).second;
-  auto *arg_type = argpack_type->get_element_type(indices_r);
-  if (arg_depth > 1) {
-    auto key = arg_id;
-    key.back() = TypeFactory::DATA_PTR_POS_IN_ARGPACK;
-    data_ptr_value = get_argpack_arg(key, arg_depth - 1, true);
-  } else {
-    auto indices_data_ptr = indices_l;
-    indices_data_ptr.push_back(TypeFactory::DATA_PTR_POS_IN_ARGPACK);
-    data_ptr_value = get_struct_arg(indices_data_ptr, true);
-  }
-  std::vector<llvm::Value *> gep_index;
-  gep_index.reserve(indices_r.size());
-  gep_index.push_back(tlctx->get_constant(0));
-  for (int ind : indices_r) {
-    gep_index.push_back(tlctx->get_constant(ind));
-  }
-  auto *gep = builder->CreateGEP(tlctx->get_data_type(argpack_type),
-                                 data_ptr_value, gep_index);
-  if (!create_load) {
-    return gep;
-  }
-  return builder->CreateLoad(tlctx->get_data_type(arg_type), gep);
-}
-
 llvm::Value *TaskCodeGenLLVM::get_struct_arg(const std::vector<int> &index,
                                              bool create_load) {
   auto *args_ptr = get_args_ptr(current_callable, get_context());
