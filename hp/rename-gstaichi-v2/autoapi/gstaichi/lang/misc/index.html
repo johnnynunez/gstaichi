@@ -268,17 +268,7 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">gstaichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../ad/index.html">gstaichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../algorithms/index.html">gstaichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../aot/index.html">gstaichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../aot/conventions/index.html">gstaichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../aot/conventions/gfxruntime140/index.html">gstaichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/module/index.html">gstaichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/utils/index.html">gstaichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experimental/index.html">gstaichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../graph/index.html">gstaichi.graph</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">gstaichi.lang</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../any_array/index.html">gstaichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../argpack/index.html">gstaichi.lang.argpack</a></li>
@@ -495,12 +485,6 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#gstaichi.lang.misc.vulkan" title="gstaichi.lang.misc.vulkan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vulkan</span></code></a></p></td>
 <td><p>The Vulkan backend.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#gstaichi.lang.misc.dx11" title="gstaichi.lang.misc.dx11"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dx11</span></code></a></p></td>
-<td><p>The DX11 backend.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#gstaichi.lang.misc.dx12" title="gstaichi.lang.misc.dx12"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dx12</span></code></a></p></td>
-<td><p>The DX11 backend.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#gstaichi.lang.misc.gpu" title="gstaichi.lang.misc.gpu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gpu</span></code></a></p></td>
 <td><p>A list of GPU backends supported on the current system.</p></td>
 </tr>
@@ -690,22 +674,10 @@ lower dimension d-2, it’s the second axis of this cell.</p>
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="gstaichi.lang.misc.dx11">
-<span class="sig-prename descclassname"><span class="pre">gstaichi.lang.misc.</span></span><span class="sig-name descname"><span class="pre">dx11</span></span><a class="reference internal" href="../../../../_modules/gstaichi/lang/misc.html#dx11"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.lang.misc.dx11" title="Link to this definition">#</a></dt>
-<dd><p>The DX11 backend.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="gstaichi.lang.misc.dx12">
-<span class="sig-prename descclassname"><span class="pre">gstaichi.lang.misc.</span></span><span class="sig-name descname"><span class="pre">dx12</span></span><a class="reference internal" href="../../../../_modules/gstaichi/lang/misc.html#dx12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.lang.misc.dx12" title="Link to this definition">#</a></dt>
-<dd><p>The DX11 backend.</p>
-</dd></dl>
-
-<dl class="py data">
 <dt class="sig sig-object py" id="gstaichi.lang.misc.gpu">
 <span class="sig-prename descclassname"><span class="pre">gstaichi.lang.misc.</span></span><span class="sig-name descname"><span class="pre">gpu</span></span><a class="reference internal" href="../../../../_modules/gstaichi/lang/misc.html#gpu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.lang.misc.gpu" title="Link to this definition">#</a></dt>
 <dd><p>A list of GPU backends supported on the current system.
-Currently contains ‘cuda’, ‘metal’, ‘vulkan’, ‘dx11’, ‘dx12’, ‘amdgpu’.</p>
+Currently contains ‘cuda’, ‘metal’, ‘vulkan’, ‘amdgpu’.</p>
 <p>When this is used, GsTaichi automatically picks the matching GPU backend. If no
 GPU is detected, GsTaichi falls back to the CPU backend.</p>
 </dd></dl>
@@ -789,7 +761,7 @@ complete list, please check out
 for how BLS is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>*args</strong> (<em>List</em><em>[</em><a class="reference internal" href="../../aot/conventions/gfxruntime140/sr/index.html#gstaichi.aot.conventions.gfxruntime140.sr.Field" title="gstaichi.aot.conventions.gfxruntime140.sr.Field"><em>Field</em></a><em>]</em>) – A list of sparse GsTaichi fields.</p>
+<dd class="field-odd"><p><strong>*args</strong> (<em>List</em><em>[</em><a class="reference internal" href="../field/index.html#gstaichi.lang.field.Field" title="gstaichi.lang.field.Field"><em>Field</em></a><em>]</em>) – A list of sparse GsTaichi fields.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1016,8 +988,6 @@ only available for backends supporting <cite>ti.extension.mesh</cite> and to use
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.amdgpu"><code class="docutils literal notranslate"><span class="pre">amdgpu</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.metal"><code class="docutils literal notranslate"><span class="pre">metal</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.vulkan"><code class="docutils literal notranslate"><span class="pre">vulkan</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.dx11"><code class="docutils literal notranslate"><span class="pre">dx11</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.dx12"><code class="docutils literal notranslate"><span class="pre">dx12</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.gpu"><code class="docutils literal notranslate"><span class="pre">gpu</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.cpu"><code class="docutils literal notranslate"><span class="pre">cpu</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.misc.extension"><code class="docutils literal notranslate"><span class="pre">extension</span></code></a></li>

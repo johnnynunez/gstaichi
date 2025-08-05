@@ -31,8 +31,6 @@ Attributes
    gstaichi.lang.misc.amdgpu
    gstaichi.lang.misc.metal
    gstaichi.lang.misc.vulkan
-   gstaichi.lang.misc.dx11
-   gstaichi.lang.misc.dx12
    gstaichi.lang.misc.gpu
    gstaichi.lang.misc.cpu
    gstaichi.lang.misc.extension
@@ -149,18 +147,10 @@ Module Contents
 
    The Vulkan backend.
 
-.. py:data:: dx11
-
-   The DX11 backend.
-
-.. py:data:: dx12
-
-   The DX11 backend.
-
 .. py:data:: gpu
 
    A list of GPU backends supported on the current system.
-   Currently contains 'cuda', 'metal', 'vulkan', 'dx11', 'dx12', 'amdgpu'.
+   Currently contains 'cuda', 'metal', 'vulkan', 'amdgpu'.
 
    When this is used, GsTaichi automatically picks the matching GPU backend. If no
    GPU is detected, GsTaichi falls back to the CPU backend.
