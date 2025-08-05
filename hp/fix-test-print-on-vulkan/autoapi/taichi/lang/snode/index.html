@@ -268,23 +268,14 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">taichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../ad/index.html">taichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../algorithms/index.html">taichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../aot/index.html">taichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../aot/conventions/index.html">taichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../aot/conventions/gfxruntime140/index.html">taichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/module/index.html">taichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/utils/index.html">taichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experimental/index.html">taichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../graph/index.html">taichi.graph</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">taichi.lang</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../any_array/index.html">taichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../argpack/index.html">taichi.lang.argpack</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../ast/index.html">taichi.lang.ast</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformer/index.html">taichi.lang.ast.ast_transformer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformer_utils/index.html">taichi.lang.ast.ast_transformer_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformers/index.html">taichi.lang.ast.ast_transformers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/checkers/index.html">taichi.lang.ast.checkers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/symbol_resolver/index.html">taichi.lang.ast.symbol_resolver</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/transform/index.html">taichi.lang.ast.transform</a></li>
@@ -468,7 +459,7 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">taichi.lang.snode.</span></span><span class="sig-name descname"><span class="pre">SNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">taichi._lib.core.taichi_python.SNode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">taichi.lang.snode.</span></span><span class="sig-name descname"><span class="pre">SNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">taichi._lib.core.taichi_python.SNodeCxx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode" title="Link to this definition">#</a></dt>
 <dd><p>A Python-side SNode wrapper.</p>
 <p>For more information on Taichi’s SNode system, please check out
 these references:</p>

@@ -58,7 +58,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/taichi/lang/ast/ast_transformer_utils/index';</script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
-    <link rel="next" title="taichi.lang.ast.checkers" href="../checkers/index.html" />
+    <link rel="next" title="taichi.lang.ast.ast_transformers" href="../ast_transformers/index.html" />
     <link rel="prev" title="taichi.lang.ast.ast_transformer" href="../ast_transformer/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -268,23 +268,14 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../index.html">taichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../../ad/index.html">taichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../algorithms/index.html">taichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../aot/index.html">taichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../aot/conventions/index.html">taichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../aot/conventions/gfxruntime140/index.html">taichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../aot/module/index.html">taichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../aot/utils/index.html">taichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../experimental/index.html">taichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../graph/index.html">taichi.graph</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html">taichi.lang</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../../any_array/index.html">taichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../argpack/index.html">taichi.lang.argpack</a></li>
 <li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html">taichi.lang.ast</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="../ast_transformer/index.html">taichi.lang.ast.ast_transformer</a></li>
 <li class="toctree-l4 current active"><a class="current reference internal" href="#">taichi.lang.ast.ast_transformer_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ast_transformers/index.html">taichi.lang.ast.ast_transformers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../checkers/index.html">taichi.lang.ast.checkers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../symbol_resolver/index.html">taichi.lang.ast.symbol_resolver</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../transform/index.html">taichi.lang.ast.transform</a></li>
@@ -471,6 +462,17 @@
 </table>
 </div>
 </section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#taichi.lang.ast.ast_transformer_utils.get_decorator" title="taichi.lang.ast.ast_transformer_utils.get_decorator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_decorator</span></code></a>(→ str)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <dl class="py class">
@@ -631,7 +633,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="taichi.lang.ast.ast_transformer_utils.ASTTransformerContext">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">taichi.lang.ast.ast_transformer_utils.</span></span><span class="sig-name descname"><span class="pre">ASTTransformerContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excluded_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Func</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../../../aot/conventions/gfxruntime140/sr/index.html#taichi.aot.conventions.gfxruntime140.sr.Kernel" title="taichi.aot.conventions.gfxruntime140.sr.Kernel"><span class="pre">Kernel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg_features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">argument_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_lineno</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ast_builder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">taichi._lib.core.taichi_python.ASTBuilder</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_real_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/taichi/lang/ast/ast_transformer_utils.html#ASTTransformerContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">taichi.lang.ast.ast_transformer_utils.</span></span><span class="sig-name descname"><span class="pre">ASTTransformerContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excluded_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Func</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Kernel</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg_features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">argument_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_lineno</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ast_builder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">taichi._lib.core.taichi_python.ASTBuilder</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_real_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/taichi/lang/ast/ast_transformer_utils.html#ASTTransformerContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext" title="Link to this definition">#</a></dt>
 <dd><dl class="py attribute">
 <dt class="sig sig-object py" id="taichi.lang.ast.ast_transformer_utils.ASTTransformerContext.func">
 <span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../../_modules/taichi/lang/ast/ast_transformer_utils.html#ASTTransformerContext.func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext.func" title="Link to this definition">#</a></dt>
@@ -829,6 +831,11 @@
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="taichi.lang.ast.ast_transformer_utils.get_decorator">
+<span class="sig-prename descclassname"><span class="pre">taichi.lang.ast.ast_transformer_utils.</span></span><span class="sig-name descname"><span class="pre">get_decorator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext" title="taichi.lang.ast.ast_transformer_utils.ASTTransformerContext"><span class="pre">ASTTransformerContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../../../_modules/taichi/lang/ast/ast_transformer_utils.html#get_decorator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.ast.ast_transformer_utils.get_decorator" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </section>
 </section>
 
@@ -852,11 +859,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="../checkers/index.html"
+       href="../ast_transformers/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">taichi.lang.ast.checkers</p>
+        <p class="prev-next-title">taichi.lang.ast.ast_transformers</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -880,6 +887,7 @@
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.Builder"><code class="docutils literal notranslate"><span class="pre">Builder</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.VariableScopeGuard"><code class="docutils literal notranslate"><span class="pre">VariableScopeGuard</span></code></a><ul class="nav section-nav flex-column">
@@ -973,6 +981,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.ASTTransformerContext.get_pos_info"><code class="docutils literal notranslate"><span class="pre">ASTTransformerContext.get_pos_info()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#taichi.lang.ast.ast_transformer_utils.get_decorator"><code class="docutils literal notranslate"><span class="pre">get_decorator()</span></code></a></li>
 </ul>
 </li>
 </ul>

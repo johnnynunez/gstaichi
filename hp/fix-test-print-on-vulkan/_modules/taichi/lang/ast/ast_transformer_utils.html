@@ -321,6 +321,8 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi._lib.core.taichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASTBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">impl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang._ndrange</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndrange</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.ast.symbol_resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASTResolver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">taichi.lang.exception</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TaichiCompilationError</span><span class="p">,</span>
     <span class="n">TaichiNameError</span><span class="p">,</span>
@@ -813,8 +815,9 @@
             <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">hint</span><span class="p">)])</span>
 
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">==</span> <span class="n">node</span><span class="o">.</span><span class="n">end_lineno</span><span class="p">:</span>
-            <span class="n">hint</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">col_offset</span> <span class="o">+</span> <span class="s2">&quot;^&quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">end_col_offset</span> <span class="o">-</span> <span class="n">col_offset</span><span class="p">)</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="n">gen_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">hint</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src</span><span class="p">):</span>
+                <span class="n">hint</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">col_offset</span> <span class="o">+</span> <span class="s2">&quot;^&quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">end_col_offset</span> <span class="o">-</span> <span class="n">col_offset</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="n">gen_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">lineno</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">hint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">node_type</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
@@ -843,6 +846,23 @@
                 <span class="n">msg</span> <span class="o">+=</span> <span class="n">gen_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">hint</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">msg</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="get_decorator">
+<a class="viewcode-back" href="../../../../autoapi/taichi/lang/ast/ast_transformer_utils/index.html#taichi.lang.ast.ast_transformer_utils.get_decorator">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_decorator</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">wanted</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">impl</span><span class="o">.</span><span class="n">static</span><span class="p">,</span> <span class="s2">&quot;static&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">impl</span><span class="o">.</span><span class="n">static_assert</span><span class="p">,</span> <span class="s2">&quot;static_assert&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">impl</span><span class="o">.</span><span class="n">grouped</span><span class="p">,</span> <span class="s2">&quot;grouped&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">ndrange</span><span class="p">,</span> <span class="s2">&quot;ndrange&quot;</span><span class="p">),</span>
+    <span class="p">]:</span>
+        <span class="k">if</span> <span class="n">ASTResolver</span><span class="o">.</span><span class="n">resolve_to</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">wanted</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">global_vars</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
 
 </pre></div>
 
