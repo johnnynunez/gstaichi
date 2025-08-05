@@ -12,9 +12,7 @@ Submodules
 
    /autoapi/taichi/ad/index
    /autoapi/taichi/algorithms/index
-   /autoapi/taichi/aot/index
    /autoapi/taichi/experimental/index
-   /autoapi/taichi/graph/index
    /autoapi/taichi/lang/index
    /autoapi/taichi/linalg/index
    /autoapi/taichi/math/index
