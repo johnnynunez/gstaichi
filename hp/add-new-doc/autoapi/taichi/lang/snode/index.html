@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>taichi.lang.snode &#8212; Taichi 1.8.0 documentation</title>
+    <title>taichi.lang.snode &#8212; Taichi 0.1.0 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../../_static/documentation_options.js?v=b51e6972"></script>
+    <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -62,7 +62,7 @@
     <link rel="prev" title="taichi.lang.simt.warp" href="../simt/warp/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.8.0" />
+  <meta name="docsearch:version" content="0.1.0" />
   </head>
   
   
@@ -124,7 +124,7 @@
   
   
   
-    <p class="title logo__title">Taichi 1.8.0 documentation</p>
+    <p class="title logo__title">Taichi 0.1.0 documentation</p>
   
 </a></div>
     
@@ -268,23 +268,14 @@
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html">taichi</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../../ad/index.html">taichi.ad</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../algorithms/index.html">taichi.algorithms</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../aot/index.html">taichi.aot</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../aot/conventions/index.html">taichi.aot.conventions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../aot/conventions/gfxruntime140/index.html">taichi.aot.conventions.gfxruntime140</a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/module/index.html">taichi.aot.module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../aot/utils/index.html">taichi.aot.utils</a></li>
-</ul>
-</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../experimental/index.html">taichi.experimental</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../graph/index.html">taichi.graph</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html">taichi.lang</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../any_array/index.html">taichi.lang.any_array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../argpack/index.html">taichi.lang.argpack</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../ast/index.html">taichi.lang.ast</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformer/index.html">taichi.lang.ast.ast_transformer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformer_utils/index.html">taichi.lang.ast.ast_transformer_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../ast/ast_transformers/index.html">taichi.lang.ast.ast_transformers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/checkers/index.html">taichi.lang.ast.checkers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/symbol_resolver/index.html">taichi.lang.ast.symbol_resolver</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../ast/transform/index.html">taichi.lang.ast.transform</a></li>
@@ -468,7 +459,7 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">taichi.lang.snode.</span></span><span class="sig-name descname"><span class="pre">SNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">taichi.lang.snode.</span></span><span class="sig-name descname"><span class="pre">SNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">taichi._lib.core.taichi_python.SNodeCxx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode" title="Link to this definition">#</a></dt>
 <dd><p>A Python-side SNode wrapper.</p>
 <p>For more information on Taichi’s SNode system, please check out
 these references:</p>
@@ -487,7 +478,7 @@ these references:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode.dense">
-<span class="sig-name descname"><span class="pre">dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.dense"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.dense" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">taichi._lib.core.taichi_python.Axis</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#taichi.lang.snode.SNode" title="taichi.lang.snode.SNode"><span class="pre">SNode</span></a></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.dense"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.dense" title="Link to this definition">#</a></dt>
 <dd><p>Adds a dense SNode as a child component of <cite>self</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -504,7 +495,7 @@ these references:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode.pointer">
-<span class="sig-name descname"><span class="pre">pointer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.pointer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.pointer" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">pointer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">taichi._lib.core.taichi_python.Axis</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#taichi.lang.snode.SNode" title="taichi.lang.snode.SNode"><span class="pre">SNode</span></a></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.pointer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.pointer" title="Link to this definition">#</a></dt>
 <dd><p>Adds a pointer SNode as a child component of <cite>self</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -521,7 +512,7 @@ these references:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode.dynamic">
-<span class="sig-name descname"><span class="pre">dynamic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.dynamic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.dynamic" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">dynamic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">taichi._lib.core.taichi_python.Axis</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#taichi.lang.snode.SNode" title="taichi.lang.snode.SNode"><span class="pre">SNode</span></a></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.dynamic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.dynamic" title="Link to this definition">#</a></dt>
 <dd><p>Adds a dynamic SNode as a child component of <cite>self</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -539,7 +530,7 @@ these references:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode.bitmasked">
-<span class="sig-name descname"><span class="pre">bitmasked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.bitmasked"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.bitmasked" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">bitmasked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">taichi._lib.core.taichi_python.Axis</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#taichi.lang.snode.SNode" title="taichi.lang.snode.SNode"><span class="pre">SNode</span></a></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.bitmasked"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.bitmasked" title="Link to this definition">#</a></dt>
 <dd><p>Adds a bitmasked SNode as a child component of <cite>self</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -556,7 +547,7 @@ these references:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode.quant_array">
-<span class="sig-name descname"><span class="pre">quant_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_bits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.quant_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.quant_array" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">quant_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">taichi._lib.core.taichi_python.Axis</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_bits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#taichi.lang.snode.SNode" title="taichi.lang.snode.SNode"><span class="pre">SNode</span></a></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.quant_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.quant_array" title="Link to this definition">#</a></dt>
 <dd><p>Adds a quant_array SNode as a child component of <cite>self</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -574,7 +565,7 @@ these references:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="taichi.lang.snode.SNode.place">
-<span class="sig-name descname"><span class="pre">place</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.place"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.place" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">place</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numbers.Number</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numbers.Number</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#taichi.lang.snode.SNode" title="taichi.lang.snode.SNode"><span class="pre">SNode</span></a></span></span><a class="reference internal" href="../../../../_modules/taichi/lang/snode.html#SNode.place"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#taichi.lang.snode.SNode.place" title="Link to this definition">#</a></dt>
 <dd><p>Places a list of Taichi fields under the <cite>self</cite> container.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

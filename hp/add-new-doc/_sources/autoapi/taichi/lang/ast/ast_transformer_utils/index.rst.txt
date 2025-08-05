@@ -23,12 +23,20 @@ Classes
    taichi.lang.ast.ast_transformer_utils.ASTTransformerContext
 
 
+Functions
+---------
+
+.. autoapisummary::
+
+   taichi.lang.ast.ast_transformer_utils.get_decorator
+
+
 Module Contents
 ---------------
 
 .. py:class:: Builder
 
-.. py:class:: VariableScopeGuard(scopes)
+.. py:class:: VariableScopeGuard(scopes: list[dict[str, Any]])
 
    .. py:attribute:: scopes
 
@@ -40,7 +48,7 @@ Module Contents
 
 
 
-.. py:class:: StaticScopeGuard(status)
+.. py:class:: StaticScopeGuard(status: StaticScopeStatus)
 
    .. py:attribute:: status
 
@@ -82,12 +90,13 @@ Module Contents
 
 
 
-.. py:class:: LoopScopeAttribute(is_static)
+.. py:class:: LoopScopeAttribute(is_static: bool)
 
    .. py:attribute:: is_static
 
 
    .. py:attribute:: status
+      :type:  LoopStatus
 
 
    .. py:attribute:: nearest_non_static_if
@@ -96,7 +105,7 @@ Module Contents
 
 
 
-.. py:class:: LoopScopeGuard(scopes, non_static_guard=None)
+.. py:class:: LoopScopeGuard(scopes: list[dict[str, Any]], non_static_guard=None)
 
    .. py:attribute:: scopes
 
@@ -142,7 +151,7 @@ Module Contents
 
 
 
-.. py:class:: ASTTransformerContext(excluded_parameters=(), is_kernel: bool = True, func=None, arg_features=None, global_vars=None, argument_data=None, file=None, src=None, start_lineno: int | None = None, ast_builder=None, is_real_function: bool = False)
+.. py:class:: ASTTransformerContext(excluded_parameters=(), is_kernel: bool = True, func: Func | Kernel | None = None, arg_features=None, global_vars: dict[str, Any] | None = None, argument_data=None, file: str | None = None, src: list[str] | None = None, start_lineno: int | None = None, ast_builder: taichi._lib.core.taichi_python.ASTBuilder | None = None, is_real_function: bool = False)
 
    .. py:attribute:: func
       :value: None
@@ -150,6 +159,7 @@ Module Contents
 
 
    .. py:attribute:: local_scopes
+      :type:  list[dict[str, Any]]
       :value: []
 
 
@@ -243,6 +253,7 @@ Module Contents
 
 
    .. py:attribute:: kernel_args
+      :type:  list
       :value: []
 
 
@@ -256,45 +267,47 @@ Module Contents
    .. py:method:: non_static_if_guard(if_node: ast.If)
 
 
-   .. py:method:: non_static_control_flow_guard()
+   .. py:method:: non_static_control_flow_guard() -> NonStaticControlFlowGuard
 
 
-   .. py:method:: static_scope_guard()
+   .. py:method:: static_scope_guard() -> StaticScopeGuard
 
 
-   .. py:method:: current_scope()
+   .. py:method:: current_scope() -> dict[str, Any]
 
 
-   .. py:method:: current_loop_scope()
+   .. py:method:: current_loop_scope() -> dict[str, Any]
 
 
-   .. py:method:: loop_status()
+   .. py:method:: loop_status() -> LoopStatus
 
 
-   .. py:method:: set_loop_status(status)
+   .. py:method:: set_loop_status(status: LoopStatus) -> None
 
 
-   .. py:method:: is_in_static_for()
+   .. py:method:: is_in_static_for() -> bool
 
 
-   .. py:method:: is_in_non_static_control_flow()
+   .. py:method:: is_in_non_static_control_flow() -> bool
 
 
-   .. py:method:: is_in_static_scope()
+   .. py:method:: is_in_static_scope() -> bool
 
 
-   .. py:method:: is_var_declared(name)
+   .. py:method:: is_var_declared(name: str) -> bool
 
 
-   .. py:method:: create_variable(name, var)
+   .. py:method:: create_variable(name: str, var: Any) -> None
 
 
-   .. py:method:: check_loop_var(loop_var)
+   .. py:method:: check_loop_var(loop_var: str) -> None
 
 
-   .. py:method:: get_var_by_name(name)
+   .. py:method:: get_var_by_name(name: str) -> Any
 
 
-   .. py:method:: get_pos_info(node)
+   .. py:method:: get_pos_info(node: ast.AST) -> str
 
+
+.. py:function:: get_decorator(ctx: ASTTransformerContext, node) -> str
 
