@@ -621,7 +621,7 @@ class Kernel:
         impl.get_runtime().kernels.append(self)
         self.reset()
         self.kernel_cpp = None
-        self.compiled_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
+        self.materialized_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
         self.has_print = False
 
     def ast_builder(self) -> ASTBuilder:
@@ -630,7 +630,7 @@ class Kernel:
 
     def reset(self) -> None:
         self.runtime = impl.get_runtime()
-        self.compiled_kernels = {}
+        self.materialized_kernels = {}
 
     def extract_arguments(self) -> None:
         sig = inspect.signature(self.func)
@@ -749,12 +749,13 @@ class Kernel:
         #     self.compiled_kernels[key] = self.compiled_kernel_data
         #     ...
 
-        if key in self.compiled_kernels:
-            print('py materialize() found key in compiled kernels')
+        if key in self.materialized_kernels:
+            print('py materialize() found key in materialized kernels')
             return
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
-        _logging.trace(f"Compiling kernel {kernel_name} in {self.autodiff_mode}...")
+        print("materializing kernel", kernel_name)
+        _logging.trace(f"Materializing kernel {kernel_name} in {self.autodiff_mode}...")
 
         tree, ctx = _get_tree_and_ctx(
             self,
@@ -831,13 +832,13 @@ class Kernel:
 
         print("running prog.create_kernel")
         gstaichi_kernel = impl.get_runtime().prog.create_kernel(gstaichi_ast_generator, kernel_name, self.autodiff_mode)
-        assert key not in self.compiled_kernels
+        assert key not in self.materialized_kernels
         elapsed = time.time() - start
         this_time = time.time()
         print(this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
         LAST_PRINT = this_time
         print("storing created kernel in self.compiled_kernels")
-        self.compiled_kernels[key] = gstaichi_kernel
+        self.materialized_kernels[key] = gstaichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
         assert len(args) == len(self.arguments), f"{len(self.arguments)} arguments needed but {len(args)} provided"
@@ -1247,7 +1248,7 @@ class Kernel:
             _logging.warn("""opt_level = 1 is enforced to enable gradient computation.""")
             impl.current_cfg().opt_level = 1
         key = self.ensure_compiled(*args)
-        kernel_cpp = self.compiled_kernels[key]
+        kernel_cpp = self.materialized_kernels[key]
         return self.launch_kernel(kernel_cpp, *args)
 
 
