@@ -1,4 +1,3 @@
-Pillow
 pytest
 git+https://github.com/taichi-dev/pytest-xdist@a3b5ad3038#egg=pytest-xdist
 pytest-rerunfailures
@@ -8,7 +7,6 @@ numpy>=2.0.0  # otherwise, on windows, tries to install 1.26.4, which has no whe
 psutil
 autograd
 requests
-matplotlib<=3.7.3
 cffi
 scipy
 setproctitle
