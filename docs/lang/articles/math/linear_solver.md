@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Linear Solver
 
-Solving linear equations is a common task in scientific computing. Taichi provides basic direct and iterative linear solvers for
+Solving linear equations is a common task in scientific computing. GsTaichi provides basic direct and iterative linear solvers for
 various simulation scenarios. Currently, there are two categories of linear solvers available:
 1. Solvers built for `SparseMatrix`, including:
 - Direct solver `SparseSolver`
@@ -21,13 +21,13 @@ There are two types of linear solvers available for `SparseMatrix`, direct solve
 To solve a linear system whose coefficient matrix is a `SparseMatrix` using a direct method, follow the steps below:
 1. Create a `solver` using `ti.linalg.SparseSolver(solver_type, ordering)`. Currently, the factorization types supported on CPU backends are `LLT`, `LDLT`, and `LU`, and supported orderings include `AMD` and `COLAMD`. The sparse solver on CUDA supports the `LLT` factorization type only.
 2. Analyze and factorize the sparse matrix you want to solve using `solver.analyze_pattern(sparse_matrix)` and `solver.factorize(sparse_matrix)`
-3. Call `x = solver.solve(b)`, where `x` is the solution and `b` is the right-hand side of the linear system. On CPU backends, `x` and `b` can be NumPy arrays, Taichi Ndarrays, or Taichi fields. On the CUDA backend, `x` and `b` *must* be Taichi Ndarrays.
+3. Call `x = solver.solve(b)`, where `x` is the solution and `b` is the right-hand side of the linear system. On CPU backends, `x` and `b` can be NumPy arrays, GsTaichi Ndarrays, or GsTaichi fields. On the CUDA backend, `x` and `b` *must* be GsTaichi Ndarrays.
 4. Call `solver.info()` to check if the solving process succeeds.
 
 Here's a full example.
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 arch = ti.cpu # or ti.cuda
 ti.init(arch=arch)
@@ -75,8 +75,8 @@ print(f">>>> Computation succeed: {success}")
 ```
 
 Please have a look at our two demos for more information:
-+ [Stable fluid](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/stable_fluid.py): A 2D fluid simulation using a sparse Laplacian matrix to solve Poisson's pressure equation.
-+ [Implicit mass spring](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/implicit_mass_spring.py): A 2D cloth simulation demo using sparse matrices to solve the linear systems.
++ [Stable fluid](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/stable_fluid.py): A 2D fluid simulation using a sparse Laplacian matrix to solve Poisson's pressure equation.
++ [Implicit mass spring](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/implicit_mass_spring.py): A 2D cloth simulation demo using sparse matrices to solve the linear systems.
 
 ### Sparse iterative solver
 To solve a linear system whose coefficient matrix is a `SparseMatrix` using a iterative (conjugate-gradient) method, follow the steps below:
@@ -84,7 +84,7 @@ To solve a linear system whose coefficient matrix is a `SparseMatrix` using a it
 2. Call `x, exit_code = solver.solve()` to obtain the solution `x` along with the `exit_code` that indicates the status of the solution. `exit_code` should be `True` if the solving was successful. Here is an example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init(arch=ti.cpu)
 
@@ -128,13 +128,13 @@ print(f">>>> Computation was successful?: {exit_code}")
 Note that the building process of `SparseMatrix` `A` is exactly the same as in the case of `SparseSolver`, the only difference here is that we created a `solver` whose type is `SparseCG` instead of `SparseSolver`.
 
 ## Matrix-free iterative solver
-Apart from `SparseMatrix` as an efficient representation of matrices, Taichi also support the `LinearOperator` type, which is a matrix-free representation of matrices.
+Apart from `SparseMatrix` as an efficient representation of matrices, GsTaichi also support the `LinearOperator` type, which is a matrix-free representation of matrices.
 Keep in mind that matrices can be seen as a linear transformation from an input vector to a output vector, it is possible to encapsulate the information of a matrice as a `LinearOperator`.
 
-To create a `LinearOperator` in Taichi, we first need to define a kernel that represent the linear transformation:
+To create a `LinearOperator` in GsTaichi, we first need to define a kernel that represent the linear transformation:
 ```python
-import taichi as ti
-from taichi.linalg import LinearOperator
+import gstaichi as ti
+from gstaichi.linalg import LinearOperator
 
 ti.init(arch=ti.cpu)
 
@@ -158,9 +158,9 @@ A = LinearOperator(compute_matrix_vector)
 To solve a system of linear equations represented by this `LinearOperator`, we can use the built-in matrix-free solver `MatrixFreeCG`. Here is a full example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import math
-from taichi.linalg import MatrixFreeCG, LinearOperator
+from gstaichi.linalg import MatrixFreeCG, LinearOperator
 
 ti.init(arch=ti.cpu)
 

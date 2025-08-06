@@ -2,21 +2,21 @@
 sidebar_position: 2
 ---
 
-# Life of a Taichi Kernel
+# Life of a GsTaichi Kernel
 
-Sometimes it is helpful to understand the life cycle of a Taichi kernel.
+Sometimes it is helpful to understand the life cycle of a GsTaichi kernel.
 In short, compilation will only happen on the first invocation of an
 instance of a kernel.
 
-The life cycle of a Taichi kernel has the following stages:
+The life cycle of a GsTaichi kernel has the following stages:
 
 - Kernel registration
 - Template instantiation and caching
 - Python AST transforms
-- Taichi IR compilation, optimization, and executable generation
+- GsTaichi IR compilation, optimization, and executable generation
 - Launching
 
-![image](https://raw.githubusercontent.com/taichi-dev/public_files/fa03e63ca4e161318c8aa9a5db7f4a825604df88/taichi/life_of_kernel.png)
+![image](https://raw.githubusercontent.com/gstaichi-dev/public_files/fa03e63ca4e161318c8aa9a5db7f4a825604df88/gstaichi/life_of_kernel.png)
 
 Let's consider the following simple kernel:
 
@@ -47,7 +47,7 @@ first invocation of `add`.
 add(x, 42)
 ```
 
-When `add` is called for the first time, the Taichi frontend compiler
+When `add` is called for the first time, the GsTaichi frontend compiler
 will instantiate the kernel.
 
 When you have a second call with the same **template signature**
@@ -57,7 +57,7 @@ When you have a second call with the same **template signature**
 add(x, 1)
 ```
 
-Taichi will directly reuse the previously compiled binary.
+GsTaichi will directly reuse the previously compiled binary.
 
 Arguments hinted with `ti.template()` are template arguments, and will
 incur template instantiation. For example,
@@ -78,13 +78,13 @@ new kernel will be instantiated and compiled.
 :::
 
 :::note
-Many basic operations in the Taichi standard library are implemented
-using Taichi kernels using metaprogramming tricks. Invoking them will
+Many basic operations in the GsTaichi standard library are implemented
+using GsTaichi kernels using metaprogramming tricks. Invoking them will
 incur **implicit kernel instantiations**.
 
 Examples include `x.to_numpy()` and `y.from_torch(torch_tensor)`. When
 you invoke these functions, you will see kernel instantiations, as
-Taichi kernels will be generated to offload the hard work to multiple
+GsTaichi kernels will be generated to offload the hard work to multiple
 CPU cores/GPUs.
 
 As mentioned before, the second time you call the same operation, the
@@ -94,13 +94,13 @@ needed.
 
 ## Code transformation and optimizations
 
-When a new instantiation happens, the Taichi frontend compiler (i.e.,
+When a new instantiation happens, the GsTaichi frontend compiler (i.e.,
 the `ASTTransformer` Python class) will transform the kernel body AST
-into a Python script, which, when executed, emits a Taichi frontend AST.
-Basically, some patches are applied to the Python AST so that the Taichi
+into a Python script, which, when executed, emits a GsTaichi frontend AST.
+Basically, some patches are applied to the Python AST so that the GsTaichi
 frontend can recognize it.
 
-The Taichi AST lowering pass translates Taichi frontend IR into
+The GsTaichi AST lowering pass translates GsTaichi frontend IR into
 hierarchical static single assignment (SSA) IR, which allows a series of
 further IR passes to happen, such as
 
@@ -124,5 +124,5 @@ generate high-performance executable CPU/GPU programs.
 
 ## Kernel launching
 
-Taichi kernels will be ultimately launched as multi-threaded CPU tasks
+GsTaichi kernels will be ultimately launched as multi-threaded CPU tasks
 or GPU kernels.

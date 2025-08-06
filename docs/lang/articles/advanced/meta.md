@@ -4,21 +4,21 @@ sidebar_position: 1
 
 # Metaprogramming
 
-Taichi provides metaprogramming infrastructures. There are many benefits of metaprogramming in Taichi:
+GsTaichi provides metaprogramming infrastructures. There are many benefits of metaprogramming in GsTaichi:
 
 - Enabling the development of dimensionality-independent code, e.g., code which is
   adaptive for both 2D/3D physical simulations.
 - Improving runtime performance by moving computations from runtime to compile time.
-- Simplifying the development of Taichi standard library.
+- Simplifying the development of GsTaichi standard library.
 
 :::note
-Taichi kernels are **lazily instantiated** and large amounts of computation can be executed at **compile-time**.
-Every kernel in Taichi is a template kernel, even if it has no template arguments.
+GsTaichi kernels are **lazily instantiated** and large amounts of computation can be executed at **compile-time**.
+Every kernel in GsTaichi is a template kernel, even if it has no template arguments.
 :::
 
 ## Template metaprogramming
 
-By using `ti.template()` as an argument type hint, a Taichi field or a python object can be passed into a kernel. Template programming also enables the code to be reused for fields with different shapes:
+By using `ti.template()` as an argument type hint, a GsTaichi field or a python object can be passed into a kernel. Template programming also enables the code to be reused for fields with different shapes:
 
 ```python {2}
 @ti.kernel
@@ -39,7 +39,7 @@ copy_1D(c, d)
 ```
 
 :::note
-If a template parameter is not a Taichi object, it cannot be reassigned inside Taichi kernel.
+If a template parameter is not a GsTaichi object, it cannot be reassigned inside GsTaichi kernel.
 :::
 
 :::note
@@ -48,7 +48,7 @@ The template parameters are inlined into the generated kernel after compilation.
 
 ## Dimensionality-independent programming using grouped indices
 
-Taichi provides `ti.grouped` syntax which supports grouping loop indices into a `ti.Vector`.
+GsTaichi provides `ti.grouped` syntax which supports grouping loop indices into a `ti.Vector`.
 It enables dimensionality-independent programming, i.e., code are adaptive to scenarios of
 different dimensionalities automatically:
 
@@ -83,7 +83,7 @@ def copy(x: ti.template(), y: ti.template()):
 
 ## Field metadata
 
-The two attributes **data type** and **shape** of fields can be accessed by `field.dtype` and  `field.shape`, in both Taichi-scope and Python-scope:
+The two attributes **data type** and **shape** of fields can be accessed by `field.dtype` and  `field.shape`, in both GsTaichi-scope and Python-scope:
 
 ```python {3,7}
 x = ti.field(dtype=ti.f32, shape=(3, 3))
@@ -92,7 +92,7 @@ x = ti.field(dtype=ti.f32, shape=(3, 3))
 print("Field dimensionality is ", x.shape)
 print("Field data type is ", x.dtype)
 
-# Print field metadata in Taichi-scope
+# Print field metadata in GsTaichi-scope
 @ti.kernel
 def print_field_metadata(x: ti.template()):
     print("Field dimensionality is ", len(x.shape))
@@ -108,7 +108,7 @@ For sparse fields, the full domain shape will be returned.
 ## Matrix & vector metadata
 
 For matrices, `matrix.m` and `matrix.n` returns the number of columns and rows, respectively.
-For vectors, they are treated as matrices with one column in Taichi, where `vector.n` is the number of elements of the vector.
+For vectors, they are treated as matrices with one column in GsTaichi, where `vector.n` is the number of elements of the vector.
 
 ```python {4-5,7-8}
 @ti.kernel
@@ -167,7 +167,7 @@ def func():
 ```
 
 :::note
-Before v1.4.0, indices for accessing Taichi matrices/vectors must be compile-time constants.
+Before v1.4.0, indices for accessing GsTaichi matrices/vectors must be compile-time constants.
 Therefore, if the indices come from a loop, the loop must be unrolled:
 
 ```python {7}
@@ -182,7 +182,7 @@ def reset():
             x[i][j] = 0
 ```
 
-Starting from v1.4.0, indices for accessing Taichi matrices/vectors can be runtime variables.
+Starting from v1.4.0, indices for accessing GsTaichi matrices/vectors can be runtime variables.
 Therefore, the loop above is no longer required to be unrolled.
 That said, unrolling it will still help you reduce runtime overhead.
 :::

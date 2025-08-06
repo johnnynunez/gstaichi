@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-import taichi as ti
+import gstaichi as ti
 
 screen_res = (1000, 1000)
 
@@ -237,7 +237,7 @@ if __name__ == "__main__":
         template_args={"pos": pos, "vel": vel, "boundary_box": boundary_box},
     )
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    tmpdir = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    tmpdir = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     mod.save(tmpdir)

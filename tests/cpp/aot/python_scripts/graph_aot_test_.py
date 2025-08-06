@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_graph_aot(arch):
@@ -42,8 +42,8 @@ def compile_graph_aot(arch):
 
     run_graph = g_builder.compile()
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    tmpdir = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    tmpdir = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     mod = ti.aot.Module()
     mod.add_graph("run_graph", run_graph)

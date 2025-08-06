@@ -6,15 +6,15 @@ sidebar_position: 1
 
 ## Intermediate representation (IR)
 
-Taichi's computation IR is designed to be
+GsTaichi's computation IR is designed to be
 - Static-single assignment;
 - Hierarchical, instead of LLVM-style control-flow graph + basic blocks;
 - Differentiable;
 - Statically and strongly typed.
 
-For example, a simple Taichi kernel
+For example, a simple GsTaichi kernel
 ```python {4-8} title=show_ir.py
-import taichi as ti
+import gstaichi as ti
 ti.init(print_ir=True)
 
 @ti.kernel
@@ -50,13 +50,13 @@ Use `ti.init(print_ir=True)` to print IR of all instantiated kernels.
 :::
 
 :::note
-See [Life of a Taichi kernel](./compilation.md) for more details about
-the JIT compilation system of Taichi.
+See [Life of a GsTaichi kernel](./compilation.md) for more details about
+the JIT compilation system of GsTaichi.
 :::
 
 ## Data structure organization
 
-The internal organization of Taichi's data structure is defined using the **Structural Node**
+The internal organization of GsTaichi's data structure is defined using the **Structural Node**
 ("SNode", /snōd/) tree system. The SNode system might be confusing for new developers:
 it is important to distinguish three concepts: SNode **containers**,
 SNode **cells**, and SNode **components**.
@@ -70,7 +70,7 @@ SNode **cells**, and SNode **components**.
   - For example, `P = S.dense(ti.i, 4); Q = S.dense(ti.i, 4)` inserts two components (one `P` container and one `Q` container) into each `S` cell.
 - Note that each SNode **component** is a SNode **container** of a lower-level SNode.
 
-A hierarchical data structure in Taichi, dense or sparse, is essentially a tree with interleaved container and cell levels.
+A hierarchical data structure in GsTaichi, dense or sparse, is essentially a tree with interleaved container and cell levels.
 Note that containers of `place` SNodes do not have cells. Instead, they
 directly contain numerical values.
 
@@ -115,7 +115,7 @@ S5.place(z) # S6: z
 The following figure shows the hierarchy of the data structure. The
 numbers are `indices` of the containers and cells.
 
-![image](https://raw.githubusercontent.com/taichi-dev/public_files/fa03e63ca4e161318c8aa9a5db7f4a825604df88/taichi/data_structure_organization.png)
+![image](https://raw.githubusercontent.com/gstaichi-dev/public_files/fa03e63ca4e161318c8aa9a5db7f4a825604df88/gstaichi/data_structure_organization.png)
 
 Note that the `S0root` container and cell do not have an `index`.
 
@@ -150,12 +150,12 @@ SNode **cells**).
 
 :::note
 We are on our way to remove usages of **children**, **instances**, and
-**elements** in Taichi. These are very ambiguous terms and should be replaced with standardized terms: **container**, **cell**, and **component**.
+**elements** in GsTaichi. These are very ambiguous terms and should be replaced with standardized terms: **container**, **cell**, and **component**.
 :::
 
 ## List generation
 
-Struct-fors in Taichi loop over all active elements of a (sparse) data
+Struct-fors in GsTaichi loop over all active elements of a (sparse) data
 structure **in parallel**. Evenly distributing work onto processor cores
 is challenging on sparse data structures: naively splitting an irregular
 tree into pieces can easily lead to partitions with drastically
@@ -175,7 +175,7 @@ For example,
 ```python {14-17}
 # misc/listgen_demo.py
 
-import taichi as ti
+import gstaichi as ti
 
 ti.init(print_ir=True)
 
@@ -239,19 +239,19 @@ generate a list of 4 x `S2bitmasked` nodes (and 1 x `S1dense` node).
 ## Statistics
 
 In some cases, it is helpful to gather certain quantitative information
-about internal events during Taichi program execution. The `Statistics`
+about internal events during GsTaichi program execution. The `Statistics`
 class is designed for this purpose.
 
 Usage:
 
 ```cpp
-#include "taichi/util/statistics.h"
+#include "gstaichi/util/statistics.h"
 
 // add 1.0 to counter "codegen_offloaded_tasks"
-taichi::stat.add("codegen_offloaded_tasks");
+gstaichi::stat.add("codegen_offloaded_tasks");
 
 // add the number of statements in "ir" to counter "codegen_statements"
-taichi::stat.add("codegen_statements", irpass::analysis::count_statements(this->ir));
+gstaichi::stat.add("codegen_statements", irpass::analysis::count_statements(this->ir));
 ```
 
 Note the keys are `std::string` and values are `double`.
@@ -264,14 +264,14 @@ ti.core.print_stat()
 
 ## Why Python frontend
 
-Embedding Taichi in `python` has the following advantages:
+Embedding GsTaichi in `python` has the following advantages:
 
-- Easy to learn. Taichi has a very similar syntax to Python.
+- Easy to learn. GsTaichi has a very similar syntax to Python.
 - Easy to run. No ahead-of-time compilation is needed.
 - This design allows people to reuse existing python infrastructure:
-  - IDEs. A python IDE mostly works for Taichi with syntax
+  - IDEs. A python IDE mostly works for GsTaichi with syntax
     highlighting, syntax checking, and autocomplete.
-  - Package manager (pip). A developed Taichi application and be
+  - Package manager (pip). A developed GsTaichi application and be
     easily submitted to `PyPI` and others can easily set it up with
     `pip`.
   - Existing packages. Interacting with other python components
@@ -282,21 +282,21 @@ as long as the kernel body function is parse-able by the Python parser.
 
 However, this design has drawbacks too:
 
-- Taichi kernels must be parse-able by Python parsers. This means Taichi
+- GsTaichi kernels must be parse-able by Python parsers. This means GsTaichi
   syntax cannot go beyond Python syntax.
   - For example, indexing is always needed when accessing elements
-    in Taichi fields, even if the fields is 0D. Use `x[None] = 123`
+    in GsTaichi fields, even if the fields is 0D. Use `x[None] = 123`
     to set the value in `x` if `x` is 0D. This is because `x = 123`
     will set `x` itself (instead of its containing value) to be the
     constant `123` in Python syntax. For code consistency in Python-
-    and Taichi-scope, we have to use the more verbose `x[None] = 123` syntax.
+    and GsTaichi-scope, we have to use the more verbose `x[None] = 123` syntax.
 - Python has relatively low performance. This can cause a performance
-  issue when initializing large Taichi fields with pure python
-  scripts. A Taichi kernel should be used to initialize huge fields.
+  issue when initializing large GsTaichi fields with pure python
+  scripts. A GsTaichi kernel should be used to initialize huge fields.
 
 ## Virtual indices v.s. physical indices
 
-In Taichi, _virtual indices_ are used to locate elements in fields, and
+In GsTaichi, _virtual indices_ are used to locate elements in fields, and
 _physical indices_ are used to specify data layouts in memory.
 
 For example,
@@ -343,5 +343,5 @@ assert mapping_b == {0: 1, 1: 0}
 # the virtual first index exposed to the user comes second in memory layout.
 ```
 
-Taichi supports up to 12 (`constexpr int taichi_max_num_indices = 12`)
+GsTaichi supports up to 12 (`constexpr int gstaichi_max_num_indices = 12`)
 virtual indices and physical indices.

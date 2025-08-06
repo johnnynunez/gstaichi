@@ -45,8 +45,8 @@ by hand and update `compute_dy_dx` accordingly. Apparently, when
 the kernel becomes larger and gets frequently updated, this manual workflow is
 really error-prone and hard to maintain.
 
-If you run into this situation, Taichi's handy automatic differentiation (autodiff)
-system comes to your rescue! Taichi supports gradient evaluation through
+If you run into this situation, GsTaichi's handy automatic differentiation (autodiff)
+system comes to your rescue! GsTaichi supports gradient evaluation through
 either `ti.ad.Tape()` or the more flexible `kernel.grad()` syntax.
 
 ## Using `ti.ad.Tape()`
@@ -78,19 +78,19 @@ print('dy/dx =', x.grad[None], ' at x =', x[None])
 
 A common problem in physical simulation is that it is usually easy to compute
 energy but hard to compute force on every particle,
-for example [Bond bending (and torsion) in molecular dynamics](https://github.com/victoriacity/taichimd/blob/5a44841cc8dfe5eb97de51f1d46f1bede1cc9936/taichimd/interaction.py#L190-L220)
-and [FEM with hyperelastic energy functions](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/fem128.py).
+for example [Bond bending (and torsion) in molecular dynamics](https://github.com/victoriacity/gstaichimd/blob/5a44841cc8dfe5eb97de51f1d46f1bede1cc9936/gstaichimd/interaction.py#L190-L220)
+and [FEM with hyperelastic energy functions](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/fem128.py).
 Recall that we can differentiate
 (negative) potential energy to get forces: `F_i = -dU / dx_i`. So once you have coded
-a kernel that computes the potential energy, you may use Taichi's autodiff
+a kernel that computes the potential energy, you may use GsTaichi's autodiff
 system to obtain the derivatives and then `F_i` on each particle.
 
 Taking
-[examples/simulation/ad_gravity.py](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/ad_gravity.py)
+[examples/simulation/ad_gravity.py](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/ad_gravity.py)
 as an example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 N = 8
@@ -158,9 +158,9 @@ start up.
 
 :::tip
 See
-[examples/simulation/mpm_lagrangian_forces.py](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/mpm_lagrangian_forces.py)
+[examples/simulation/mpm_lagrangian_forces.py](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/mpm_lagrangian_forces.py)
 and
-[examples/simulation/fem99.py](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/fem99.py)
+[examples/simulation/fem99.py](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/fem99.py)
 for examples on using autodiff-based force evaluation MPM and FEM.
 :::
 
@@ -175,7 +175,7 @@ will always be multiplied to the `grad` with respect to the inputs at the end of
 By calling `ti.ad.Tape()`, you have the program do this under the hood.
 
 ```python {13-14}
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 N = 16
@@ -205,7 +205,7 @@ for i in range(N):
 
 :::tip
 It may be tedius to write out `need_grad=True` for every input in a complicated use case.
-Alternatively, Taichi provides an API `ti.root.lazy_grad()` that automatically places the
+Alternatively, GsTaichi provides an API `ti.root.lazy_grad()` that automatically places the
 gradient fields following the layout of their primal fields.
 :::
 
@@ -214,25 +214,25 @@ When using `kernel.grad()`, it is recommended that you always run forward kernel
 `kernel()` breaks global data access rule #1 below and may produce incorrect gradients.
 :::
 
-## Limitations of Taichi autodiff system
+## Limitations of GsTaichi autodiff system
 
 Unlike tools such as TensorFlow where **immutable** output buffers are
-generated, the **imperative** programming paradigm adopted by Taichi
+generated, the **imperative** programming paradigm adopted by GsTaichi
 allows programmers to freely modify global fields.
 
 To make automatic differentiation well-defined under this setting, the following
-rules are enforced when writing differentiable programs in Taichi:
+rules are enforced when writing differentiable programs in GsTaichi:
 
 ### Global Data Access Rules
 
-Currently Taichi's autodiff implementation does not save intermediate results of global fields which might be used in the backward pass. Therefore mutation is forbidden once you've read from a global field.
+Currently GsTaichi's autodiff implementation does not save intermediate results of global fields which might be used in the backward pass. Therefore mutation is forbidden once you've read from a global field.
 
 :::note Global Data Access Rule #1
 Once you read an element in a field, the element cannot be mutated anymore.
 :::
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 N = 16
@@ -267,11 +267,11 @@ assert x.grad[1] == 10.0
 ```
 
 :::note Global Data Access Rule #2
-If a global field element is written more than once, then starting from the second write, the write **must** come in the form of an atomic add ("accumulation", using `ti.atomic_add` or simply `+=`). Although `+=` violates rule #1 above since it reads the old value before computing the sum, it is the only special case of "read before mutation" that Taichi allows in the autodiff system.
+If a global field element is written more than once, then starting from the second write, the write **must** come in the form of an atomic add ("accumulation", using `ti.atomic_add` or simply `+=`). Although `+=` violates rule #1 above since it reads the old value before computing the sum, it is the only special case of "read before mutation" that GsTaichi allows in the autodiff system.
 :::
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 N = 16
@@ -313,7 +313,7 @@ A checker is provided for detecting potential violations of global data access r
 For example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init(debug=True)
 
 N = 5
@@ -336,7 +336,7 @@ with ti.ad.Tape(loss, validation=True):
     func_2()
 
 """
-taichi.lang.exception.TaichiAssertionError:
+gstaichi.lang.exception.GsTaichiAssertionError:
 (kernel=func_2_c78_0) Breaks the global data access rule. Snode S10 is overwritten unexpectedly.
 File "across_kernel.py", line 16, in func_2:
     b[None] += 100
@@ -369,18 +369,18 @@ Violation of this rule results in an error.
 :::danger DANGER
 Violation of rules above might result in incorrect gradient result without a proper error.
 We're actively working on improving the error reporting mechanism for it. Please feel free
-to open a [github issue](https://github.com/taichi-dev/taichi/issues/new?assignees=&labels=potential+bug&template=bug_report.md&title=)
+to open a [github issue](https://github.com/taichi-dev/gstaichi/issues/new?assignees=&labels=potential+bug&template=bug_report.md&title=)
 if you see any silent wrong results.
 :::
 
-### Write differentiable code inside a Taichi kernel
+### Write differentiable code inside a GsTaichi kernel
 
-Taichi's compiler only captures the code in the Taichi scope when performing the source code transformation for autodiff. Therefore, only the code written in Taichi scope is auto-differentiated. Although you can modify the `grad` of a field in python scope manually, the code is not auto-differentiated.
+GsTaichi's compiler only captures the code in the GsTaichi scope when performing the source code transformation for autodiff. Therefore, only the code written in GsTaichi scope is auto-differentiated. Although you can modify the `grad` of a field in python scope manually, the code is not auto-differentiated.
 
 Example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 x = ti.field(dtype=float, shape=(), needs_grad=True)
@@ -403,7 +403,7 @@ with ti.ad.Tape(loss=loss):
     # but not the backward pass i.e., not auto-differentiated.
     loss[None] += ti.sin(x[None]) + 1.0
 
-    # Code in Taichi scope i.e. inside Taichi kernels, is auto-differentiated.
+    # Code in GsTaichi scope i.e. inside GsTaichi kernels, is auto-differentiated.
     manipulation_in_kernel()
     differentiable_task()
 
@@ -417,19 +417,19 @@ print(x.grad[None])
 ```
 
 
-## Extending Taichi Autodiff system
+## Extending GsTaichi Autodiff system
 
 
-Sometimes user may want to override the gradients provided by the Taichi autodiff system. For example, when differentiating a 3D singular value decomposition (SVD) used in an iterative
+Sometimes user may want to override the gradients provided by the GsTaichi autodiff system. For example, when differentiating a 3D singular value decomposition (SVD) used in an iterative
 solver, it is preferred to use a manually engineered SVD derivative subroutine for better numerical stability.
-Taichi provides two decorators `ti.ad.grad_replaced` and `ti.ad.grad_for` to overwrite the default
+GsTaichi provides two decorators `ti.ad.grad_replaced` and `ti.ad.grad_for` to overwrite the default
 automatic differentiation behavior.
 
 
 The following is a simple example to use customized gradient function in autodiff:
 
 ```
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 x = ti.field(ti.f32)
@@ -465,29 +465,29 @@ Customized gradient function works with both `ti.ad.Tape()` and `kernel.grad()`.
 
 Another use case of customized gradient function is checkpointing. We can use recomputation to save memory space through
 a user-defined gradient function.
-[diffmpm.py](https://github.com/yuanming-hu/difftaichi/blob/master/examples/diffmpm.py#L226-L244)
+[diffmpm.py](https://github.com/yuanming-hu/diffgstaichi/blob/master/examples/diffmpm.py#L226-L244)
 demonstrates that by defining a customized gradient function that recomputes the grid states during backward,
 we can reuse the grid states and allocate only one copy compared to `O(n)` copies in a native implementation
 without customized gradient function.
 
-## DiffTaichi
+## DiffGsTaichi
 
-The [DiffTaichi repo](https://github.com/yuanming-hu/difftaichi)
-contains 10 differentiable physical simulators built with Taichi
+The [DiffGsTaichi repo](https://github.com/yuanming-hu/diffgstaichi)
+contains 10 differentiable physical simulators built with GsTaichi
 differentiable programming. A few examples with neural network
 controllers optimized using differentiable simulators and brute-force
 gradient descent:
 
-![image](https://github.com/yuanming-hu/public_files/raw/master/learning/difftaichi/ms3_final-cropped.gif)
+![image](https://github.com/yuanming-hu/public_files/raw/master/learning/diffgstaichi/ms3_final-cropped.gif)
 
-![image](https://github.com/yuanming-hu/public_files/raw/master/learning/difftaichi/rb_final2.gif)
+![image](https://github.com/yuanming-hu/public_files/raw/master/learning/diffgstaichi/rb_final2.gif)
 
-![image](https://github.com/yuanming-hu/public_files/raw/master/learning/difftaichi/diffmpm3d.gif)
+![image](https://github.com/yuanming-hu/public_files/raw/master/learning/diffgstaichi/diffmpm3d.gif)
 
 :::tip
-Check out [the DiffTaichi paper](https://arxiv.org/pdf/1910.00935.pdf)
+Check out [the DiffGsTaichi paper](https://arxiv.org/pdf/1910.00935.pdf)
 and [video](https://www.youtube.com/watch?v=Z1xvAZve9aE) to learn more
-about Taichi differentiable programming.
+about GsTaichi differentiable programming.
 :::
 
 ## Forward-Mode Autodiff
@@ -495,7 +495,7 @@ about Taichi differentiable programming.
 Automatic differentiation (Autodiff) has two modes, reverse mode and forward mode.
 
 - Reverse mode computes Vector-Jacobian Product (VJP), which means computing one *row* of the Jacobian matrix at a time. Therefore, reverse mode is more efficient for functions, which have more inputs than outputs. `ti.ad.Tape()` and `kernel.grad()` are for reverse-mode autodiff.
-- Forward mode computes Jacobian-Vector Product (JVP), which means computing one *column* of the Jacobian matrix at a time. Therefore, forward mode is more efficient for functions, which have more outputs than inputs. As of v1.1.0, Taichi supports forward-mode autodiff. `ti.ad.FwdMode()` and `ti.root.lazy_dual()` are for forward-mode autodiff.
+- Forward mode computes Jacobian-Vector Product (JVP), which means computing one *column* of the Jacobian matrix at a time. Therefore, forward mode is more efficient for functions, which have more outputs than inputs. As of v1.1.0, GsTaichi supports forward-mode autodiff. `ti.ad.FwdMode()` and `ti.root.lazy_dual()` are for forward-mode autodiff.
 
 ### Using `ti.ad.FwdMode()`
 
@@ -512,7 +512,7 @@ The usage of `ti.ad.FwdMode()` is similar to that of `ti.ad.Tape()`. Here we reu
 The following code snippet explains the steps above:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 x = ti.field(dtype=ti.f32, shape=(), needs_dual=True)
@@ -543,7 +543,7 @@ print('dy/dx =', y.dual[None], ' at x =', x[None])
 The following code snippet shows another two cases with multiple inputs and outputs: With `seed=[1.0, 0.0] `or `seed=[0.0, 1.0]` , we can compute derivatives solely with respect to `x_0` or `x_1`.
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 N_param = 2
 N_loss = 5
@@ -570,5 +570,5 @@ print('dy/dx_1 =', y.dual, ' at x_1 =', x[1])
 ```
 
 :::tip
-Just as reverse-mode autodiff, Taichi's forward-mode autodiff provides `ti.root.lazy_dual()`, which automatically places the dual fields following the layout of their primal fields.
+Just as reverse-mode autodiff, GsTaichi's forward-mode autodiff provides `ti.root.lazy_dual()`, which automatically places the dual fields following the layout of their primal fields.
 :::

@@ -5,11 +5,11 @@ sidebar_position: 3
 # Developer Utilities
 
 This section provides a detailed description of some commonly used
-utilities for Taichi developers.
+utilities for GsTaichi developers.
 
 ## Logging
 
-Taichi uses [spdlog](https://github.com/gabime/spdlog) as its logging
+GsTaichi uses [spdlog](https://github.com/gabime/spdlog) as its logging
 system. Logs can have different levels, from low to high, they are:
 
 | LEVELS |
@@ -51,7 +51,7 @@ TI_WARN("Hello world!");
 TI_ERROR("Hello world!");
 ```
 
-If one raises a message of the level `error`, Taichi will be
+If one raises a message of the level `error`, GsTaichi will be
 **terminated** immediately and result in a `RuntimeError` on Python
 side.
 
@@ -83,10 +83,10 @@ int func(void *p) {
 }
 ```
 
-## Debug taichi program using `gdb`
+## Debug gstaichi program using `gdb`
 
 1. Prepare a script that can reproduce the issue, e.g. `python repro.py`.
-2. Build taichi with debug information using `DEBUG=1 python setup.py develop` (or `install`).
+2. Build gstaichi with debug information using `DEBUG=1 python setup.py develop` (or `install`).
 3. Run `gdb --args python repro.py`, now you can debug from there! For example, you can set a
    breakpoint using `b foo.cpp:102` or `b Program::compile()`.
 
@@ -113,7 +113,7 @@ export TI_GDB_TRIGGER=1
 
 :::note
 **Quickly pinpointing segmentation faults/assertion failures using**
-`gdb`: When Taichi crashes, `gdb` will be triggered and attach to the
+`gdb`: When GsTaichi crashes, `gdb` will be triggered and attach to the
 current thread. You might be prompt to enter sudo password required for
 gdb thread attaching. After entering `gdb`, check the stack backtrace
 with command `bt` (`backtrace`), then find the line of code triggering

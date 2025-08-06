@@ -4,31 +4,31 @@ sidebar_position: 1
 
 # Debugging
 
-To aid with debugging your parallel programs, Taichi has the following mechanisms:
+To aid with debugging your parallel programs, GsTaichi has the following mechanisms:
 
-1. `print` in the Taichi scope checks the value of a variable.
+1. `print` in the GsTaichi scope checks the value of a variable.
 2. Serialization of your program or a specific parallel for loop.
 3. Activated with `ti.init(debug=True)`, debug mode detects out-of-bound array accesses.
 4. Static or non-static `assert` verifies an assertion condition at compile time or runtime respectively.
 5. `sys.tracebacklimit` produces a conciser traceback.
 
-## Runtime `print` in Taichi scope
+## Runtime `print` in GsTaichi scope
 
 
-One of the most naive ways to debug code is to print particular messages to check how your code runs in different states. You can call `print()` in the Taichi scope to debug your program:
+One of the most naive ways to debug code is to print particular messages to check how your code runs in different states. You can call `print()` in the GsTaichi scope to debug your program:
 
 ```python
 print(*args, sep='', end='\n')
 ```
 
-When passed into a runtime `print()` in the Taichi scope, `args` can take string literal, scalar, vector, and matrix expressions.
+When passed into a runtime `print()` in the GsTaichi scope, `args` can take string literal, scalar, vector, and matrix expressions.
 
 
 For example:
 
 ```python {1,4,7,10,13,14,18,22,33}
 @ti.kernel
-def inside_taichi_scope():
+def inside_gstaichi_scope():
     x = 256
     print('hello', x)
     #=> hello 256
@@ -57,7 +57,7 @@ def inside_taichi_scope():
     	"len": 1.0
 		})
     # print(ray)
-    # Print a struct directly in Taichi-scope has not been supported yet
+    # Print a struct directly in GsTaichi-scope has not been supported yet
     # Instead, use:
     print('ray.ori =', ray.ori, ', ray.dir =', ray.dir, ', ray.len =', ray.len)
     #=> ray.ori = [0.0, 0.0, 0.0], ray.dir = [0.0, 0.0, 1.0], ray.len = 1.0
@@ -66,7 +66,7 @@ def inside_taichi_scope():
 
 ### Applicable backends
 
-`print` in the Taichi scope is supported on the CPU, CUDA, and Vulkan backends only.
+`print` in the GsTaichi scope is supported on the CPU, CUDA, and Vulkan backends only.
 
 :::note
 To enable printing on Vulkan, please
@@ -79,12 +79,12 @@ To enable printing on Vulkan, please
 
 ### Printing comma-separated strings, f-strings, or formatted strings
 
-In Taichi scope, you can print both scalar and matrix values using the `print` function. There are multiple ways to format your output, including comma-separated strings, f-strings, and formatted strings via the `str.format()` method.
+In GsTaichi scope, you can print both scalar and matrix values using the `print` function. There are multiple ways to format your output, including comma-separated strings, f-strings, and formatted strings via the `str.format()` method.
 
 For instance, suppose you have a scalar field `a` and want to print its value. Here are some examples:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init(arch=ti.cpu)
 
 a = ti.field(ti.f32, 4)
@@ -143,19 +143,19 @@ def print_matrix():
 ```
 
 :::note
-Building formatted strings using the % operator is currently **not** supported in Taichi.
+Building formatted strings using the % operator is currently **not** supported in GsTaichi.
 :::
 
 ## Compile-time `ti.static_print`
 
-It can be useful to print Python objects and their properties like data types or SNodes in the Taichi scope. Similar to `ti.static`, which makes the compiler evaluate an argument at compile time (see the [Metaprogramming](../advanced/meta.md) for more information), `ti.static_print` prints compile-time constants in the Taichi scope:
+It can be useful to print Python objects and their properties like data types or SNodes in the GsTaichi scope. Similar to `ti.static`, which makes the compiler evaluate an argument at compile time (see the [Metaprogramming](../advanced/meta.md) for more information), `ti.static_print` prints compile-time constants in the GsTaichi scope:
 
 ```python {6,8,10,13}
 x = ti.field(ti.f32, (2, 3))
 y = 1
 
 @ti.kernel
-def inside_taichi_scope():
+def inside_gstaichi_scope():
     ti.static_print(y)
     # => 1
     ti.static_print(x.shape)
@@ -168,15 +168,15 @@ def inside_taichi_scope():
         # Only print once
 ```
 
-In the Taichi scope, `ti.static_print` acts similarly to `print`. But unlike `print`, `ti.static_print` outputs the expression only once at compile time, incurring no runtime penalty.
+In the GsTaichi scope, `ti.static_print` acts similarly to `print`. But unlike `print`, `ti.static_print` outputs the expression only once at compile time, incurring no runtime penalty.
 
 ## Serial execution
 
-Because threads are processed in random order, Taichi's automated parallelization may result in non-deterministic behaviour. Serializing program execution may be advantageous for debugging purposes, such as achieving reproducible results or identifying data races. You have the option of serialising the complete Taichi program or a single for loop.
+Because threads are processed in random order, GsTaichi's automated parallelization may result in non-deterministic behaviour. Serializing program execution may be advantageous for debugging purposes, such as achieving reproducible results or identifying data races. You have the option of serialising the complete GsTaichi program or a single for loop.
 
-### Serialize an entire Taichi program
+### Serialize an entire GsTaichi program
 
-If you choose CPU as the backend, you can set `cpu_max_num_threads=1` when initializing Taichi to serialize the program. Then the program runs on a single thread and its behavior becomes deterministic. For example:
+If you choose CPU as the backend, you can set `cpu_max_num_threads=1` when initializing GsTaichi to serialize the program. Then the program runs on a single thread and its behavior becomes deterministic. For example:
 
 ```python
 ti.init(arch=ti.cpu, cpu_max_num_threads=1)
@@ -186,10 +186,10 @@ If your program works well in serial but fails in parallel, check if there are p
 
 ### Serialize a specified parallel for loop
 
-By default, Taichi automatically parallelizes the for loops at the outermost scope in a Taichi kernel. But some scenarios require serial execution. In this case, you can prevent automatic parallelization with `ti.loop_config(serialize=True)`. Note that only the outermost for loop that immediately follows this line is serialized. To illustrate:
+By default, GsTaichi automatically parallelizes the for loops at the outermost scope in a GsTaichi kernel. But some scenarios require serial execution. In this case, you can prevent automatic parallelization with `ti.loop_config(serialize=True)`. Note that only the outermost for loop that immediately follows this line is serialized. To illustrate:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init(arch=ti.cpu)
 n = 1024
@@ -218,12 +218,12 @@ print(val)
 
 ## Out-of-bound array access
 
-The array index out of bounds error occurs frequently. However, Taichi disables bounds checking by default and continues without generating a warning. As a result, a program with such an issue may provide incorrect results or possibly cause segmentation faults, making debugging difficult.
+The array index out of bounds error occurs frequently. However, GsTaichi disables bounds checking by default and continues without generating a warning. As a result, a program with such an issue may provide incorrect results or possibly cause segmentation faults, making debugging difficult.
 
-Taichi detects array index out of bound errors in debug mode. You can activate this mode by setting `debug=True` in the `ti.init()` call:
+GsTaichi detects array index out of bound errors in debug mode. You can activate this mode by setting `debug=True` in the `ti.init()` call:
 
 ```python {2}
-import taichi as ti
+import gstaichi as ti
 ti.init(arch=ti.cpu, debug=True)
 f = ti.field(dtype=ti.i32, shape=(32, 32))
 @ti.kernel
@@ -233,7 +233,7 @@ def test() -> ti.i32:
 print(test())
 ```
 
-The code snippet above raises a `TaichiAssertionError` because you are trying to access elements from a field of shape (32, 32) with indices `[0, 73]`.
+The code snippet above raises a `GsTaichiAssertionError` because you are trying to access elements from a field of shape (32, 32) with indices `[0, 73]`.
 
 :::note
 Automatic bound checks are supported on the CPU and CUDA beckends only.
@@ -241,18 +241,18 @@ Automatic bound checks are supported on the CPU and CUDA beckends only.
 Your program performance may worsen if you set `debug=True`.
 :::
 
-## Runtime `assert` in Taichi scope
+## Runtime `assert` in GsTaichi scope
 
-You can use `assert` statements in the Taichi scope to verify the assertion conditions. If an assertion fails, the program throws a `TaichiAssertionError`.
+You can use `assert` statements in the GsTaichi scope to verify the assertion conditions. If an assertion fails, the program throws a `GsTaichiAssertionError`.
 
 :::note
 `assert` is currently supported on the CPU, CUDA, and Metal backends.
 :::
 
-Ensure that you activate `debug` mode before using `assert` statements in the Taichi scope:
+Ensure that you activate `debug` mode before using `assert` statements in the GsTaichi scope:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init(arch=ti.cpu, debug=True)
 
 x = ti.field(ti.f32, 128)
@@ -267,11 +267,11 @@ def do_sqrt_all():
 do_sqrt_all()
 ```
 
-When you are done with debugging, set `debug=False`. Then, the program ignores all `assert` statements in the Taichi scope, which can avoid additional runtime overhead.
+When you are done with debugging, set `debug=False`. Then, the program ignores all `assert` statements in the GsTaichi scope, which can avoid additional runtime overhead.
 
 ## Compile-time `ti.static_assert`
 
-Besides `ti.static_print`, Taichi also provides a static version of `assert`: `ti.static_assert`, which may be used to create assertions on data types, dimensionality, and shapes.
+Besides `ti.static_print`, GsTaichi also provides a static version of `assert`: `ti.static_assert`, which may be used to create assertions on data types, dimensionality, and shapes.
 
 ```python
 ti.static_assert(cond, msg=None)
@@ -287,12 +287,12 @@ def copy(dst: ti.template(), src: ti.template()):
         dst[I] = src[I]
 ```
 
-## Conciser tracebacks in Taichi scope
+## Conciser tracebacks in GsTaichi scope
 
-Taichi reports the traceback of an error in the **Taichi scope**. For example, the code snippet below triggers an `AssertionError`, with a lengthy traceback message:
+GsTaichi reports the traceback of an error in the **GsTaichi scope**. For example, the code snippet below triggers an `AssertionError`, with a lengthy traceback message:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 @ti.func
@@ -318,50 +318,50 @@ Output:
 
 ```
 Traceback (most recent call last):
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
     return method(ctx, node)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer.py", line 342, in build_Call
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer.py", line 342, in build_Call
     node.ptr = node.func.ptr(*args, **keywords)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/impl.py", line 471, in static_assert
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/impl.py", line 471, in static_assert
     assert cond
 AssertionError
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
     return method(ctx, node)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer.py", line 360, in build_Call
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer.py", line 360, in build_Call
     node.ptr = node.func.ptr(*args, **keywords)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/kernel_impl.py", line 59, in decorated
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/kernel_impl.py", line 59, in decorated
     return fun.__call__(*args)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/kernel_impl.py", line 178, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/kernel_impl.py", line 178, in __call__
     ret = transform_tree(tree, ctx)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/transform.py", line 8, in transform_tree
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/transform.py", line 8, in transform_tree
     ASTTransformer()(ctx, tree)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 26, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 26, in __call__
     raise e
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
     return method(ctx, node)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer.py", line 488, in build_Module
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer.py", line 488, in build_Module
     build_stmt(ctx, stmt)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 26, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 26, in __call__
     raise e
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
     return method(ctx, node)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer.py", line 451, in build_FunctionDef
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer.py", line 451, in build_FunctionDef
     build_stmts(ctx, node.body)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer.py", line 1086, in build_stmts
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer.py", line 1086, in build_stmts
     build_stmt(ctx, stmt)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 26, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 26, in __call__
     raise e
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 23, in __call__
     return method(ctx, node)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer.py", line 964, in build_Expr
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer.py", line 964, in build_Expr
     build_stmt(ctx, node.value)
-  File "/Users/lanhaidong/taichi/taichi/python/taichi/lang/ast/ast_transformer_utils.py", line 32, in __call__
-    raise TaichiCompilationError(msg)
-taichi.lang.exception.TaichiCompilationError: File "misc/demo_traceback.py", line 10:
+  File "/Users/lanhaidong/gstaichi/gstaichi/python/gstaichi/lang/ast/ast_transformer_utils.py", line 32, in __call__
+    raise GsTaichiCompilationError(msg)
+gstaichi.lang.exception.GsTaichiCompilationError: File "misc/demo_traceback.py", line 10:
     ti.static_assert(1 + 1 == 3)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError:
@@ -371,10 +371,10 @@ AssertionError:
 
 It takes time to read through the message. In addition, many stack frames reveal implementation details, which are irrelevant to debugging.
 
-Taichi allows you to access a conciser and more intuitive version of traceback messages via `sys.tracebacklimit`:
+GsTaichi allows you to access a conciser and more intuitive version of traceback messages via `sys.tracebacklimit`:
 
 ```python {2}
-import taichi as ti
+import gstaichi as ti
 import sys
 sys.tracebacklimit=0
 ...
@@ -387,7 +387,7 @@ AssertionError
 
 During handling of the above exception, another exception occurred:
 
-taichi.lang.exception.TaichiCompilationError: File "misc/demo_traceback.py", line 10:
+gstaichi.lang.exception.GsTaichiCompilationError: File "misc/demo_traceback.py", line 10:
     ti.static_assert(1 + 1 == 3)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError:
@@ -400,15 +400,15 @@ However, always unset `sys.tracebacklimit` and submit the full traceback message
 ## Debugging tips
 
 The above built-in tools cannot guarantee a smooth debugging experience, though. Here, we conclude some common bugs that one may encounter in a
-Taichi program.
+GsTaichi program.
 
 ### Static type system
 
-Taichi translates Python code into a statically typed language for high performance. Therefore, code in the Taichi scope may behave differently from native Python code, especially when it comes to variable types.
+GsTaichi translates Python code into a statically typed language for high performance. Therefore, code in the GsTaichi scope may behave differently from native Python code, especially when it comes to variable types.
 
-In the Taichi scope, the type of a variable is *determined upon initialization and never changes afterwards*.
+In the GsTaichi scope, the type of a variable is *determined upon initialization and never changes afterwards*.
 
-Although Taichi's static typing system delivers a better performance, it may lead to unexpected results if you fail to specify the correct types. For example, the code below leads to an unexpected result due to a misuse of Taichi's static typing system. The Taichi compiler shows a warning::
+Although GsTaichi's static typing system delivers a better performance, it may lead to unexpected results if you fail to specify the correct types. For example, the code below leads to an unexpected result due to a misuse of GsTaichi's static typing system. The GsTaichi compiler shows a warning::
 
 ```python
 @ti.kernel
@@ -427,7 +427,7 @@ Output:
 [W 06/27/20 21:43:51.853] [type_check.cpp:visit@66] [$19] Atomic add (float32 to int32) may lose precision.
 ```
 
-This means that a precision loss occurs when Taichi converts a `float32` result to `int32`. The solution is to initialize `ret` as a floating-point value:
+This means that a precision loss occurs when GsTaichi converts a `float32` result to `int32`. The solution is to initialize `ret` as a floating-point value:
 
 ```python {3}
 @ti.kernel
@@ -442,8 +442,8 @@ not_buggy()
 
 ### Advanced Optimization
 
-By default, Taichi runs a number of advanced IR optimizations to maximize the performance of your Taichi kernels. However, advanced optimizations may occasionally lead to compilation errors, such as:
+By default, GsTaichi runs a number of advanced IR optimizations to maximize the performance of your GsTaichi kernels. However, advanced optimizations may occasionally lead to compilation errors, such as:
 
 `RuntimeError: [verify.cpp:basic_verify@40] stmt 8 cannot have operand 7.`
 
-You can use the `ti.init(advanced_optimization=False)` setting to turn off advanced optimizations and see if it makes a difference. If this issue persists, feel free to report it on [GitHub](https://github.com/taichi-dev/taichi/issues/new?labels=potential+bug&template=bug_report.md).
+You can use the `ti.init(advanced_optimization=False)` setting to turn off advanced optimizations and see if it makes a difference. If this issue persists, feel free to report it on [GitHub](https://github.com/taichi-dev/gstaichi/issues/new?labels=potential+bug&template=bug_report.md).

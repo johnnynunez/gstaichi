@@ -4,13 +4,13 @@ sidebar_position: 1
 
 # Contribution Guidelines
 
-Thank you for your interest in contributing to Taichi. Taichi was born as an academic research project. Though we are working hard to improve its code quality, Taichi has a long way to go to become a mature, large-scale engineering project. This is also why we decided to open source Taichi from the very beginning: We rely on our community to help Taichi evolve and thrive. From document updates, bug fix, to feature implementation, wherever you spot an issue, you are very welcome to file a PR (pull request) with us!:-)
+Thank you for your interest in contributing to GsTaichi. GsTaichi was born as an academic research project. Though we are working hard to improve its code quality, GsTaichi has a long way to go to become a mature, large-scale engineering project. This is also why we decided to open source GsTaichi from the very beginning: We rely on our community to help GsTaichi evolve and thrive. From document updates, bug fix, to feature implementation, wherever you spot an issue, you are very welcome to file a PR (pull request) with us!:-)
 
-Centered around the common process of taking on an issue, testing, and making a corresponding PR, this document provides guidelines, tips, and major considerations for Taichi's contributors. We highly recommend that you spend some time familiarizing yourself with this contribution guide before contributing to Taichi.
+Centered around the common process of taking on an issue, testing, and making a corresponding PR, this document provides guidelines, tips, and major considerations for GsTaichi's contributors. We highly recommend that you spend some time familiarizing yourself with this contribution guide before contributing to GsTaichi.
 
 ## General guidelines and tips
 
-This section provides some general guidelines for the Taichi community and tips that we find practically useful.
+This section provides some general guidelines for the GsTaichi community and tips that we find practically useful.
 
 ### Be pragmatic & no overkills
 
@@ -25,7 +25,7 @@ When it comes to making a design decision, weigh up its pros and cons. A design 
 
 ### Communicate effectively
 
-Our ultimate goal is to build a sustainable, prosperous Taichi community, and effective communication is the cornerstone of that goal. Following are tips that may contribute to effective communication:
+Our ultimate goal is to build a sustainable, prosperous GsTaichi community, and effective communication is the cornerstone of that goal. Following are tips that may contribute to effective communication:
 
 - Concise:
   - The message behind your words outweighs the number of your words. Use as few words as possible to drive your point home.
@@ -36,7 +36,7 @@ Our ultimate goal is to build a sustainable, prosperous Taichi community, and ef
   - Use a spell checker, such as [Grammarly](https://app.grammarly.com/), to improve your writing in terms of grammar, style, and tone.
 
 - Constructive and courteous: Base your feedback and discussions on facts, *NOT* on personal feelings.
-  - Acceptable😃: *"This design could be confusing to new Taichi users. If it were designed this way, it could..."*
+  - Acceptable😃: *"This design could be confusing to new GsTaichi users. If it were designed this way, it could..."*
   - Undesirable😞: ~~*"This design is terrible."*~~
 
 ## What you can contribute
@@ -56,7 +56,7 @@ We welcome all kinds of contributions, including but not limited to:
 
 ## File an issue
 
-If you would like to propose a new feature, or if you spot a potential issue, you can file an issue with Taichi.
+If you would like to propose a new feature, or if you spot a potential issue, you can file an issue with GsTaichi.
 
 :::note
 When you try to report potential bugs in an issue, please consider running `ti diagnose` and offer its output as an attachment. This helps the maintainers to learn more about the context and the system information of your environment to make the debugging process more efficient and solve your issue more easily.
@@ -74,8 +74,8 @@ Except for minor updates, most PRs start from a developer taking over an issue. 
 
 | Issue Tag                                                    | Description               | Target developer                               |
 | ------------------------------------------------------------ | ------------------------- | ---------------------------------------------- |
-| [good first issue](https://github.com/taichi-dev/taichi/issues?q=is:open+is:issue+label:"good+first+issue") | Issues that are easy to start with                          | Developers new to Taichi                       |
-| [welcome contribution](https://github.com/taichi-dev/taichi/issues?q=is:open+is:issue+label:"welcome+contribution") | Issues *slightly* more challenging | Developers who wish to dive deeper into Taichi |
+| [good first issue](https://github.com/taichi-dev/gstaichi/issues?q=is:open+is:issue+label:"good+first+issue") | Issues that are easy to start with                          | Developers new to GsTaichi                       |
+| [welcome contribution](https://github.com/taichi-dev/gstaichi/issues?q=is:open+is:issue+label:"welcome+contribution") | Issues *slightly* more challenging | Developers who wish to dive deeper into GsTaichi |
 
 ### Best practices
 
@@ -88,16 +88,16 @@ Except for minor updates, most PRs start from a developer taking over an issue. 
       1. Briefly describe how you plan to handle it (if no solution has been provided).
       2. Hold off until a core developer responds to your action plan.
   - **Goal**: Keep your implementation neat and effective.
-  - **Example**: See [#2610](https://github.com/taichi-dev/taichi/issues/2610).
+  - **Example**: See [#2610](https://github.com/taichi-dev/gstaichi/issues/2610).
 
 ## References for documentation updates
 
 As part of the effort to increase visibility of the community and to improve developer experience, we highly recommend including documentation updates in your PR if applicable. Here are some of the documentation-specific references and tips:
 
-- Documentation source files are hosted under [docs/](https://github.com/taichi-dev/taichi/blob/master/docs/).
+- Documentation source files are hosted under [docs/](https://github.com/taichi-dev/gstaichi/blob/master/docs/).
 - We use GitHub Flavored Markdown (GFM) and [Docusaurus](https://docusaurus.io/) to build our documentation site. For information on the supported Markdown syntax, see the  [Documentation Writing Guide](./doc_writing.md).
 - When it comes to writing, we adhere to the [Google Developer Documentation Style Guide](https://developers.google.com/style/).
-- For instructions on setting up a local server and previewing your updated documentation in real-time, see the [Local Development](https://github.com/taichi-dev/docs.taichi.graphics#local-development).
+- For instructions on setting up a local server and previewing your updated documentation in real-time, see the [Local Development](https://github.com/taichi-dev/docs.gstaichi.graphics#local-development).
 
 ## Add test cases for your local changes
 
@@ -112,7 +112,7 @@ We highly recommend that you complete code style checks and integration tests on
 
 ### Enforce code format
 
-Taichi enforces code style via [pre-commit](https://pre-commit.com/) hooks, which includes the following checks:
+GsTaichi enforces code style via [pre-commit](https://pre-commit.com/) hooks, which includes the following checks:
 
 1. C++ codes are formatted by `clang-format-10`.
 2. Python codes are formatted by `black v23.3.0`.
@@ -150,20 +150,20 @@ No problem, the CI bot will run the code checkers and format your codes automati
 
 ### C++ style guide
 
-We generally follow [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). One major exception is the naming convention of functions: Taichi adopts the snake case for function naming, as opposed to the camel case [suggested in Google's style](https://google.github.io/styleguide/cppguide.html#Function_Names), e.g. `this_is_a_taichi_function()`.
+We generally follow [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). One major exception is the naming convention of functions: GsTaichi adopts the snake case for function naming, as opposed to the camel case [suggested in Google's style](https://google.github.io/styleguide/cppguide.html#Function_Names), e.g. `this_is_a_gstaichi_function()`.
 
-Taichi uses `clang-tidy-10` (install via `sudo apt install clang-tidy-10`) to automatically check C++ code for stype violations, programming errors and enforce coding style best practices. You can find a list of enabled checks in [.clang-tidy](https://github.com/taichi-dev/taichi/blob/master/.clang-tidy).
+GsTaichi uses `clang-tidy-10` (install via `sudo apt install clang-tidy-10`) to automatically check C++ code for stype violations, programming errors and enforce coding style best practices. You can find a list of enabled checks in [.clang-tidy](https://github.com/taichi-dev/gstaichi/blob/master/.clang-tidy).
 
-Taichi's clang-tidy integration test is enabled per PR basis and you can run it locally via:
+GsTaichi's clang-tidy integration test is enabled per PR basis and you can run it locally via:
 
 ```
-python ./scripts/run_clang_tidy.py $PWD/taichi -clang-tidy-binary clang-tidy-10 -header-filter=$PWD/taichi -j4
+python ./scripts/run_clang_tidy.py $PWD/gstaichi -clang-tidy-binary clang-tidy-10 -header-filter=$PWD/gstaichi -j4
 ```
 
 `clang-tidy` also provides an easy way to automatically apply suggested fixes by passing `-fix` argument:
 
 ```
-python ./scripts/run_clang_tidy.py $PWD/taichi -clang-tidy-binary clang-tidy-10 -clang-apply-replacements-binary clang-apply-replacements-10 -header-filter=$PWD/taichi -j4 -fix
+python ./scripts/run_clang_tidy.py $PWD/gstaichi -clang-tidy-binary clang-tidy-10 -clang-apply-replacements-binary clang-apply-replacements-10 -header-filter=$PWD/gstaichi -j4 -fix
 ```
 
 ### Run integration tests
@@ -181,20 +181,20 @@ To run all the C++ and Python tests:
 - **Example 2:**
 `python tests/run_tests.py numpy_io`
   - `<filename(s)>`: Run test cases in specified files only (separated by comma).
-  - This command runs all tests in [tests/python/test_numpy_io.py](https://github.com/taichi-dev/taichi/blob/master/tests/python/test_numpy_io.py).
+  - This command runs all tests in [tests/python/test_numpy_io.py](https://github.com/taichi-dev/gstaichi/blob/master/tests/python/test_numpy_io.py).
 
 - **Example 3:**
 `python tests/run_tests.py linalg -k "cross or diag"`
   - `-k <key>`: Run only the tests that match the specified keys (supports expression in a key string).
-  - This command runs `test_cross()` and `test_diag()` in [tests/python/test_linalg.py](https://github.com/taichi-dev/taichi/blob/master/tests/python/test_linalg.py).
+  - This command runs `test_cross()` and `test_diag()` in [tests/python/test_linalg.py](https://github.com/taichi-dev/gstaichi/blob/master/tests/python/test_linalg.py).
 
 - **To show all available options**
 `python tests/run_tests.py -h`
 
 >  We have both Python and C++ test cases, but C++ test cases are disabled by default. To enable C++ test cases:
 >
->  1. Build Taichi from source using the `python setup.py develop` command.
->  2. Set `TAICHI_CMAKE_ARGS="-DTI_BUILD_TESTS:BOOL=ON"`.
+>  1. Build GsTaichi from source using the `python setup.py develop` command.
+>  2. Set `GSTAICHI_CMAKE_ARGS="-DTI_BUILD_TESTS:BOOL=ON"`.
 
 ## File a pull request (PR)
 
@@ -210,7 +210,7 @@ Now you get to the point where you need to get your hands dirty with your PRs. T
 - **When implementing a complex feature:**
 
   - Consider breaking it down to multiple separate, self-contained PRs to provide the community with a clearer context and keep a more traceable development history.
-  - If you're already a collaborator or maintainer with write access to the Taichi repository, please consider adopting [the ghstack workflow](#implementing-the-ghstack-workflow-for-complex-changesets).
+  - If you're already a collaborator or maintainer with write access to the GsTaichi repository, please consider adopting [the ghstack workflow](#implementing-the-ghstack-workflow-for-complex-changesets).
 
 - **When creating a PR:**
 
@@ -235,7 +235,7 @@ Now you get to the point where you need to get your hands dirty with your PRs. T
 
 ### PR naming conventions
 
-Your PR will make it into the commit history in the the master branch or even Taichi's release notes, therefore it is important to keep your PR title self-explanatory. This section describes our PR naming conventions:
+Your PR will make it into the commit history in the the master branch or even GsTaichi's release notes, therefore it is important to keep your PR title self-explanatory. This section describes our PR naming conventions:
 
 ```Gherkin
 [tag1] [tag2]...[tagN] Your PR title must be short but carry necessary info
@@ -251,9 +251,9 @@ Your PR will make it into the commit history in the the master branch or even Ta
 - **Tag naming conventions:**
   - Prepend at least one tag, such as `[lang]`, to your PR title.
   - If you have multiple tags, separate adjacent tags with one space.
-  - See [misc/prtags.json](https://github.com/taichi-dev/taichi/blob/master/misc/prtags.json) for a full list of available tags.
+  - See [misc/prtags.json](https://github.com/taichi-dev/gstaichi/blob/master/misc/prtags.json) for a full list of available tags.
   - We differentiate PRs for end-users from PRs for developers by *capitalizing tag initial*.
-    - If a PR deals with a feature visible to the end-users, initialize the most relevant tag and the PR will [make it into the release notes](https://github.com/taichi-dev/taichi/blob/master/misc/make_changelog.py). For example, `[Metal]`, `[Vulkan]`, `[IR]`, `[Lang]`, or `[CUDA]`. Ensure that your PR title has *AT MOST* one tag dealt this way.
+    - If a PR deals with a feature visible to the end-users, initialize the most relevant tag and the PR will [make it into the release notes](https://github.com/taichi-dev/gstaichi/blob/master/misc/make_changelog.py). For example, `[Metal]`, `[Vulkan]`, `[IR]`, `[Lang]`, or `[CUDA]`. Ensure that your PR title has *AT MOST* one tag dealt this way.
     - If a PR deals with the underlying or intermediate implementation, then it is for the developers and you need to ensure that all its tags are *in lowercase*. For example, `[metal]`, `[vulkan]`, `[ir]`, `[lang]`, or `[cuda]`.
 
   :::danger INCORRECT
@@ -296,7 +296,7 @@ Following are some frequently used tags:
 - `[ci]`: CI/CD workflow-specific changes.
 - `[Doc]`: Documentation updates.
 
-When introducing a new tag, ensure that you add it to [misc/prtags.json](https://github.com/taichi-dev/taichi/blob/master/misc/prtags.json) so that others can follow.
+When introducing a new tag, ensure that you add it to [misc/prtags.json](https://github.com/taichi-dev/gstaichi/blob/master/misc/prtags.json) so that others can follow.
 
 :::
 
@@ -305,7 +305,7 @@ When introducing a new tag, ensure that you add it to [misc/prtags.json](https:/
 Follow this checklist during PR review or merging:
 
 1. Ensure that your PR title follows our [naming conventions](#pr-naming-conventions).
-2. Ensure that Taichi's master branch has a *linear history*. See [Linear vs Non-Linear History](https://idiv-biodiversity.github.io/git-knowledge-base/linear-vs-nonlinear.html) for more information.
+2. Ensure that GsTaichi's master branch has a *linear history*. See [Linear vs Non-Linear History](https://idiv-biodiversity.github.io/git-knowledge-base/linear-vs-nonlinear.html) for more information.
 3. Ensure that your PR passes all Continuous Integration (CI) tests before merging it.
 
    CI is triggered each time you push a commit to an open PR. It builds and tests all commits in your PR in multiple environments. Keep an eye on the CI test results:
@@ -331,13 +331,13 @@ If all checks have been cleared, the bot will execute `ghstack land` for you.
 
 ## Deal with compilation warnings
 
-Taichi implements warning-free code by turning on `-Werror` by default. This means that Taichi takes warnings as errors, and we highly recommend that you resolve a warning as soon as it occurs.
+GsTaichi implements warning-free code by turning on `-Werror` by default. This means that GsTaichi takes warnings as errors, and we highly recommend that you resolve a warning as soon as it occurs.
 
 In the following section, we provide several practical tips for handling some of the common scenarios that you may encounter during CI compilation.
 
 ### Deal with warnings that occur when compiling third-party header files
 
-There is little we can do to third-party warnings other than turning them off. To turn off or mute warnings from specific third-party header files, use the `SYSTEM` option when configuring `include_directories` in your CMake files. Then, the included header files are treated as system headers. See the following two examples taken from [cmake/TaichiCore.cmake](https://github.com/taichi-dev/taichi/blob/master/cmake/TaichiCore.cmake):
+There is little we can do to third-party warnings other than turning them off. To turn off or mute warnings from specific third-party header files, use the `SYSTEM` option when configuring `include_directories` in your CMake files. Then, the included header files are treated as system headers. See the following two examples taken from [cmake/GsTaichiCore.cmake](https://github.com/taichi-dev/gstaichi/blob/master/cmake/GsTaichiCore.cmake):
 ```
 # Treat files under "external/Vulkan-Headers/include" as system headers and mute warnings from them.
 include_directories(SYSTEM external/Vulkan-Headers/include)
@@ -348,15 +348,15 @@ target_include_directories(${CORE_LIBRARY_NAME} SYSTEM PRIVATE external/VulkanMe
 
 ### Deal with warnings when compiling third-party libraries or targets
 
-Ideally, third-party libraries or targets ought to be built completely independent of your Taichi project. In practice, because of the design of the CMake system, CMake variables from the Taichi and third-party submodules are sometimes messed up. Therefore, we recommend that you disable warnings from a third-party library or target:
+Ideally, third-party libraries or targets ought to be built completely independent of your GsTaichi project. In practice, because of the design of the CMake system, CMake variables from the GsTaichi and third-party submodules are sometimes messed up. Therefore, we recommend that you disable warnings from a third-party library or target:
 
-1. Separate the submodule's `CMAKE_CXX_FLAGS` from the same variable defined in Taichi.
+1. Separate the submodule's `CMAKE_CXX_FLAGS` from the same variable defined in GsTaichi.
 2. Remove the `-Wall` option from the submodule's `CMAKE_CXX_FLAGS` variables.
 
-### Mute specific warning types across the entire Taichi project
+### Mute specific warning types across the entire GsTaichi project
 You can find details about how to mute certain warning types from the [Clang Compiler User Manual](https://clang.llvm.org/docs/UsersManual.html); it usually starts with `-Wno-`. Please explain what the warning is about and why we should ignore it in the comments.
 
-The following examples can be found in [cmake/TaichiCXXFlags.cmake](https://github.com/taichi-dev/taichi/blob/master/cmake/TaichiCXXFlags.cmake):
+The following examples can be found in [cmake/GsTaichiCXXFlags.cmake](https://github.com/taichi-dev/gstaichi/blob/master/cmake/GsTaichiCXXFlags.cmake):
 ```
 # [Global] Clang warns if a C++ pointer's nullability was not explicitly marked (__nonnull, nullable, ...).
 # Nullability seems to be a clang-specific feature; thus we disable this warning.
@@ -391,20 +391,20 @@ To ignore all warnings from a specific code block, wrap it up with the following
 ```
 
 ## Handle special CI failures
-Taichi's CI system is implemented using the [Github Actions](https://github.com/features/actions), the entrance of which lies in [testing.yaml](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/testing.yml). Depending on the CI pipeline, `testing.yml` will execute one of the corresponding test scripts under [this directory](https://github.com/taichi-dev/taichi/tree/master/.github/workflows/scripts)
+GsTaichi's CI system is implemented using the [Github Actions](https://github.com/features/actions), the entrance of which lies in [testing.yaml](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/testing.yml). Depending on the CI pipeline, `testing.yml` will execute one of the corresponding test scripts under [this directory](https://github.com/taichi-dev/gstaichi/tree/master/.github/workflows/scripts)
 
 There are a few CI pipelines that work slightly different from the standard CI pipeline:
 
 ### CI pipeline - Build Android Demos
-`Build Andriod Demos` builds both [taichi-repo](https://github.com/taichi-dev/taichi) with your PR applied and an external [taichi-aot-demo](https://github.com/taichi-dev/taichi-aot-demo) repo. After that, it executes the demos from `taichi-aot-demo` with the just-compiled Taichi program and libraries.
+`Build Andriod Demos` builds both [gstaichi-repo](https://github.com/taichi-dev/gstaichi) with your PR applied and an external [gstaichi-aot-demo](https://github.com/taichi-dev/gstaichi-aot-demo) repo. After that, it executes the demos from `gstaichi-aot-demo` with the just-compiled GsTaichi program and libraries.
 
-If your PR to `taichi-repo` contains changes to some public interface, you may need to adjust the codes in `taichi-aot-demo` to avoid breaking the demos. To achieve that, please follow these steps:
-1. File your PR to `taichi-repo`. If this PR changes the public interface, then it probably breaks the demos thus fail the `Build Android Demos` CI pipeline - Don't panic, this is expected.
-2. Update the demo codes in `taichi-aot-demo` to make it work with the above mentioned PR, then file a separate PR to `taichi-aot-demo` repo and have it merged.
-3. In the original PR to `taichi-repo`, update the commit id for `taichi-aot-demo` in [aot-demo.sh](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/aot-demo.sh). This time your PR is expected to pass `Build Android Demos`.
+If your PR to `gstaichi-repo` contains changes to some public interface, you may need to adjust the codes in `gstaichi-aot-demo` to avoid breaking the demos. To achieve that, please follow these steps:
+1. File your PR to `gstaichi-repo`. If this PR changes the public interface, then it probably breaks the demos thus fail the `Build Android Demos` CI pipeline - Don't panic, this is expected.
+2. Update the demo codes in `gstaichi-aot-demo` to make it work with the above mentioned PR, then file a separate PR to `gstaichi-aot-demo` repo and have it merged.
+3. In the original PR to `gstaichi-repo`, update the commit id for `gstaichi-aot-demo` in [aot-demo.sh](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/aot-demo.sh). This time your PR is expected to pass `Build Android Demos`.
 
 ##  Still have issues?
 
-If you encounter any issue that is not covered here, feel free to ask us on GitHub discussions or [open an issue on GitHub](https://github.com/taichi-dev/taichi/issues/new?labels=potential+bug&template=bug_report.md) with all the details attached. We are always there to help!
+If you encounter any issue that is not covered here, feel free to ask us on GitHub discussions or [open an issue on GitHub](https://github.com/taichi-dev/gstaichi/issues/new?labels=potential+bug&template=bug_report.md) with all the details attached. We are always there to help!
 
-Finally, thanks again for your interest in contributing to Taichi. We look forward to seeing your contributions!
+Finally, thanks again for your interest in contributing to GsTaichi. We look forward to seeing your contributions!

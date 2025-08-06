@@ -5,9 +5,9 @@
 
 #include "gtest/gtest.h"
 #include "c_api_test_utils.h"
-#include "taichi/taichi_cpu.h"
-#include "taichi/taichi_cuda.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/gstaichi_cpu.h"
+#include "gstaichi/gstaichi_cuda.h"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 #ifdef TI_WITH_LLVM

@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # Type System
 
-Taichi is a statically typed programming language, meaning that the type of a variable in the Taichi scope is determined at compile time. This means that once a variable has been declared, it cannot be assigned a value of a different type.
+GsTaichi is a statically typed programming language, meaning that the type of a variable in the GsTaichi scope is determined at compile time. This means that once a variable has been declared, it cannot be assigned a value of a different type.
 
 Let's see a quick example:
 
@@ -21,20 +21,20 @@ def test():
 - Line 4: `x` is reassigned a floating-point number 3.14. However, the value of `x` is 3 instead of 3.14. This is because 3.14 is automatically cast to an integer 3 to match the type of `x`.
 - Line 5: The system throws an error, because `ti.Vector` cannot be cast into an integer.
 
-The `ti.types` module in Taichi defines all of the supported data types. These data types are categorized into two groups: primitive and compound.
+The `ti.types` module in GsTaichi defines all of the supported data types. These data types are categorized into two groups: primitive and compound.
 
 - Primitive types encompass commonly utilized numerical data types, such as `ti.i32` (`int32`), `ti.u8` (`uint8`), and `ti.f64` (`float64`).
 - Compound types, on the other hand, encompass array-like or struct-like data types, including `ti.types.matrix`, `ti.types.ndarray`, and `ti.types.struct`. These types are composed of multiple members, which can be primitive or other compound types.
 
 ## Primitive types
 
-The primitive data types in Taichi are scalars, which are the smallest units that make up compound data types. These types are denoted with a letter indicating their category, followed by a number indicating their precision in bits. The category letter can be `i` for signed integers, `u` for unsigned integers, or `f` for floating-point numbers. The precision bits can be 8, 16, 32, or 64. Specially, precision bit 1 on unsigned number `u1` is used to represent boolean values. The three most commonly used primitive types are:
+The primitive data types in GsTaichi are scalars, which are the smallest units that make up compound data types. These types are denoted with a letter indicating their category, followed by a number indicating their precision in bits. The category letter can be `i` for signed integers, `u` for unsigned integers, or `f` for floating-point numbers. The precision bits can be 8, 16, 32, or 64. Specially, precision bit 1 on unsigned number `u1` is used to represent boolean values. The three most commonly used primitive types are:
 
 - `i32`: 32-bit signed integer
 - `f32` : 32-bit floating-point number
 - `u1` : 1-bit unsigned integer, representing boolean values.
 
-The support of Taichi's primitive types by various backends may vary. Consult the following table for detailed information, and note that some backends may require extensions for complete support of a specific primitive type.
+The support of GsTaichi's primitive types by various backends may vary. Consult the following table for detailed information, and note that some backends may require extensions for complete support of a specific primitive type.
 
 
 | Backend | `i8`               | `i16`              | `i32`              | `i64`              | `u1`               | `u8`               | `u16`              | `u32`              | `u64`              | `f16`              | `f32`              | `f64`              |
@@ -49,12 +49,12 @@ The support of Taichi's primitive types by various backends may vary. Consult th
 
 ### Customize default primitive types
 
-When initializing the Taichi runtime, Taichi automatically uses the following data types as the default primitive data types:
+When initializing the GsTaichi runtime, GsTaichi automatically uses the following data types as the default primitive data types:
 
 - `ti.i32`: the default integer type.
 - `ti.f32`: the default floating-point type.
 
-Taichi allows you to specify the default primitive data type(s) when calling `init()`:
+GsTaichi allows you to specify the default primitive data type(s) when calling `init()`:
 
 ```python skip-ci:Trivial
 ti.init(default_ip=ti.i64)  # Sets the default integer type to ti.i64
@@ -63,13 +63,13 @@ ti.init(default_fp=ti.f64)  # Sets the default floating-point type to ti.f64
 
 :::note
 
-The numeric literals in Taichi's scope have default integer or floating-point types. For example, if the default floating-point type is `ti.f32`, a numeric literal 3.14159265358979 will be cast to a 32-bit floating-point number with a precision of approximately seven decimal digits. To ensure high precision in applications such as engineering simulations, it is recommended to set `default_fp` to `ti.f64`.
+The numeric literals in GsTaichi's scope have default integer or floating-point types. For example, if the default floating-point type is `ti.f32`, a numeric literal 3.14159265358979 will be cast to a 32-bit floating-point number with a precision of approximately seven decimal digits. To ensure high precision in applications such as engineering simulations, it is recommended to set `default_fp` to `ti.f64`.
 
 :::
 
 ### Data type Aliases
 
-In Taichi scope, the two names `int` and `float` serve as aliases for the default integer and floating-point types, respectively. These default types can be changed using the configuration option `default_ip` and `default_fp`. For instance, setting the `default_ip` to `i64` and `default_fp` to `f64` would allow you to use `int` as an alias for `i64` and `float` as an alias for `f64` in your code.
+In GsTaichi scope, the two names `int` and `float` serve as aliases for the default integer and floating-point types, respectively. These default types can be changed using the configuration option `default_ip` and `default_fp`. For instance, setting the `default_ip` to `i64` and `default_fp` to `f64` would allow you to use `int` as an alias for `i64` and `float` as an alias for `f64` in your code.
 
 ```python
 ti.init(default_ip=ti.i64, default_fp=ti.f64)
@@ -81,7 +81,7 @@ def example_cast() -> int:  # the returned type is ti.i64
     return y
 ```
 
-Furthermore, in the Python scope, when declaring Taichi's data containers using `ti.field`, `ti.Vector`, `ti.Matrix`, `ti.ndarray`, these two names also serve as aliases for the default integer and floating-point types. For example:
+Furthermore, in the Python scope, when declaring GsTaichi's data containers using `ti.field`, `ti.Vector`, `ti.Matrix`, `ti.ndarray`, these two names also serve as aliases for the default integer and floating-point types. For example:
 
 ```python
 x = ti.field(float, 5)
@@ -89,7 +89,7 @@ x = ti.field(float, 5)
 x = ti.field(ti.f64, 5)
 ```
 
-However, when using `int` and `float` outside of Taichi's data containers in regular Python code, they refer to their standard meaning as built-in functions and not aliases for Taichi's `default_ip` and `default_fp`. Therefore, in Python scope and outside of Taichi's data containers, `int` and `float` have their standard meaning as built-in functions.
+However, when using `int` and `float` outside of GsTaichi's data containers in regular Python code, they refer to their standard meaning as built-in functions and not aliases for GsTaichi's `default_ip` and `default_fp`. Therefore, in Python scope and outside of GsTaichi's data containers, `int` and `float` have their standard meaning as built-in functions.
 
 ```python
 x = np.array([1, 2, 3, 4], dtype=int)  # NumPy's int64 type
@@ -99,7 +99,7 @@ y = int(3.14)  # Python's built-in int type
 
 ### Explicit type casting
 
-As mentioned at the beginning of this document, the type of a variable in the Taichi scope is determined at compile time, meaning that it is *statically typed*. The Taichi compiler performs type checking at compile time and therefore, once a variable is declared, you *cannot* assign to it a value of a different type. However, in certain situations, you may need to switch to a different data type due to the unavailability of the original type for an assignment or calculation. In these cases, you must perform an explicit type casting.
+As mentioned at the beginning of this document, the type of a variable in the GsTaichi scope is determined at compile time, meaning that it is *statically typed*. The GsTaichi compiler performs type checking at compile time and therefore, once a variable is declared, you *cannot* assign to it a value of a different type. However, in certain situations, you may need to switch to a different data type due to the unavailability of the original type for an assignment or calculation. In these cases, you must perform an explicit type casting.
 
 - The `ti.cast()` function allows you to convert a given value to a specific target type. For instance, you can use `ti.cast(x, float)` to transform a variable `x` into a floating-point type.
 
@@ -111,7 +111,7 @@ As mentioned at the beginning of this document, the type of a variable in the Ta
       c = ti.cast(b, ti.f32)  # 3.0
   ```
 
-As of Taichi v1.1.0, the capability to perform type casting on scalar variables has been introduced using primitive types such as `ti.f32` and `ti.i64`. This allows you to convert scalar variables to different scalar types with ease.
+As of GsTaichi v1.1.0, the capability to perform type casting on scalar variables has been introduced using primitive types such as `ti.f32` and `ti.i64`. This allows you to convert scalar variables to different scalar types with ease.
 
   ```python {6,7}
   @ti.kernel
@@ -129,14 +129,14 @@ Implicit type casting occurs when a value is placed or assigned where a differen
 
 :::caution WARNING
 
-As a general principle, implicit type casting can be a significant source of bugs. As such, Taichi strongly discourages the use of this mechanism and recommends that you explicitly specify the desired data types for all variables and operations.
+As a general principle, implicit type casting can be a significant source of bugs. As such, GsTaichi strongly discourages the use of this mechanism and recommends that you explicitly specify the desired data types for all variables and operations.
 
 :::
 
 
 #### Implicit type casting in binary operations
 
-In Taichi, implicit type casting can occur during binary operations or assignments. The casting rules are implemented specifically for Taichi and are slightly different from [those for the C programming language](https://en.cppreference.com/w/c/language/conversion). These rules are prioritized as follows:
+In GsTaichi, implicit type casting can occur during binary operations or assignments. The casting rules are implemented specifically for GsTaichi and are slightly different from [those for the C programming language](https://en.cppreference.com/w/c/language/conversion). These rules are prioritized as follows:
 
 1. Integer + floating point -> floating point
    - `i32 + f32 -> f32`
@@ -166,7 +166,7 @@ A few exceptions:
 
 #### Implicit type casting in assignments
 
-In Taichi, implicit type casting is performed when assigning a value to a variable with a different data type. In cases where the value has a higher precision than the target variable, a warning indicating potential precision loss will be displayed.
+In GsTaichi, implicit type casting is performed when assigning a value to a variable with a different data type. In cases where the value has a higher precision than the target variable, a warning indicating potential precision loss will be displayed.
 
 
 - Example 1: The variable `a` is initialized with the data type `float`, and then immediately reassigned the value 1. This reassignment implicitly converts the data type of 1 from `int` to `float` without generating a warning.
@@ -193,7 +193,7 @@ In Taichi, implicit type casting is performed when assigning a value to a variab
 
 Compound types are user-defined data types, which comprise multiple elements. Supported compound types include vectors, matrices, ndarrays, and structs.
 
-Taichi allows you to use all types supplied in the `ti.types` module as scaffolds to customize *higher-level* compound types.
+GsTaichi allows you to use all types supplied in the `ti.types` module as scaffolds to customize *higher-level* compound types.
 
 :::note
 
@@ -225,7 +225,7 @@ def test():
     print(length(v))
 ```
 
-Note that in Taichi, there is no distinction between row vector and column vector. This implies that a vector is handled as a column vector when multiplying a matrix by a vector. In contrast, a vector is considered as a row vector when multiplied by a matrix. This is demonstrated in the following example.
+Note that in GsTaichi, there is no distinction between row vector and column vector. This implies that a vector is handled as a column vector when multiplying a matrix by a vector. In contrast, a vector is considered as a row vector when multiplied by a matrix. This is demonstrated in the following example.
 
 ```python
 mat = ti.types.matrix(n=3, m=3, dtype=ti.i32)([[1, 1, 1], [0, 0, 0], [0, 0, 0]])
@@ -251,7 +251,7 @@ sphere1 = sphere_type(center=vec3([0, 0, 0]), radius=1.0)
 sphere2 = sphere_type(center=vec3([1, 1, 1]), radius=1.0)
 ```
 
-When defining a struct with numerous members, the use of `ti.types.struct` can lead to cluttered and unorganized code. Taichi provides a more elegant solution with the `@ti.dataclass` decorator, which acts as a lightweight wrapper around the struct type.
+When defining a struct with numerous members, the use of `ti.types.struct` can lead to cluttered and unorganized code. GsTaichi provides a more elegant solution with the `@ti.dataclass` decorator, which acts as a lightweight wrapper around the struct type.
 
 ```python cont
 @ti.dataclass
@@ -271,9 +271,9 @@ Another benefit of utilizing the `@ti.dataclass` over the `ti.types.struct` is t
 
 ### Initialization
 
-In Taichi, creating instances of vector, matrix, or struct compound types can be achieved by directly calling the type, similar to how it is done with any other data type.
+In GsTaichi, creating instances of vector, matrix, or struct compound types can be achieved by directly calling the type, similar to how it is done with any other data type.
 
-As of Taichi v1.1.0, multiple options are available for initializing instances of structs or dataclasses. The conventional method of calling a compound type directly still holds true. In addition, the following alternatives are also supported:
+As of GsTaichi v1.1.0, multiple options are available for initializing instances of structs or dataclasses. The conventional method of calling a compound type directly still holds true. In addition, the following alternatives are also supported:
 
 - Pass positional arguments to the struct, in the order in which the members are defined.
 - Utilize keyword arguments to set the specific struct members.
@@ -310,7 +310,7 @@ You can create vectors, matrices, and structs using GLSL-like broadcast syntax b
 
 ### Type casting
 
-For now, the only compound data types that support type casting in Taichi are vectors and matrices. When casting the type of a vector or matrix, it is performed element-wise, resulting in the creation of new vectors and matrices.
+For now, the only compound data types that support type casting in GsTaichi are vectors and matrices. When casting the type of a vector or matrix, it is performed element-wise, resulting in the creation of new vectors and matrices.
 
 
 ```python

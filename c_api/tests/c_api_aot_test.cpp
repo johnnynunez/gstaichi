@@ -1,13 +1,13 @@
 #include "gtest/gtest.h"
 #include "c_api_test_utils.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 static void kernel_aot_test(TiArch arch) {
   uint32_t kArrLen = 32;
   int arg0_val = 0;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -44,7 +44,7 @@ static void kernel_aot_test(TiArch arch) {
 static void field_aot_test(TiArch arch) {
   int base_val = 10;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -83,7 +83,7 @@ void texture_aot_kernel_test(TiArch arch) {
   const uint32_t width = 128;
   const uint32_t height = 128;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -125,7 +125,7 @@ void texture_aot_kernel_test(TiArch arch) {
 static void shared_array_aot_test(TiArch arch) {
   uint32_t kArrLen = 8192;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;

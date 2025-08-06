@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "c_api_test_utils.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 #define NR_PARTICLES 8000
@@ -88,7 +88,7 @@ void run(TiArch arch, const std::string &folder_dir) {
 
 TEST_F(CapiTest, SphTestCuda) {
   if (ti::is_arch_available(TI_ARCH_CUDA)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -99,7 +99,7 @@ TEST_F(CapiTest, SphTestCuda) {
 
 TEST_F(CapiTest, SphTestVulkan) {
   if (ti::is_arch_available(TI_ARCH_VULKAN)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -110,7 +110,7 @@ TEST_F(CapiTest, SphTestVulkan) {
 
 TEST_F(CapiTest, SphTestMetal) {
   if (ti::is_arch_available(TI_ARCH_METAL)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -121,7 +121,7 @@ TEST_F(CapiTest, SphTestMetal) {
 
 TEST_F(CapiTest, SphTestOpengl) {
   if (ti::is_arch_available(TI_ARCH_OPENGL)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;

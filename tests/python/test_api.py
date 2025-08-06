@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-import taichi as ti
+import gstaichi as ti
 from tests import test_utils
 
 
@@ -79,13 +79,13 @@ user_api[ti] = [
     "Struct",
     "StructField",
     "TRACE",
-    "TaichiAssertionError",
-    "TaichiCompilationError",
-    "TaichiNameError",
-    "TaichiRuntimeError",
-    "TaichiRuntimeTypeError",
-    "TaichiSyntaxError",
-    "TaichiTypeError",
+    "GsTaichiAssertionError",
+    "GsTaichiCompilationError",
+    "GsTaichiNameError",
+    "GsTaichiRuntimeError",
+    "GsTaichiRuntimeTypeError",
+    "GsTaichiSyntaxError",
+    "GsTaichiTypeError",
     "Template",
     "Texture",
     "Vector",

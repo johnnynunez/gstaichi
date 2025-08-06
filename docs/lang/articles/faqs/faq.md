@@ -6,13 +6,13 @@ sidebar_position: 1
 
 ## Installation
 
-### Why does my `pip` complain `package not found` when installing Taichi?
+### Why does my `pip` complain `package not found` when installing GsTaichi?
 
-You may have a Python interpreter with an unsupported version. Currently, Taichi only supports Python 3.7/3.8/3.9/3.10 (64-bit) . For more information about installation-specific issues, please check [Installation Troubleshooting](./install.md).
+You may have a Python interpreter with an unsupported version. Currently, GsTaichi only supports Python 3.7/3.8/3.9/3.10 (64-bit) . For more information about installation-specific issues, please check [Installation Troubleshooting](./install.md).
 
 ## Parallel programming
 
-### Outer-most loops in Taichi kernels are by default parallel. How can I **serialize** one of them?
+### Outer-most loops in GsTaichi kernels are by default parallel. How can I **serialize** one of them?
 
 A solution is to add an additional _ghost_ loop with only one iteration outside the loop you want to serialize.
 
@@ -22,11 +22,11 @@ for _ in range(1):  # This "ghost" loop will be "parallelized", but with only on
         ...
 ```
 
-### Does Taichi provide a barrier synchronization function similar to `__syncthreads()` or `glMemoryBarrier()`?
+### Does GsTaichi provide a barrier synchronization function similar to `__syncthreads()` or `glMemoryBarrier()`?
 
-You can call `ti.sync()`, which is similar to CUDA's `cudaStreamSynchronize()`, in Taichi to synchronize the parallel for loops.
+You can call `ti.sync()`, which is similar to CUDA's `cudaStreamSynchronize()`, in GsTaichi to synchronize the parallel for loops.
 
-`__syncthreads()` is a block-level synchronization barrier, and Taichi provides a synonymous API `ti.simt.block.sync()`, which for now supports CUDA and Vulkan backends only. However, all block-level APIs are still experimental, and you should use this API only when it relates to SIMT operation synchronization and `SharedArray` reads and writes.
+`__syncthreads()` is a block-level synchronization barrier, and GsTaichi provides a synonymous API `ti.simt.block.sync()`, which for now supports CUDA and Vulkan backends only. However, all block-level APIs are still experimental, and you should use this API only when it relates to SIMT operation synchronization and `SharedArray` reads and writes.
 
 ## Data structures
 
@@ -41,11 +41,11 @@ SNodes may be less efficient than using `dense` SNodes, due to dynamic data stru
 maintenance overheads.
 :::
 
-### How can I swap elements between two fields in the Taichi scope? `a,b = b,a` does not work.
+### How can I swap elements between two fields in the GsTaichi scope? `a,b = b,a` does not work.
 
 Direct value assignments lead to semantic ambiguity. For example, `a = b` can mean data copy if `a` is pre-defined, or otherwise can serve to define and initialize `a`.
 
-You can swap two fields in the Taichi scope using a struct for:
+You can swap two fields in the GsTaichi scope using a struct for:
 
 ```python
 a = ti.field(ti.i32, 32)
@@ -84,25 +84,25 @@ def x_min() -> ti.f32:
 x_min()
 ```
 
-### Does Taichi support `bool` type?
+### Does GsTaichi support `bool` type?
 
-Currently, Taichi does not support the `bool` type.
+Currently, GsTaichi does not support the `bool` type.
 
-### How do I program on less structured data structures (such as graphs and tetrahedral meshes) in Taichi?
+### How do I program on less structured data structures (such as graphs and tetrahedral meshes) in GsTaichi?
 
-These structures have to be decomposed into 1D Taichi fields. For example, when representing a graph, you can allocate two fields, one for the vertices and the other for the edges. You can then traverse the elements using `for v in vertices` or `for v in range(n)`.
+These structures have to be decomposed into 1D GsTaichi fields. For example, when representing a graph, you can allocate two fields, one for the vertices and the other for the edges. You can then traverse the elements using `for v in vertices` or `for v in range(n)`.
 
 ## Operations
 
-### In Taichi v1.3.0, the matmul result of a vector and a transposed vector gives a scalar instead of a matrix.
+### In GsTaichi v1.3.0, the matmul result of a vector and a transposed vector gives a scalar instead of a matrix.
 
-Taichi distinguishes vectors from matrices starting from v1.3.0, as explained in the [release note](https://github.com/taichi-dev/taichi/releases/tag/v1.3.0). `transpose()` on a vector is no longer allowed. Use `a.outer_product(b)`, instead of `a @ b.transpose()`, to find the outer product of two vectors.
+GsTaichi distinguishes vectors from matrices starting from v1.3.0, as explained in the [release note](https://github.com/taichi-dev/gstaichi/releases/tag/v1.3.0). `transpose()` on a vector is no longer allowed. Use `a.outer_product(b)`, instead of `a @ b.transpose()`, to find the outer product of two vectors.
 
 ## Developement related
 
-### Can I enable auto compeletion for Taichi?
+### Can I enable auto compeletion for GsTaichi?
 
-Yes, Taichi's Python user-facing APIs should work natively with any language server for Python.
+Yes, GsTaichi's Python user-facing APIs should work natively with any language server for Python.
 
 Take VSCode as an example, you can install `Python` or `Pylance` extensions to get language support like signature help with type information, code completion etc.
 
@@ -110,21 +110,21 @@ If it doesn't work out of box after installing the extension, please make sure t
 
 - invoke command palette (`Shift + Command + P (Mac) / Ctrl + Shift + P (Windows/Linux)`)
 - find `Python: Select Interpreter`
-- make sure you select the path to the Python interpreter you're using with a `taichi` package installed
+- make sure you select the path to the Python interpreter you're using with a `gstaichi` package installed
 
-### How to install Taichi on a server without Internet access?
+### How to install GsTaichi on a server without Internet access?
 
-Follow these steps to install Taichi on a server without Internet access.
+Follow these steps to install GsTaichi on a server without Internet access.
 
-1. From a computer with Internet access, pip download Taichi, ensuring that this computer has the same operating system as the target server:
+1. From a computer with Internet access, pip download GsTaichi, ensuring that this computer has the same operating system as the target server:
 
 ```plaintext
-pip download taichi
+pip download gstaichi
 ```
 
-_This command downloads the wheel package of Taichi and all its dependencies._
+_This command downloads the wheel package of GsTaichi and all its dependencies._
 
-2. Copy the downloaded *.whl packages to your local server and install each with the following command. Note that you *must\* complete all dependency installation before installing Taichi.
+2. Copy the downloaded *.whl packages to your local server and install each with the following command. Note that you *must\* complete all dependency installation before installing GsTaichi.
 
 ```
 python -m pip install xxxx.whl
@@ -132,16 +132,16 @@ python -m pip install xxxx.whl
 
 ## Integration with other libs/softwares
 
-### What is the most convenient way to load images into Taichi fields?
+### What is the most convenient way to load images into GsTaichi fields?
 
 One feasible solution is `field.from_numpy(ti.tools.imread('filename.png'))`.
 
-### Can Taichi interact with **other Python packages** such as `matplotlib`?
+### Can GsTaichi interact with **other Python packages** such as `matplotlib`?
 
-Yes, Taichi supports many popular Python packages. Taichi provides helper functions such as `from_numpy` and `to_numpy` to transfer data between Taichi fields and NumPy arrays, so that you can also use your favorite Python packages (e.g., `numpy`, `pytorch`, `matplotlib`) together with Taichi as below:
+Yes, GsTaichi supports many popular Python packages. GsTaichi provides helper functions such as `from_numpy` and `to_numpy` to transfer data between GsTaichi fields and NumPy arrays, so that you can also use your favorite Python packages (e.g., `numpy`, `pytorch`, `matplotlib`) together with GsTaichi as below:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -149,10 +149,10 @@ pixels = ti.field(ti.f32, (512, 512))
 
 def render_pixels():
     arr = np.random.rand(512, 512)
-    pixels.from_numpy(arr)   # load numpy data into taichi fields
+    pixels.from_numpy(arr)   # load numpy data into gstaichi fields
 
 render_pixels()
-arr = pixels.to_numpy()  # store taichi data into numpy arrays
+arr = pixels.to_numpy()  # store gstaichi data into numpy arrays
 plt.imshow(arr)
 plt.show()
 import matplotlib.cm as cm
@@ -166,13 +166,13 @@ while gui.running:
     gui.show()
 ```
 
-Besides, you can also pass numpy arrays or torch tensors into a Taichi kernel as arguments. See [Interacting with external arrays](../basic/external.md) for more details.
+Besides, you can also pass numpy arrays or torch tensors into a GsTaichi kernel as arguments. See [Interacting with external arrays](../basic/external.md) for more details.
 
-### Can I integrate Taichi and Houdini?
+### Can I integrate GsTaichi and Houdini?
 
-The answer is an unequivocal Yes! Our contributors managed to embed [taichi_elements](https://github.com/taichi-dev/taichi_elements), a multi-material continuum physics engine, into Houdini as an extension, combining Houdini's flexibility in preprocessing with Taichi's strength in high-performance computation.
+The answer is an unequivocal Yes! Our contributors managed to embed [gstaichi_elements](https://github.com/taichi-dev/gstaichi_elements), a multi-material continuum physics engine, into Houdini as an extension, combining Houdini's flexibility in preprocessing with GsTaichi's strength in high-performance computation.
 
-You can follow the instructions provided [here](https://github.com/taichi-dev/taichi_houdini).
+You can follow the instructions provided [here](https://github.com/taichi-dev/gstaichi_houdini).
 
 ## Precision related
 
@@ -181,7 +181,7 @@ You can follow the instructions provided [here](https://github.com/taichi-dev/ta
 To better understand the question, look at the program below:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 
@@ -205,18 +205,18 @@ B = [0.200000000000, 0.000000000000]
 
 You may notice the value of `A` is slightly different from `[0.2, 0]`. This is because, by default, your float literals are converted to `ti.f32`, and `0.2` in `ti.f32` precision becomes `0.200000002980`. If you expect `A` and `B` to have `ti.f64` precision, use `ti.f64(0.2)` to preserve more effective digits here so that `0.2` keeps its `ti.f64` type.
 
-Alternatively, if you can afford having all floating-point operations in `f64` precision, you can directly initialize Taichi with `ti.init(..., default_fp=ti.f64)`.
+Alternatively, if you can afford having all floating-point operations in `f64` precision, you can directly initialize GsTaichi with `ti.init(..., default_fp=ti.f64)`.
 
-## From Python to Taichi
+## From Python to GsTaichi
 
-### Why does it always return an error when I pass a list from the Python scope to a Taichi kernel?
+### Why does it always return an error when I pass a list from the Python scope to a GsTaichi kernel?
 
-A Taichi kernel **cannot** take a Python list directly. You need to use NumPy arrays as a bridge.
+A GsTaichi kernel **cannot** take a Python list directly. You need to use NumPy arrays as a bridge.
 
 For example, the following code snippet does not work:
 
 ```python skip-ci:Error
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 ti.init()
 x = ti.field(ti.i32, shape=3)
@@ -232,7 +232,7 @@ test(array)
 You need to import NumPy:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 ti.init(arch=ti.cpu)
 x = ti.field(ti.i32, shape=3)
@@ -246,9 +246,9 @@ test(array)
 
 ## Visualization
 
-### Does the Taichi's GUI system support color mapping when rendering simulation results?
+### Does the GsTaichi's GUI system support color mapping when rendering simulation results?
 
-Taichi's GUI system can display colors when the field it accepts is a 3D vector field where each vector represents the RGB values of a pixel.
+GsTaichi's GUI system can display colors when the field it accepts is a 3D vector field where each vector represents the RGB values of a pixel.
 
 To enable color mapping, convert `ti.field` into a NumPy array and call Matplotlib's colormap (`cm`), as shown in the following example:
 
@@ -268,7 +268,7 @@ while gui.running: # Main loop
 
 ### Why does inheritance fail? I created a parent class and a child class, both decorated with `@ti.data_oriented`, and placed fields under `@ti.kernel`.
 
-The problem does not lie with inheritance. All Taichi fields must be allocated/placed in the Python scope. In other words, you need to define a field before calling `@ti.kernel`.
+The problem does not lie with inheritance. All GsTaichi fields must be allocated/placed in the Python scope. In other words, you need to define a field before calling `@ti.kernel`.
 
 For example, the following code snippet cannot run properly:
 
@@ -310,16 +310,16 @@ class TriangleRasterizer:
                                               height // tile_size, n))
 ```
 
-## From Taichi to Python
+## From GsTaichi to Python
 
-### How can I write data in Taichi fields to files? `write()` does not work.
+### How can I write data in GsTaichi fields to files? `write()` does not work.
 
-You cannot save data in Taichi fields directly, but there is a workaround. Taichi allows interaction with external arrays. Use `to_numpy` to convert a Taichi field to a NumPy array, as explained in [this section](https://docs.taichi-lang.org/docs/master/external). Then write the Numpy array to files via `numpy.savetxt`.
+You cannot save data in GsTaichi fields directly, but there is a workaround. GsTaichi allows interaction with external arrays. Use `to_numpy` to convert a GsTaichi field to a NumPy array, as explained in [this section](https://docs.taichi-lang.org/docs/master/external). Then write the Numpy array to files via `numpy.savetxt`.
 
 A simple example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 
 ti.init(arch=ti.cpu)
@@ -343,7 +343,7 @@ And data in fields `x` and `y` can be found in files **x.txt** and **y.txt**, re
 
 ### Why an image obtained using `field.to_numpy()` is rotated when displayed using `matplotlib`'s `plt.imshow()`?
 
-Taichi fields adopt a different coordinate system from NumPy's arrays for storing images. In a Taichi field, [0,0] denotes the pixel at the lower left corner of the image; the first axis extends to the right of the image; the second axis extends to the top.
+GsTaichi fields adopt a different coordinate system from NumPy's arrays for storing images. In a GsTaichi field, [0,0] denotes the pixel at the lower left corner of the image; the first axis extends to the right of the image; the second axis extends to the top.
 
 This is different from the usual convention taken by popular third-party libs like `matplotlib` or `opencv`, where [0, 0] denotes the pixel at the top left corner, the first axis extends down to the bottom of the image, and the second axis extends to the right.
 
@@ -351,37 +351,37 @@ Therefore, to display a NumPy array using `matplotlb`'s `imshow()`, you must rot
 
 ## Miscellaneous
 
-### How does Taichi compare with Python packages designed for data science or machine learning?
+### How does GsTaichi compare with Python packages designed for data science or machine learning?
 
-Popular packages designed for data science or machine learning include NumPy, JAX, PyTorch, and TensorFlow. A major difference between them and Taichi lies in the granularity of math operations.
+Popular packages designed for data science or machine learning include NumPy, JAX, PyTorch, and TensorFlow. A major difference between them and GsTaichi lies in the granularity of math operations.
 
 A common feature shared by the other packages is that they treat a single data array as the smallest unit of operations. Take PyTorch as an example. PyTorch processes a tensor as a whole and thus prefers such operations as the addition/subtraction/multiplication/division of tensors and matrix multiplication. The operators are parallelized internally, but the implementation process is invisible to users. As a result, users have to combine operators in various ways if they want to manipulate elements in tensors.
 
-Unlike them, Taichi makes element-level operations transparent and directly manipulates each iteration of the loops. This is why Taichi outperforms the other packages in scientific computing. In this sense, it compares more to C++ and CUDA.
+Unlike them, GsTaichi makes element-level operations transparent and directly manipulates each iteration of the loops. This is why GsTaichi outperforms the other packages in scientific computing. In this sense, it compares more to C++ and CUDA.
 
-### How does Taichi compare with Cython?
+### How does GsTaichi compare with Cython?
 
 Cython is a superset of the Python language for quickly generating C/C++ extensions. It is a frequently-used tool to improve Python code performance thanks to its support for C data types and static typing. In fact, many modules in the official NumPy and SciPy code are written and compiled in Cython.
 
 On the flip side, the mixture of Python and C values compromises Cython's readability. In addition, though Cython supports parallel computing to a certain degree (via multi-threading), it cannot offload computation to GPU backends.
 
-Compared with Cython, Taichi is more friendly to Non-C users because it can achieve significant performance improvement with pure valid Python code. Supporting a wide range of backends, Taichi is subject to much fewer limits when performing parallel programming. In addition, unlike Cython, Taichi does not require the OpenMP API or an extra parallelism module to accelerate your program. Just specify a backend and wrap the loop with the decorator `@ti.kernel`; then, you can leave the job to Taichi.
+Compared with Cython, GsTaichi is more friendly to Non-C users because it can achieve significant performance improvement with pure valid Python code. Supporting a wide range of backends, GsTaichi is subject to much fewer limits when performing parallel programming. In addition, unlike Cython, GsTaichi does not require the OpenMP API or an extra parallelism module to accelerate your program. Just specify a backend and wrap the loop with the decorator `@ti.kernel`; then, you can leave the job to GsTaichi.
 
-### How does Taichi compare with Numba?
+### How does GsTaichi compare with Numba?
 
-As its name indicates, Numba is tailored for NumPy. Numba is recommended if your functions involve vectorization of NumPy arrays. Compared with Numba, Taichi enjoys the following advantages:
+As its name indicates, Numba is tailored for NumPy. Numba is recommended if your functions involve vectorization of NumPy arrays. Compared with Numba, GsTaichi enjoys the following advantages:
 
-- Taichi provides advanced features, including quantized data types, dataclasses and sparse data structures, and allows you to adjust memory layout flexibly. These features are especially helpful when a program handles massive amounts of data. However, Numba only performs best when dealing with dense NumPy arrays.
-- Taichi can run on different GPU backends, making large-scale parallel programming (such as particle simulation or rendering) much more efficient. But it would be hard even to imagine writing a renderer in Numba.
+- GsTaichi provides advanced features, including quantized data types, dataclasses and sparse data structures, and allows you to adjust memory layout flexibly. These features are especially helpful when a program handles massive amounts of data. However, Numba only performs best when dealing with dense NumPy arrays.
+- GsTaichi can run on different GPU backends, making large-scale parallel programming (such as particle simulation or rendering) much more efficient. But it would be hard even to imagine writing a renderer in Numba.
 
-### How does Taichi compare with ctypes?
+### How does GsTaichi compare with ctypes?
 
 ctypes allows you to call C/C++ compiled code from Python and run C++/CUDA programs in Python through a C-compatible API. It is a convenient option to access a vast collection of libraries in Python while achieving some improvement in performance. However, ctypes elevates the usage barrier: To write a satisfactory program, you need to command C, Python, CMake, CUDA, and even more languages. Moreover, ctypes may not fit in well with some performance-critical scenarios where you try to call large C libraries in Python, given the runtime overhead it incurs.
 
-In contrast, it is much more reassuring to keep everything in Python. Taichi accelerates the performance of native Python code through automatic parallelization without involving the libraries out of the Python ecosystem. It also enables offline cache, which drastically reduces the launch overhead of Taichi kernels after the first call.
+In contrast, it is much more reassuring to keep everything in Python. GsTaichi accelerates the performance of native Python code through automatic parallelization without involving the libraries out of the Python ecosystem. It also enables offline cache, which drastically reduces the launch overhead of GsTaichi kernels after the first call.
 
-### How does Taichi compare with PyPy?
+### How does GsTaichi compare with PyPy?
 
-Similar to Taichi, PyPy also accelerates Python code via just-in-time (JIT) compilation. PyPy is attractive because users can keep Python scripts as they are without even moderate modification. On the other hand, its strict conformity with Python rules leaves limited room for optimization.
+Similar to GsTaichi, PyPy also accelerates Python code via just-in-time (JIT) compilation. PyPy is attractive because users can keep Python scripts as they are without even moderate modification. On the other hand, its strict conformity with Python rules leaves limited room for optimization.
 
-If you expect a greater leap in performance, Taichi can achieve the end. But you need to familiarize yourself with Taichi's syntax and assumptions, which differ from Python's slightly.
+If you expect a greater leap in performance, GsTaichi can achieve the end. But you need to familiarize yourself with GsTaichi's syntax and assumptions, which differ from Python's slightly.

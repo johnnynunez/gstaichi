@@ -3,9 +3,9 @@ import os
 import numpy as np
 import pytest
 
-import taichi as ti
-from taichi.lang.misc import get_host_arch_list
-from taichi.lang.util import to_numpy_type
+import gstaichi as ti
+from gstaichi.lang.misc import get_host_arch_list
+from gstaichi.lang.util import to_numpy_type
 from tests import test_utils
 
 

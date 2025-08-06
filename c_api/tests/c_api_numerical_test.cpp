@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "c_api_test_utils.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 #ifdef TI_WITH_VULKAN
@@ -28,7 +28,7 @@ std::vector<float> read_fp16_ndarray(ti::Runtime &runtime,
 
 TEST_F(CapiTest, Float16Fill) {
   TiArch arch = TiArch::TI_ARCH_VULKAN;
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -114,7 +114,7 @@ TEST_F(CapiTest, Float16Fill) {
 
 TEST_F(CapiTest, Float16Compute) {
   TiArch arch = TiArch::TI_ARCH_VULKAN;
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;

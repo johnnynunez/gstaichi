@@ -9,12 +9,12 @@ inline bool is_error_ignorable(TiError error) {
 
 class CapiTest : public ::testing::Test {
  public:
-  void ASSERT_TAICHI_SUCCESS() {
+  void ASSERT_GSTAICHI_SUCCESS() {
     ti::Error actual = ti::get_last_error();
     EXPECT_EQ(actual.error, TI_ERROR_SUCCESS);
   }
 
-  void EXPECT_TAICHI_ERROR(TiError expected,
+  void EXPECT_GSTAICHI_ERROR(TiError expected,
                            const std::string &match = "",
                            bool reset_error = true) {
     ti::Error err = ti::get_last_error();

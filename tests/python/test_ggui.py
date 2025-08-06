@@ -3,8 +3,8 @@ import platform
 import numpy as np
 import pytest
 
-import taichi as ti
-from taichi._lib import core as _ti_core
+import gstaichi as ti
+from gstaichi._lib import core as _ti_core
 from tests import test_utils
 from tests.test_utils import verify_image
 
@@ -575,7 +575,7 @@ def test_imgui():
 
     def render():
         with gui.sub_window("window 0", 0.1, 0.1, 0.8, 0.2) as w:
-            w.text("Hello Taichi!")
+            w.text("Hello GsTaichi!")
             w.text("Hello Again!")
         with gui.sub_window("window 1", 0.1, 0.4, 0.8, 0.2) as w:
             w.button("Press to unlease creativity")
@@ -596,13 +596,13 @@ def test_imgui():
 @pytest.mark.skipif(not _ti_core.GGUI_AVAILABLE, reason="GGUI Not Available")
 @test_utils.test(arch=supported_archs)
 def test_exit_without_showing():
-    window = ti.ui.Window("Taichi", (256, 256), show_window=False)
+    window = ti.ui.Window("GsTaichi", (256, 256), show_window=False)
 
 
 @pytest.mark.skipif(not _ti_core.GGUI_AVAILABLE, reason="GGUI Not Available")
 @test_utils.test(arch=supported_archs)
 def test_get_camera_view_and_projection_matrix():
-    window = ti.ui.Window("Taichi", (256, 256), show_window=False)
+    window = ti.ui.Window("GsTaichi", (256, 256), show_window=False)
     scene = window.get_scene()
     camera = ti.ui.Camera()
     camera.position(0, 0, 3)

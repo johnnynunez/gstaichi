@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_numerical_aot_test(arch):
@@ -44,8 +44,8 @@ def compile_numerical_aot_test(arch):
             out_0[i] = ray_o
             out_1[i] = ray_d
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     m = ti.aot.Module(caps=["spirv_has_int16", "spirv_has_float16"])
     m.add_kernel(fill_scalar_array_with_fp32)

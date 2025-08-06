@@ -6,7 +6,7 @@ sidebar_position: 9
 
 ## Prerequisites
 
-You should be able to build Taichi from source and already have LLVM and related environment variables configured.
+You should be able to build GsTaichi from source and already have LLVM and related environment variables configured.
 
 :::note
 
@@ -21,27 +21,27 @@ Recommended Visual Studio plugins:
 
 ## Step 1. Turn on MSBuild option in build system
 
-This is a new feature in setup.py, introduced in [PR #6724](https://github.com/taichi-dev/taichi/pull/6724), which enables building Taichi with MSBuild and MSVC. It generates a Visual Studio project file to enable coding and seamless debugging through Visual Studio IDE.
+This is a new feature in setup.py, introduced in [PR #6724](https://github.com/taichi-dev/gstaichi/pull/6724), which enables building GsTaichi with MSBuild and MSVC. It generates a Visual Studio project file to enable coding and seamless debugging through Visual Studio IDE.
 
-To activate the feature, create a new environment variable called TAICHI_USE_MSBUILD by typing "environment variable" in Windows Search or setting it temporarily with `$Env:` in PowerShell. Then, set its value to 1 or ON.
+To activate the feature, create a new environment variable called GSTAICHI_USE_MSBUILD by typing "environment variable" in Windows Search or setting it temporarily with `$Env:` in PowerShell. Then, set its value to 1 or ON.
 
-After cleaning up the _skbuild folder, if the previously used generator is Ninja, run `python setup.py develop` and build Taichi from the source.
+After cleaning up the _skbuild folder, if the previously used generator is Ninja, run `python setup.py develop` and build GsTaichi from the source.
 
 ## Step 2. Navigate to the generated Visual Studio Project file
 
-Go to the build folder, which is `_skbuild\win-amd64-3.9\cmake-build` in the author's case, and double click `taichi.sln`. You can also open this SLN solution file from Visual Studio. This should open Visual Studio IDE with the setup for Taichi.
+Go to the build folder, which is `_skbuild\win-amd64-3.9\cmake-build` in the author's case, and double click `gstaichi.sln`. You can also open this SLN solution file from Visual Studio. This should open Visual Studio IDE with the setup for GsTaichi.
 The following image shows a possible layout after Visual Studio is launched. The layout is open to reconfiguration.
 
 ![image13](https://user-images.githubusercontent.com/11663476/212577220-92a8a7cb-f6ff-4365-9808-0a7299be87cd.png)
 
-## Step 3. Navigate through the source code of Taichi in Visual Studio
+## Step 3. Navigate through the source code of GsTaichi in Visual Studio
 
-The top right red box is the solution explorer, where you can see each submodule of Taichi grouped up by each “object file”. Click on one, and you will see expanded details as the following images show:
+The top right red box is the solution explorer, where you can see each submodule of GsTaichi grouped up by each “object file”. Click on one, and you will see expanded details as the following images show:
 
 ![image10](https://user-images.githubusercontent.com/11663476/212577350-33912d21-0105-459b-8490-2aaee5c88ff6.png)
 ![image11](https://user-images.githubusercontent.com/11663476/212577355-fec6837a-00fc-4f7b-8cdc-b369bc4bc015.png)
 
-Or if you prefer navigating the project using its folder structure, you can find the “Source Explorer” module, and it should reveal the normal Taichi source directory structure:
+Or if you prefer navigating the project using its folder structure, you can find the “Source Explorer” module, and it should reveal the normal GsTaichi source directory structure:
 
 ![image2](https://user-images.githubusercontent.com/11663476/212577382-4ff8e6de-e04b-4502-9dd9-7ebb75697693.png)
 
@@ -59,14 +59,14 @@ Currently, Visual Studio has a bit of trouble parsing `ir.h`. You can ignore the
 
 :::
 
-## Step 4. Debug Taichi
+## Step 4. Debug GsTaichi
 
-To debug Taichi on Windows, you can use one of the following two methods.
+To debug GsTaichi on Windows, you can use one of the following two methods.
 
-- Launch a Taichi program from Visual Studio and use it like any other IDE
-- Insert `ti._lib.core.wait_for_debugger()` in your Taichi program to pause the program. You can then attach to this process from Visual Studio. When this line of code is executed, the program will pause and now you can attach to this process from Visual Studio.
+- Launch a GsTaichi program from Visual Studio and use it like any other IDE
+- Insert `ti._lib.core.wait_for_debugger()` in your GsTaichi program to pause the program. You can then attach to this process from Visual Studio. When this line of code is executed, the program will pause and now you can attach to this process from Visual Studio.
 
-To launch a Taichi program from Visual Studio, go to **Debug > ALL_BUILD Debug Properties** and click **Debugging** on the left side for the debug launch settings. Set “Command” to the python executable file installed on your system (either in Conda or in other places). Then, set the working directory to **..&#92;..&#92;..**, which points to the root of the Taichi source directory. Finally, set the argument to the python file you want to launch and its related options. For example:
+To launch a GsTaichi program from Visual Studio, go to **Debug > ALL_BUILD Debug Properties** and click **Debugging** on the left side for the debug launch settings. Set “Command” to the python executable file installed on your system (either in Conda or in other places). Then, set the working directory to **..&#92;..&#92;..**, which points to the root of the GsTaichi source directory. Finally, set the argument to the python file you want to launch and its related options. For example:
 
 ![image6](https://user-images.githubusercontent.com/11663476/212577472-49959479-e0f5-4f7c-87c0-8b16fb53c07b.png)
 
@@ -98,7 +98,7 @@ In this particular program, the hot path is within Python, and there is not much
 
 ![image9](https://user-images.githubusercontent.com/11663476/212577614-9cb2dd9d-18c5-4900-a347-869f10f583e4.png)
 
-The `taichi_python` module (the C++ source code of Taichi) takes 65% of the total CPU time and splits its time down into the kernel and driver libraries.
+The `gstaichi_python` module (the C++ source code of GsTaichi) takes 65% of the total CPU time and splits its time down into the kernel and driver libraries.
 
  Now, expand the library module:
 
@@ -112,7 +112,7 @@ Right click on it and find **View in Call Tree > expand hot path**. The result i
 
 ![image1](https://user-images.githubusercontent.com/11663476/212577664-48f91acb-988a-463c-abe4-3f808d3159ad.png)
 
-The Python stack is lengthy. We can scroll down to `taichi::lang::JITSessionCUDA::add_module` and right click on “Set Root” to get a much cleaner view. The function we care about is now the root of the call tree:
+The Python stack is lengthy. We can scroll down to `gstaichi::lang::JITSessionCUDA::add_module` and right click on “Set Root” to get a much cleaner view. The function we care about is now the root of the call tree:
 
 ![image12](https://user-images.githubusercontent.com/11663476/212577676-772d210b-11e8-4959-b573-28a73bbb47d9.png)
 

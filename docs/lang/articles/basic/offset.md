@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Coordinate Offsets
 
-- A Taichi field can be defined with **coordinate offsets**. The
+- A GsTaichi field can be defined with **coordinate offsets**. The
   offsets will move field bounds so that field origins are no longer
   zero vectors. A typical use case is to support voxels with negative
   coordinates in physical simulations.

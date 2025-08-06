@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_kernel_aot_test2(arch, save_compute_graph):
@@ -19,8 +19,8 @@ def compile_kernel_aot_test2(arch, save_compute_graph):
     def ker2(arr: ti.types.ndarray(), n: ti.i32):
         arr[1] = n
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     m = ti.aot.Module()
     if save_compute_graph:

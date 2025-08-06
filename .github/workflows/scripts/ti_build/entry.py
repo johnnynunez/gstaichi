@@ -29,10 +29,10 @@ from .tinysh import Command, CommandFailed, git, nice
 
 
 # -- code --
-@banner("Build Taichi Wheel")
+@banner("Build GsTaichi Wheel")
 def build_wheel(python: Command, pip: Command) -> None:
     """
-    Build the Taichi wheel
+    Build the GsTaichi wheel
     """
 
     git.fetch("origin", "main", "--tags", "--force")
@@ -48,7 +48,7 @@ def build_wheel(python: Command, pip: Command) -> None:
         wheel_tag = ""
 
     if misc.options.nightly:
-        os.environ["PROJECT_NAME"] = "taichi-nightly"
+        os.environ["PROJECT_NAME"] = "gstaichi-nightly"
         now = datetime.datetime.now().strftime("%Y%m%d")
         proj_tags.extend(["egg_info", f"--tag-build=.post{now}{wheel_tag}"])
     elif wheel_tag:

@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--arch", type=str)
@@ -111,8 +111,8 @@ def compile_mpm88(arch, save_compute_graph):
             v[i] = [0, -1]
             J[i] = 1
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    tmpdir = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    tmpdir = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     if save_compute_graph:
         N_ITER = 50
@@ -145,7 +145,7 @@ def compile_mpm88(arch, save_compute_graph):
         # GGUI only supports vec3 vertex so we need an extra `pos` here
         # This is not necessary if you're not going to render it using GGUI.
         # Let's keep this hack here so that the shaders serialized by this
-        # script can be loaded and rendered in the provided script in taichi-aot-demo.
+        # script can be loaded and rendered in the provided script in gstaichi-aot-demo.
         pos = ti.Vector.ndarray(3, ti.f32, n_particles)
         x = ti.Vector.ndarray(2, ti.f32, shape=(n_particles))
         v = ti.Vector.ndarray(2, ti.f32, shape=(n_particles))

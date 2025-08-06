@@ -8,24 +8,24 @@ sidebar_position: 3
 
 The GIF image above nicely simulates a piece of cloth falling onto a sphere. The cloth in the image is modeled as a mass-spring system, which contains over 10,000 mass points and around 100,000 springs. To simulate a massive physical system at this scale and render it in real-time is never an easy task.
 
-With Taichi, physical simulation programs can be much more readable and intuitive, while still achieving performance comparable to that of C++ or CUDA. With Taichi, those with basic Python programming skills can write high-performance parallel programs in much fewer lines than before, focusing on the higher-level algorithms per se and leaving tasks like performance optimization to Taichi.
+With GsTaichi, physical simulation programs can be much more readable and intuitive, while still achieving performance comparable to that of C++ or CUDA. With GsTaichi, those with basic Python programming skills can write high-performance parallel programs in much fewer lines than before, focusing on the higher-level algorithms per se and leaving tasks like performance optimization to GsTaichi.
 
 In this document, we will walk you through the process of writing a Python program simulating and rendering a piece of cloth falling onto a sphere. Before you proceed, please take a guess of how many lines of code this program consists of.
 
 ## Get started
 
-Before using Taichi in your Python program, you need to import Taichi to your namespace and initialize Taichi:
+Before using GsTaichi in your Python program, you need to import GsTaichi to your namespace and initialize GsTaichi:
 
-1. Import Taichi:
+1. Import GsTaichi:
 
 ```python skip-ci:Trivial
-import taichi as ti
+import gstaichi as ti
 ```
 
-2. Initialize Taichi:
+2. Initialize GsTaichi:
 
 ```python skip-ci:NotRunnable
-# Choose any of the following backend when initializing Taichi
+# Choose any of the following backend when initializing GsTaichi
 # - ti.cpu
 # - ti.gpu
 # - ti.cuda
@@ -35,9 +35,9 @@ import taichi as ti
 ti.init(arch=ti.cpu)
 ```
 
-We choose `ti.cpu` here despite the fact that running Taichi on a GPU backend can be much faster. This is mainly because we need to make sure that you can run our source code without any editing or additional configurations to your platform. Please note:
+We choose `ti.cpu` here despite the fact that running GsTaichi on a GPU backend can be much faster. This is mainly because we need to make sure that you can run our source code without any editing or additional configurations to your platform. Please note:
 
-- If you choose a GPU backend, for example `ti.cuda`, ensure that you have installed it on your system; otherwise, Taichi will raise an error.
+- If you choose a GPU backend, for example `ti.cuda`, ensure that you have installed it on your system; otherwise, GsTaichi will raise an error.
 - The [GGUI](../visualization/ggui.md) we use for 3D rendering only supports CUDA and Vulkan, and x86 for now. If you choose a different backend, consider switching the GGUI system we provide in the source code.
 
 ## Modelling
@@ -45,7 +45,7 @@ We choose `ti.cpu` here despite the fact that running Taichi on a GPU backend ca
 This section does the following:
 
 - Generalizes and simplifies the models involved in the cloth simulation.
-- Represents the falling cloth and the ball with the [data containers](../basic/field.md) provided by Taichi.
+- Represents the falling cloth and the ball with the [data containers](../basic/field.md) provided by GsTaichi.
 
 ### Model simplification
 
@@ -80,13 +80,13 @@ A ball can usually be represented by its ball center and radius.
 
 ### Data structures
 
-In this program, we represent the falling cloth and the ball with the [data containers](../basic/field.md) provided by Taichi.
+In this program, we represent the falling cloth and the ball with the [data containers](../basic/field.md) provided by GsTaichi.
 
 #### Data structures for cloth
 
-Having initialized Taichi, you can declare the data structures that represent the cloth.
+Having initialized GsTaichi, you can declare the data structures that represent the cloth.
 
-1. Declare two arrays `x` and `v` for storing the mass points' positions and velocities. In Taichi, such arrays are called [fields](../basic/field.md).
+1. Declare two arrays `x` and `v` for storing the mass points' positions and velocities. In GsTaichi, such arrays are called [fields](../basic/field.md).
 
 ```python skip-ci:NotRunnable
 n = 128
@@ -106,7 +106,7 @@ v = ti.Vector.field(3, dtype=float, shape=(n, n))
 # is 1.0 / n
 quad_size = 1.0 / n
 
-# The @ti.kernel decorator instructs Taichi to
+# The @ti.kernel decorator instructs GsTaichi to
 # automatically parallelize all top-level for loops
 # inside initialize_mass_points()
 @ti.kernel
@@ -160,7 +160,7 @@ def substep():
 # and so is set to [0, -9.8, 0]
 gravity = ti.Vector([0, -9.8, 0])
 
-# The @ti.kernel decorator instructs Taichi to
+# The @ti.kernel decorator instructs GsTaichi to
 # automatically parallelize all top-level for loops
 # inside substep()
 @ti.kernel
@@ -171,7 +171,7 @@ def substep():
 ```
 
 :::note
-`for i in ti.grouped(x)` is an important feature of Taichi. It means that this for loop automatically traverses all the elements of `x` as a 1D array regardless of its shape, sparing you the trouble of writing multiple levels of for loops.
+`for i in ti.grouped(x)` is an important feature of GsTaichi. It means that this for loop automatically traverses all the elements of `x` as a 1D array regardless of its shape, sparing you the trouble of writing multiple levels of for loops.
 
 Either `for i in ti.grouped(x)` or `for i in ti.grouped(v)` is fine here because field `x` has the same shape as field `v`.
 :::
@@ -305,9 +305,9 @@ def substep():
 
 ## Rendering
 
-We use Taichi's GPU-based GUI system (also known as [GGUI](../visualization/ggui.md)) for 3D rendering. GGUI supports rendering two types of 3D objects: triangle meshes and particles. In this case, we can render the cloth as a triangle mesh and the ball as a particle.
+We use GsTaichi's GPU-based GUI system (also known as [GGUI](../visualization/ggui.md)) for 3D rendering. GGUI supports rendering two types of 3D objects: triangle meshes and particles. In this case, we can render the cloth as a triangle mesh and the ball as a particle.
 
-GGUI represents a triangle mesh with two Taichi fields: `vertices` and `indices`. The `vertices` fields is a 1-dimensional field where each element is a 3D vector representing the position of a vertex, possibly shared by multiple triangles. In our application, every point mass is a triangle vertex, so we can simply copy data from `x` to `vertices`:
+GGUI represents a triangle mesh with two GsTaichi fields: `vertices` and `indices`. The `vertices` fields is a 1-dimensional field where each element is a 3D vector representing the position of a vertex, possibly shared by multiple triangles. In our application, every point mass is a triangle vertex, so we can simply copy data from `x` to `vertices`:
 
 ```python skip-ci:NotRunnable
 vertices = ti.Vector.field(3, dtype=float, shape=n * n)
@@ -350,7 +350,7 @@ As for rendering the ball, the `ball_center` and `ball_radius` variable previous
 ## Source code
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init(arch=ti.vulkan)  # Alternatively, ti.init(arch=ti.cpu)
 
 n = 128
@@ -459,7 +459,7 @@ def update_vertices():
     for i, j in ti.ndrange(n, n):
         vertices[i * n + j] = x[i, j]
 
-window = ti.ui.Window("Taichi Cloth Simulation on GGUI", (1024, 1024),
+window = ti.ui.Window("GsTaichi Cloth Simulation on GGUI", (1024, 1024),
                       vsync=True)
 canvas = window.get_canvas()
 canvas.set_background_color((1, 1, 1))

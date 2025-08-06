@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "c_api_test_utils.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 constexpr int img_h = 680;
@@ -36,7 +36,7 @@ static void comet_run(TiArch arch, const std::string &folder_dir) {
 
 TEST_F(CapiTest, CometTestCuda) {
   if (ti::is_arch_available(TI_ARCH_CUDA)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;

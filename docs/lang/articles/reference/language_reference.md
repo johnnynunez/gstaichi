@@ -4,29 +4,29 @@ sidebar_position: 1
 
 # Language Reference
 
-This article describes the syntax and semantics of the Taichi programming
+This article describes the syntax and semantics of the GsTaichi programming
 language.
 
 **To users**: If you have gone through the user tutorials and still feel uncertain
 about your program behavior, then you are in the right place. If you find the
 actual behavior different from what is described in this article, feel free to
-create an [issue](https://github.com/taichi-dev/taichi/issues/new/choose).
+create an [issue](https://github.com/taichi-dev/gstaichi/issues/new/choose).
 You should not rely solely on this article since things unspecified are subject to changes.
 
 **To contributors**: This article specifies what the language *should* be. That
-is, you should try to match the implementation of the Taichi compiler with this
+is, you should try to match the implementation of the GsTaichi compiler with this
 article. You can clearly determine a certain behavior is *correct*, *buggy*, or
 *undefined* from this article.
 
 ## Introduction
 
-Taichi is a domain-specific language embedded in Python.
+GsTaichi is a domain-specific language embedded in Python.
 [Kernels and functions](../kernels/kernel_function.md) clearly defines the boundary between
-the Taichi language and the Python language - code in the Taichi scope is
+the GsTaichi language and the Python language - code in the GsTaichi scope is
 treated as the former, while code in the Python scope is treated as the latter.
-It should be emphasized that this article is about *the Taichi language*.
+It should be emphasized that this article is about *the GsTaichi language*.
 
-That said, because Taichi is embedded in Python, the syntax of Taichi is a
+That said, because GsTaichi is embedded in Python, the syntax of GsTaichi is a
 subset of that of Python. To make life easier, this article is modeled after
 the [Python language reference](https://docs.python.org/3/reference/). The
 [notation](https://docs.python.org/3/reference/introduction.html#notation) and
@@ -37,16 +37,16 @@ new.
 ## Basic concepts
 
 Before detailing syntax and semantics in the next few chapters, many basic but
-important concepts and general evaluation principles specific to Taichi are
+important concepts and general evaluation principles specific to GsTaichi are
 listed here.
 
 ### Values and types
 
-Like many other programming languages, each expression in Taichi will be
-evaluated to a value, and each value has a type. Because Taichi provides easy
+Like many other programming languages, each expression in GsTaichi will be
+evaluated to a value, and each value has a type. Because GsTaichi provides easy
 interaction with Python and [meta-programming](../advanced/meta.md) support, there
 are actually two kinds of evaluation: *compile-time evaluation* and *runtime
-evaluation*. There are also two kinds of values: *Python values* and *Taichi
+evaluation*. There are also two kinds of values: *Python values* and *GsTaichi
 values*.
 
 :::note
@@ -64,29 +64,29 @@ which directly comes from the following sources:
 
 Furthermore, as long as all the operands of an operation are Python values,
 compile-time evaluation will take place, producing a result Python value. For
-meta-programming purposes, Taichi provides an advanced environment for
+meta-programming purposes, GsTaichi provides an advanced environment for
 compile-time evaluation: `ti.static()`, where more operations are supported.
 
 A Python value only exists at compile time. After compile-time evaluation, all
-the remaining expressions will be evaluated to Taichi values at runtime.
+the remaining expressions will be evaluated to GsTaichi values at runtime.
 
-A Taichi value has a Taichi type, which is one of the following:
+A GsTaichi value has a GsTaichi type, which is one of the following:
 - A primitive type, as described in [Type system](../type_system/type.md)
 - A compound type, as described in [Type system](../type_system/type.md)
-- An ndarray type, as introduced in [Tutorial: Run Taichi programs in C++ application](../deployment/tutorial.md)
+- An ndarray type, as introduced in [Tutorial: Run GsTaichi programs in C++ application](../deployment/tutorial.md)
 - A sparse matrix builder type, as introduced in [Sparse
 Matrix](../math/sparse_matrix.md)
 
 :::note
 An informal quick summary of evaluation rules:
 - Python value + Python value = Python value
-- Python value + Taichi value = Taichi value
-- Taichi value + Taichi value = Taichi value
+- Python value + GsTaichi value = GsTaichi value
+- GsTaichi value + GsTaichi value = GsTaichi value
 :::
 
 ### Variables and scope
 
-A variable contains a *name*, a *type* and a *value*. In Taichi, a variable can
+A variable contains a *name*, a *type* and a *value*. In GsTaichi, a variable can
 be defined in the following ways:
 - A parameter. The name of the variable is the parameter name. The type of the
 variable is the parameter type annotation. The value of the variable is passed
@@ -99,11 +99,11 @@ variable is inferred from the expression on the right-hand side. The value of
 the variable is the evaluation result of the expression on the right-hand side
 at runtime.
 
-Taichi is statically-typed. That is, you cannot change the type of a variable
+GsTaichi is statically-typed. That is, you cannot change the type of a variable
 after its definition. However, you can change the value of a variable if there
 is another assignment statement after its definition.
 
-Taichi adopts [lexical scope](https://en.wikipedia.org/wiki/Scope_(computer_science)).
+GsTaichi adopts [lexical scope](https://en.wikipedia.org/wiki/Scope_(computer_science)).
 Therefore, if a variable is defined in a [block](#compound-statements), it is
 invisible outside that block.
 
@@ -112,11 +112,11 @@ invisible outside that block.
 Following the [Values and types](#values-and-types) section, if both operands
 of a binary operation are Python values, compile-time evaluation is triggered
 and a result Python value is produced. If only one operand is a Python value,
-it is first turned into a Taichi value with
+it is first turned into a GsTaichi value with
 [default type](../type_system/type.md#primitive-types).
-Now the only remaining case is that both operands are Taichi values.
+Now the only remaining case is that both operands are GsTaichi values.
 
-Binary operations can happen between Taichi values of either primitive type or
+Binary operations can happen between GsTaichi values of either primitive type or
 compound type. There are three cases in total:
 - Two primitive type values. The return type is also a primitive type.
 - One primitive type value and one compound type value. The primitive type
@@ -128,7 +128,7 @@ element-wise, resulting in a compound type value with same shape.
 
 ## Expressions
 
-The section explains the syntax and semantics of expressions in Taichi.
+The section explains the syntax and semantics of expressions in GsTaichi.
 
 ### Atoms
 
@@ -145,19 +145,19 @@ enclosure ::= parenth_form | list_display | dict_display
 
 Lexical definition of
 [identifiers](https://docs.python.org/3/reference/lexical_analysis.html#identifiers)
-(also referred to as names) in Taichi follows Python.
+(also referred to as names) in GsTaichi follows Python.
 
 There are three cases during evaluation:
-- The name is visible and corresponds to a variable defined in Taichi. Then the
+- The name is visible and corresponds to a variable defined in GsTaichi. Then the
 evaluation result is the value of the variable at runtime.
-- The name is only visible in Python, i.e., the name binding is outside Taichi.
+- The name is only visible in Python, i.e., the name binding is outside GsTaichi.
 Then compile-time evaluation is triggered, resulting in the Python value bound
 to that name.
-- The name is invisible. Then a `TaichiNameError` is thrown.
+- The name is invisible. Then a `GsTaichiNameError` is thrown.
 
 #### Literals
 
-Taichi supports [integer](https://docs.python.org/3/reference/lexical_analysis.html#integer-literals)
+GsTaichi supports [integer](https://docs.python.org/3/reference/lexical_analysis.html#integer-literals)
 and [floating-point](https://docs.python.org/3/reference/lexical_analysis.html#floating-point-literals)
 literals, whose lexical definitions follow Python.
 
@@ -179,7 +179,7 @@ compile time.
 
 #### List and dictionary displays
 
-Taichi supports
+GsTaichi supports
 [displays](https://docs.python.org/3/reference/expressions.html#displays-for-lists-sets-and-dictionaries)
 for container (list and dictionary only) construction. Like in Python, a
 display is one of:
@@ -201,7 +201,7 @@ comp_iter          ::= comp_for | comp_if
 comp_if            ::= "if" or_test [comp_iter]
 ```
 
-The semantics of list and dict displays in Taichi mainly follow Python. Note
+The semantics of list and dict displays in GsTaichi mainly follow Python. Note
 that they are evaluated at compile time, so all expressions in `comp_for`,
 as well as keys in `key_datum`, are required to be evaluated to Python values.
 
@@ -232,7 +232,7 @@ attributeref ::= primary "." identifier
 
 Attribute references are evaluated at compile time. The `primary` must be
 evaluated to a Python value with an attribute named `identifier`. Common use
-cases in Taichi include metadata queries of
+cases in GsTaichi include metadata queries of
 [field](../advanced/meta.md#field-metadata) and
 [matrices](../advanced/meta.md#matrix--vector-metadata).
 
@@ -247,7 +247,7 @@ then all expressions in `expression_list` are required to be evaluated to
 Python values, and the subscription is evaluated at compile time following
 [Python](https://docs.python.org/3/reference/expressions.html#subscriptions).
 
-Otherwise, `primary` has a Taichi type. All Taichi types excluding primitive
+Otherwise, `primary` has a GsTaichi type. All GsTaichi types excluding primitive
 types support subscriptions. You can refer to documentation of these types
 for subscription usage.
 
@@ -260,7 +260,7 @@ slice_item   ::= expression | proper_slice
 proper_slice ::= [expression] ":" [expression] [ ":" [expression] ]
 ```
 
-Currently, slicings are only supported when `primary` has a Taichi matrix type,
+Currently, slicings are only supported when `primary` has a GsTaichi matrix type,
 and the evaluation happens at compile time.
 When `slice_item` is in the form of:
 - a single `expression`: it is required to be evaluated to a Python value
@@ -277,12 +277,12 @@ positional_item      ::= assignment_expression | "*" expression
 ```
 
 The `primary` must be evaluated to one of:
-- A [Taichi function](../kernels/kernel_function.md#kernels-and-functions).
-- A [Taichi builtin function](./operator.md#other-arithmetic-functions).
-- A Taichi primitive type. In this case, the `positional_arguments` must only
+- A [GsTaichi function](../kernels/kernel_function.md#kernels-and-functions).
+- A [GsTaichi builtin function](./operator.md#other-arithmetic-functions).
+- A GsTaichi primitive type. In this case, the `positional_arguments` must only
   contain one item. If the item is evaluated to a Python value, then the
   primitive type serves as a type annotation for a literal, and the Python value
-  will be turned into a Taichi value with that annotated type. Otherwise, the
+  will be turned into a GsTaichi value with that annotated type. Otherwise, the
   primitive type serves as a syntax sugar for `ti.cast()`, but the item cannot
   have a compound type.
 - A Python callable object. If not inside a [static expression](#static-expressions), a warning is produced.
@@ -304,7 +304,7 @@ u_expr ::= power | "-" power | "+" power | "~" power
 Similar to [rules for binary operations](#common-rules-of-binary-operations),
 if the operand is a Python value, compile-time evaluation is triggered and a
 result Python value is produced. Now the remaining case is that the operand is
-a Taichi value:
+a GsTaichi value:
 - If the operand is a primitive type value, the return type is also a primitive
 type.
 - If the operand is a compound type value, the operator is conducted
@@ -385,7 +385,7 @@ Otherwise, the behavior depends on the `short_circuit_operators` option of `ti.i
 treated as a *bitwise AND*, and a *logical or* will be treated as a *bitwise
 OR*. See [binary bitwise operations](#binary-bitwise-operations) for details.
 - If `short_circuit_operators` is `True`, the normal short circuiting behavior
-is adopted, and the operands are required to be boolean values. Since Taichi
+is adopted, and the operands are required to be boolean values. Since GsTaichi
 does not have boolean type yet, `ti.i32` is served as a temporary alternative.
 A `ti.i32` value is considered `False` if and only if the value is evaluated to 0.
 
@@ -436,10 +436,10 @@ The `positional_arguments` is evaluated at compile time, and the items inside mu
 - When a single argument is passed in, it returns the argument.
 - When multiple arguments are passed in, it returns a tuple containing all the arguments in the same order as they are passed.
 
-The static expressions work as a mechanism to trigger many metaprogramming functions in Taichi,
+The static expressions work as a mechanism to trigger many metaprogramming functions in GsTaichi,
 such as [compile-time loop unrolling and compile-time branching](../advanced/meta.md#compile-time-evaluations).
 
-The static expressions can also be used to [create aliases for Taichi fields and Taichi functions](./syntax_sugars.md#aliases).
+The static expressions can also be used to [create aliases for GsTaichi fields and GsTaichi functions](./syntax_sugars.md#aliases).
 
 ### Expression lists
 
@@ -457,7 +457,7 @@ is evaluated to the value of that expression.
 
 ## Simple statements
 
-This section explains the syntax and semantics of compound statements in Taichi. A simple statement is comprised within a single logical line. Several simple statements may occur on a single line separated by semicolons.
+This section explains the syntax and semantics of compound statements in GsTaichi. A simple statement is comprised within a single logical line. Several simple statements may occur on a single line separated by semicolons.
 
 ```
 simple_stmt ::= expression_stmt
@@ -499,9 +499,9 @@ with the following points to notice:
 target is an identifier appearing for the first time, a variable is defined
 with that name and inferred type from the corresponding right-hand side
 expression. If the expression is evaluated to a Python value, it will be turned
-into a Taichi value with [default type](../type_system/type.md#primitive-types).
+into a GsTaichi value with [default type](../type_system/type.md#primitive-types).
 - If a target is an existing identifier, the corresponding right-hand side
-expression must be evaluated to a Taichi value with the type of the
+expression must be evaluated to a GsTaichi value with the type of the
 corresponding variable of that identifier. Otherwise, an implicit cast will
 happen.
 
@@ -514,7 +514,7 @@ augop                     ::= "+=" | "-=" | "*=" | "/=" | "//=" | "%=" |
                               "**="| ">>=" | "<<=" | "&=" | "^=" | "|="
 ```
 
-Different from [Python](https://docs.python.org/3/reference/simple_stmts.html#augmented-assignment-statements), some augmented assignments (e.g., `x[i] += 1`) are [automatically atomic](./operator.md#supported-atomic-operations) in Taichi.
+Different from [Python](https://docs.python.org/3/reference/simple_stmts.html#augmented-assignment-statements), some augmented assignments (e.g., `x[i] += 1`) are [automatically atomic](./operator.md#supported-atomic-operations) in GsTaichi.
 
 #### Annotated assignment statements
 
@@ -525,7 +525,7 @@ The differences from normal [assignment statements](#assignment-statements) are:
 - Only single identifier target is allowed.
 - If the identifier appears for the first time, a variable is defined
 with that name and type annotation (the expression after ":"). The right-hand
-side expression is cast to a Taichi value with the annotated type.
+side expression is cast to a GsTaichi value with the annotated type.
 - If the identifier already exists, the type annotation must be the same as the
 type of the corresponding variable of the identifier.
 
@@ -541,10 +541,10 @@ Assert statements are currently supported on the CPU, CUDA, and Metal backends.
 Assert statements only work in debug mode (when `debug=True` is set in the arguments of `ti.init()`),
 otherwise they are equivalent to no-op.
 
-The simple form, `assert expression`, raises `TaichiAssertionError` (which is a subclass of `AssertionError`)
+The simple form, `assert expression`, raises `GsTaichiAssertionError` (which is a subclass of `AssertionError`)
 when `expression` is equal to `False`, with the code of `expression` as the error message.
 
-The extended form, `assert expression1, expression2`, raises `TaichiAssertionError` when `expression1` is equal to `False`,
+The extended form, `assert expression1, expression2`, raises `GsTaichiAssertionError` when `expression1` is equal to `False`,
 with `expression2` as the error message. `expression2` must be a constant or a formatted string. The variables in the
 formatted string must be scalars.
 
@@ -561,22 +561,22 @@ It is useful as a placeholder when a statement is required syntactically, but no
 return_stmt ::= "return" [expression_list]
 ```
 
-The return statement may only occur once in a Taichi kernel or a Taichi function,
+The return statement may only occur once in a GsTaichi kernel or a GsTaichi function,
 and it must be at the bottom of the function body.
-Note that this is subject to change, and Taichi might relax it in the future.
+Note that this is subject to change, and GsTaichi might relax it in the future.
 
-If a Taichi kernel or Taichi function has a return type hint,
+If a GsTaichi kernel or GsTaichi function has a return type hint,
 it must have a return statement that returns a value other than `None`.
 
-If a Taichi kernel has a return statement that returns a value other than `None`, it must have a return type hint.
-The return type hint for Taichi function is optional but recommended.
-Note that this is subject to change, and Taichi might enforce it in the future.
+If a GsTaichi kernel has a return statement that returns a value other than `None`, it must have a return type hint.
+The return type hint for GsTaichi function is optional but recommended.
+Note that this is subject to change, and GsTaichi might enforce it in the future.
 
 A kernel can have at most one return value, which can be a scalar, `ti.Matrix`, or `ti.Vector`,
 and the number of elements in the return value must not exceed 30.
-Note that this number is an implementation detail, and Taichi might relax it in the future.
+Note that this number is an implementation detail, and GsTaichi might relax it in the future.
 
-A Taichi function can have multiple return values in a return statement,
+A GsTaichi function can have multiple return values in a return statement,
 and the return values can be scalar, `ti.Vector`, `ti.Matrix`, `ti.Struct`, and more.
 
 ### The `break` statement
@@ -599,7 +599,7 @@ and it continues with the next cycle of the nearest enclosing loop.
 
 ## Compound statements
 
-This section explains the syntax and semantics of compound statements in Taichi.
+This section explains the syntax and semantics of compound statements in GsTaichi.
 
 A compound statement consists of one or more *clauses*.
 A *clause* consists of a header and a *suite*.
@@ -614,9 +614,9 @@ statement     ::= stmt_list NEWLINE | compound_stmt
 stmt_list     ::= simple_stmt (";" simple_stmt)* [";"]
 ```
 
-The difference between the compound statements in Taichi and Python is that Taichi introduces
+The difference between the compound statements in GsTaichi and Python is that GsTaichi introduces
 compile time evaluation. If the expression in the *clause header* is a static expression,
-Taichi replaces the compound statement at compile time according to the evaluation result of the expression.
+GsTaichi replaces the compound statement at compile time according to the evaluation result of the expression.
 
 ### The `if` statement
 
@@ -653,7 +653,7 @@ else:
         else:
             body_d
 ```
-Taichi first transforms `elif` *clause* as above, and then deal with the `if` statement with only an `if` *clause* and possibly an `else` *clause* as below.
+GsTaichi first transforms `elif` *clause* as above, and then deal with the `if` statement with only an `if` *clause* and possibly an `else` *clause* as below.
 
 If the expression of the `if` *clause* is found to be true (see section [Boolean operations](#boolean-operations) for the definition of true and false),
 the *suite* of the `if` *clause* is executed. Otherwise, the *suite* of the `else` *clause*, if present, is executed.
@@ -680,20 +680,20 @@ goes back to testing the expression.
 
 ### The `for` statement
 
-The `for` statement in Taichi is used to iterate over a range of numbers, multidimensional ranges, or the indices of elements in a field.
+The `for` statement in GsTaichi is used to iterate over a range of numbers, multidimensional ranges, or the indices of elements in a field.
 
 ```
 for_stmt        ::= "for" target_list "in" iter_expression ":" suite
 iter_expression ::= static_expression | expression
 ```
 
-Taichi does not support `else` clause in `for` statements.
+GsTaichi does not support `else` clause in `for` statements.
 
 The `for` loops can iterate in parallel if they are in the outermost scope.
 When a `for` loop is parallelized, the order of iteration is not determined,
 and it cannot be terminated by `break` statements.
 
-Taichi uses `ti.loop_config` function to set directives for the loop right after it.
+GsTaichi uses `ti.loop_config` function to set directives for the loop right after it.
 You can write `ti.loop_config(serialize=True)` before a range/ndrange `for` loop to let it run serially,
 then it can be terminated by `break` statements.
 
@@ -747,12 +747,12 @@ The ndrange `for` loops are by default parallelized when the loops are in the ou
 
 #### The struct `for` statement
 
-The struct `for` statement iterates over every active elements in a Taichi field.
+The struct `for` statement iterates over every active elements in a GsTaichi field.
 
-The `iter_expression` of a struct `for` statement must be a Taichi field or a call to `ti.grouped(x)` where `x` is a Taichi field.
+The `iter_expression` of a struct `for` statement must be a GsTaichi field or a call to `ti.grouped(x)` where `x` is a GsTaichi field.
 
-- If the `iter_expression` is a Taichi field, it is a normal struct `for`.
-- If the `iter_expression` is a call to `ti.grouped(x)` where `x` is a Taichi field, it is a grouped struct `for`.
+- If the `iter_expression` is a GsTaichi field, it is a normal struct `for`.
+- If the `iter_expression` is a call to `ti.grouped(x)` where `x` is a GsTaichi field, it is a grouped struct `for`.
 
 The `target_list` of a normal struct `for` statement on an n-dimensional field must be n different identifiers which
 are not occupied in the current scope, and the k-th identifier is assigned an integer which is the loop variable of the k-th dimension.

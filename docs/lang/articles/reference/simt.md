@@ -4,8 +4,8 @@ sidebar_position: 5
 
 # SIMT Intrinsics
 
-For the CUDA backend, Taichi supports warp-level and block-level intrinsics, which
-are needed for writing high-performance SIMT kernels. You can use them in Taichi
+For the CUDA backend, GsTaichi supports warp-level and block-level intrinsics, which
+are needed for writing high-performance SIMT kernels. You can use them in GsTaichi
 similar to the [usage in CUDA kernels](https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/). Currently, the following functions are supported:
 
 
@@ -27,10 +27,10 @@ similar to the [usage in CUDA kernels](https://developer.nvidia.com/blog/using-c
 |`ti.simt.warp.active_mask`  | `__activemask`    |
 |`ti.simt.warp.sync`         | `__syncwarp`      |
 
-See [Taichi's API reference](https://docs.taichi-lang.org/api/taichi/lang/simt/warp/#module-taichi.lang.simt.warp)
+See [GsTaichi's API reference](https://docs.taichi-lang.org/api/gstaichi/lang/simt/warp/#module-gstaichi.lang.simt.warp)
 for more information on each function.
 
-Here is an example of performing data exchange within a warp in Taichi:
+Here is an example of performing data exchange within a warp in GsTaichi:
 
 
 ```python

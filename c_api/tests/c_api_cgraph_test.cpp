@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "c_api_test_utils.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 void graph_aot_test(TiArch arch) {
@@ -9,7 +9,7 @@ void graph_aot_test(TiArch arch) {
   int base1_val = 20;
   int base2_val = 30;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -52,7 +52,7 @@ void graph_aot_test(TiArch arch) {
 void matrix_aot_test(TiArch arch) {
   uint32_t kArrLen = 1;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -93,7 +93,7 @@ void texture_aot_test(TiArch arch) {
   const uint32_t width = 128;
   const uint32_t height = 128;
 
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;

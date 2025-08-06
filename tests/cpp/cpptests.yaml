@@ -1,6 +1,6 @@
 ---
 - name: C++ Tests
-  binary: ../../build/taichi_cpp_tests
+  binary: ../../build/gstaichi_cpp_tests
   tests:
   - test: LlvmAotTest.CpuKernel
     script: aot/python_scripts/kernel_aot_test1.py
@@ -91,7 +91,7 @@
     args: --arch=opengl --cgraph
 
 - name: C-API Tests
-  binary: ../../build/taichi_c_api_tests
+  binary: ../../build/gstaichi_c_api_tests
   tests: &c-api-tests
   - test: CapiTest.Mpm88TestVulkan
     script: aot/python_scripts/mpm88_graph_aot.py
@@ -120,8 +120,8 @@
   - test: CapiTest.CometTestCuda
     script: aot/python_scripts/comet_aot.py
     args: --arch=cuda
-  - test: CapiTest.TaichiSparseTestCuda
-    script: aot/python_scripts/taichi_sparse_test_.py
+  - test: CapiTest.GsTaichiSparseTestCuda
+    script: aot/python_scripts/gstaichi_sparse_test_.py
   - test: CapiTest.AotTestCpuField
     script: aot/python_scripts/field_aot_test_.py
     args: --arch=cpu
@@ -225,5 +225,5 @@
     markers: [sm70]
 
 - name: C-API Tests (Static binary)
-  binary: ../../build/taichi_static_c_api_tests
+  binary: ../../build/gstaichi_static_c_api_tests
   tests: *c-api-tests

@@ -56,10 +56,10 @@ def setup_ios(python: Command, pip: Command) -> None:
     cmake_args.writeback()
 
 
-@banner("Build Taichi iOS C-API Static Library")
+@banner("Build GsTaichi iOS C-API Static Library")
 def _ios_compile(build_dir: str) -> None:
     """
-    Build the Taichi iOS C-API Static Library
+    Build the GsTaichi iOS C-API Static Library
     """
     rendered = cmake_args.render()
     defines = [i[1] for i in rendered]
@@ -69,13 +69,13 @@ def _ios_compile(build_dir: str) -> None:
     build_path.mkdir(parents=True, exist_ok=True)
 
     cmake("-G", "Xcode", "-B", build_path, *defines, ".")
-    cmake("--build", build_path, "-t", "taichi_c_api")
+    cmake("--build", build_path, "-t", "gstaichi_c_api")
 
 
-@banner("Prelink Taichi iOS C-API Static Library")
+@banner("Prelink GsTaichi iOS C-API Static Library")
 def _ios_prelink(build_dir: str, output: str) -> None:
     build_path = Path(build_dir)
-    capi_build_path = next(build_path.glob("**/taichi_c_api.build"))
+    capi_build_path = next(build_path.glob("**/gstaichi_c_api.build"))
     root_objs = list(capi_build_path.glob("**/*.o"))
 
     pr = lambda s="": print(s, file=sys.stderr, flush=True)
@@ -161,7 +161,7 @@ def _ios_prelink(build_dir: str, output: str) -> None:
             pr(f"    {sym}")
         pr()
 
-    prelinked_obj = build_path / "libtaichi_c_api_prelinked.o"
+    prelinked_obj = build_path / "libgstaichi_c_api_prelinked.o"
     prelinked_obj.unlink(missing_ok=True)
 
     cmd = [
@@ -187,4 +187,4 @@ def _ios_prelink(build_dir: str, output: str) -> None:
 def build_ios() -> None:
     with TemporaryDirectory() as tmpdir:
         _ios_compile(tmpdir)
-        _ios_prelink(tmpdir, "dist/C-API-iOS/libtaichi_c_api.a")
+        _ios_prelink(tmpdir, "dist/C-API-iOS/libgstaichi_c_api.a")

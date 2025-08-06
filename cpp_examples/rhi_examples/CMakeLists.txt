@@ -28,7 +28,7 @@ target_include_directories(${executable_name} SYSTEM
   PUBLIC
     ${PROJECT_SOURCE_DIR}/external/VulkanMemoryAllocator/include
   )
-target_link_libraries(${executable_name} taichi_core glfw)
+target_link_libraries(${executable_name} gstaichi_core glfw)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(${executable_name} "-framework QuartzCore")
 endif()

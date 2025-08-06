@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Operators
 
-Here we present the supported operators in Taichi for both primitive types and
+Here we present the supported operators in GsTaichi for both primitive types and
 compound types such as matrices.
 
 ## Supported operators for primitive types
@@ -25,11 +25,11 @@ compound types such as matrices.
 
 :::note
 
-The `%` operator in Taichi follows the Python style instead of C style,
+The `%` operator in GsTaichi follows the Python style instead of C style,
 e.g.,
 
 ```python
-# In Taichi-scope or Python-scope:
+# In GsTaichi-scope or Python-scope:
 print(2 % 3)   # 2
 print(-2 % 3)  # 1
 ```
@@ -48,7 +48,7 @@ print(ti.raw_mod(3.5, 1.5))  # 0.5
 :::note
 
 Python3 distinguishes `/` (true division) and `//` (floor division), e.g., `1.0 / 2.0 = 0.5`, `1 / 2 = 0.5`, `1 // 2 = 0`,
-`4.2 // 2 = 2`. Taichi follows the same design:
+`4.2 // 2 = 2`. GsTaichi follows the same design:
 
 - **True divisions** on integral types first cast their
   operands to the default floating point type.
@@ -59,7 +59,7 @@ To avoid such implicit casting, you can manually cast your operands to
 desired types, using `ti.cast`. You can control yourself the precision instead of using the default, see
 [Default precisions](global_settings.md#going-high-precision).
 
-Taichi also provides `ti.raw_div` function which performs true division if one of the operands is floating point type
+GsTaichi also provides `ti.raw_div` function which performs true division if one of the operands is floating point type
 and performs floor division if both operands are integral types.
 
 ```python
@@ -110,8 +110,8 @@ cond_expr(10)  # returns 0, a[10] is not evaluated
 ```
 
 
-For element-wise conditional operations on Taichi vectors and matrices,
-Taichi provides `ti.select(cond, a, b)` which **does not** do short-circuit evaluation.
+For element-wise conditional operations on GsTaichi vectors and matrices,
+GsTaichi provides `ti.select(cond, a, b)` which **does not** do short-circuit evaluation.
 ```python {4}
 cond = ti.Vector([1, 0])
 a = ti.Vector([2, 3])
@@ -202,7 +202,7 @@ The range of the returned value is type-specific.
 
 ### Supported atomic operations
 
-In Taichi, augmented assignments (e.g., `x[i] += 1`) are automatically
+In GsTaichi, augmented assignments (e.g., `x[i] += 1`) are automatically
 [atomic](https://en.wikipedia.org/wiki/Fetch-and-add).
 
 :::caution
@@ -227,7 +227,7 @@ def sum():
 
 :::note
 
-When atomic operations are applied to local values, the Taichi compiler
+When atomic operations are applied to local values, the GsTaichi compiler
 will try to demote these operations into their non-atomic counterparts.
 :::
 
@@ -323,6 +323,6 @@ a@a             # @ denotes matrix multiplication
 ```
 
 :::note
-For now, determinant() and inverse() only works in Taichi-scope, and the
+For now, determinant() and inverse() only works in GsTaichi-scope, and the
 size of the matrix must be 1x1, 2x2, 3x3 or 4x4.
 :::

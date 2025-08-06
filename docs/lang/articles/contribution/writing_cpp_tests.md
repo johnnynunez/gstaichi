@@ -9,13 +9,13 @@ We strongly recommend each developer to write C++ unit tests when sending a PR.
 - We use [googletest](https://github.com/google/googletest) as the C++
   test infrastructure.
 - C++ tests should be added to the `tests/cpp/` directory.
-- Make sure your C++ test source file is covered by [this CMake glob](https://github.com/taichi-dev/taichi/blob/fb4741421ca79e971852464ffdf0ff066e667c92/cmake/TaichiTests.cmake#L13-L23).
+- Make sure your C++ test source file is covered by [this CMake glob](https://github.com/taichi-dev/gstaichi/blob/fb4741421ca79e971852464ffdf0ff066e667c92/cmake/GsTaichiTests.cmake#L13-L23).
 
-## Build and run Taichi C++ tests
+## Build and run GsTaichi C++ tests
 
 ```bash
-# build taichi with tests enabled
-TAICHI_CMAKE_ARGS="-DTI_BUILD_TESTS:BOOL=ON" python setup.py develop
+# build gstaichi with tests enabled
+GSTAICHI_CMAKE_ARGS="-DTI_BUILD_TESTS:BOOL=ON" python setup.py develop
 
 # run the C++ test
 python tests/run_tests.py --cpp

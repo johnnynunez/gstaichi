@@ -6,7 +6,7 @@ sidebar_position: 5
 
 High-resolution simulations can deliver great visual quality, but are often limited by the capacity of the onboard memory, GPU memory in particular.
 
-To help reduce the memory footprint of your programs, Taichi provides quantized data types, aka low-precision data types. It allows you to define your own integers, fixed-point numbers, or floating-point numbers with arbitrary number of bits that work best with your limited memory capacity. At the same time, Taichi provides a suite of tailored optimizations to ensure that the runtime performance with quantized data types is comparable to the performance with full-precision data types.
+To help reduce the memory footprint of your programs, GsTaichi provides quantized data types, aka low-precision data types. It allows you to define your own integers, fixed-point numbers, or floating-point numbers with arbitrary number of bits that work best with your limited memory capacity. At the same time, GsTaichi provides a suite of tailored optimizations to ensure that the runtime performance with quantized data types is comparable to the performance with full-precision data types.
 
 :::note
 For now, quantized data types are supported only on the CPU and CUDA backends.
@@ -14,7 +14,7 @@ For now, quantized data types are supported only on the CPU and CUDA backends.
 
 ## Quantized data types
 
-Taichi supports the following quantized data types:
+GsTaichi supports the following quantized data types:
 
 - Quantized integers
 - Quantized fixed-point numbers
@@ -22,7 +22,7 @@ Taichi supports the following quantized data types:
 
 ### Quantized integers
 
-Quantized integers in Taichi are represented in the [two's complement](https://en.wikipedia.org/wiki/Two's_complement) format but can contain arbitrary number of bits.
+Quantized integers in GsTaichi are represented in the [two's complement](https://en.wikipedia.org/wiki/Two's_complement) format but can contain arbitrary number of bits.
 
 - To define a 10-bit signed integer type:
 
@@ -40,7 +40,7 @@ u5 = ti.types.quant.int(bits=5, signed=False)
 
 The core idea of [fixed-point numbers](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) is that, if a specific range is evenly divided into multiple scale units, then a real number within that range can be approximated and represented by multiplying the value of each scale unit by an integer number. Here's an example explaining what the *scale unit* here is: If you wish to represent a real number within [0, 100] in 10 binary bits, then each *scale unit* equals 100/2<sup>10</sup> &asymp; 0.098.
 
-Taichi allows you to define quantized fixed-point types of less than 64 bits and with an arbitrary scale unit.
+GsTaichi allows you to define quantized fixed-point types of less than 64 bits and with an arbitrary scale unit.
 
 - To define a 10-bit signed fixed-point type within the range [-20.0, 20.0]:
 
@@ -60,7 +60,7 @@ fixed_type_b = ti.types.quant.fixed(bits=5, signed=False, max_value=100.0)
 fixed_type_c = ti.types.quant.fixed(bits=6, signed=False, scale=1.0)  # `scale` is a predefined scaling factor
 ```
 
-> Set either `scale` or `max_value`, and Taichi works out the other based on your setting. Do *not* set both.
+> Set either `scale` or `max_value`, and GsTaichi works out the other based on your setting. Do *not* set both.
 > `max_value` is a more commonly used parameter, because you may already know the range of the number to represent.
 
 ### Quantized floating-point numbers
@@ -69,7 +69,7 @@ A [floating-point number](https://en.wikipedia.org/wiki/Floating-point_arithmeti
 
 ![image](../static/assets/floating-point_formats.png)
 
-Taichi allows you to define a *quantized floating-point number* with an arbitrary combination of exponent bits and fraction bits (the sign bit is made part of the fraction bits).
+GsTaichi allows you to define a *quantized floating-point number* with an arbitrary combination of exponent bits and fraction bits (the sign bit is made part of the fraction bits).
 
 - To define a 15-bit signed floating-point type with five exponent bits:
 
@@ -100,7 +100,7 @@ bfloat16 = ti.types.quant.float(exp=8, frac=8, compute=ti.f32)
 
 ## Data containers for quantized data types
 
-Quantized data types are not primitive types and hence require the following constructs to work with Taichi's data containers.
+Quantized data types are not primitive types and hence require the following constructs to work with GsTaichi's data containers.
 
 - Bitpacked fields
 - Quant arrays
@@ -135,10 +135,10 @@ exponent.
 
 #### Your first program
 
-You probably cannot wait to write your first Taichi program with quantized data
+You probably cannot wait to write your first GsTaichi program with quantized data
 types. The easiest way is to modify the data definitions of an existing example.
 Assume you want to save memory for
-[examples/simulation/euler.py](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/simulation/euler.py).
+[examples/simulation/euler.py](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/simulation/euler.py).
 Because most data definitions in the example are similar, here only field `Q` is
 used for illustration:
 
@@ -160,7 +160,7 @@ ti.root.dense(ti.ij, (N, N)).place(bitpack)
 ```
 
 Surprisingly, you find that there is no obvious difference in visual effects
-after the change, and you now successfully finish a Taichi program with
+after the change, and you now successfully finish a GsTaichi program with
 quantized data types! More attempts are left to you.
 
 #### More complicated quantization schemes
@@ -225,7 +225,7 @@ must be less than or equal to the `max_num_bits` of the `quant_array`.
 
 #### Bit vectorization
 
-For quant arrays of 1-bit quantized integer types ("boolean"), Taichi provides
+For quant arrays of 1-bit quantized integer types ("boolean"), GsTaichi provides
 an additional optimization - bit vectorization. It aims at vectorizing
 operations on such quant arrays under struct fors:
 
@@ -250,17 +250,17 @@ assign_vectorized()
 ## Reference examples
 
 The following examples are from the
-[QuanTaichi paper](https://yuanming.taichi.graphics/publication/2021-quantaichi/quantaichi.pdf),
+[QuanGsTaichi paper](https://yuanming.gstaichi.graphics/publication/2021-quangstaichi/quangstaichi.pdf),
 so you can dig into details there.
 
-### [Game of Life](https://github.com/taichi-dev/quantaichi/tree/main/gol)
+### [Game of Life](https://github.com/taichi-dev/quangstaichi/tree/main/gol)
 
-![image](https://github.com/taichi-dev/quantaichi/raw/main/pics/teaser_gol.jpg)
+![image](https://github.com/taichi-dev/quangstaichi/raw/main/pics/teaser_gol.jpg)
 
-### [Eulerian Fluid](https://github.com/taichi-dev/quantaichi/tree/main/eulerian_fluid)
+### [Eulerian Fluid](https://github.com/taichi-dev/quangstaichi/tree/main/eulerian_fluid)
 
-![image](https://github.com/taichi-dev/quantaichi/raw/main/pics/smoke_result.png)
+![image](https://github.com/taichi-dev/quangstaichi/raw/main/pics/smoke_result.png)
 
-### [MLS-MPM](https://github.com/taichi-dev/taichi_elements/blob/master/demo/demo_quantized_simulation_letters.py)
+### [MLS-MPM](https://github.com/taichi-dev/gstaichi_elements/blob/master/demo/demo_quantized_simulation_letters.py)
 
-![image](https://github.com/taichi-dev/quantaichi/raw/main/pics/mpm-235.jpg)
+![image](https://github.com/taichi-dev/quangstaichi/raw/main/pics/mpm-235.jpg)

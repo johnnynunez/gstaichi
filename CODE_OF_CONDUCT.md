@@ -1,4 +1,4 @@
-# Taichi community Code of Conduct
+# GsTaichi community Code of Conduct
 
 ## Introduction
 
@@ -10,7 +10,7 @@
 
 ### Empathetic
 
-Most Taichi contributors have their main jobs. Please be considerate of others, who may live in different time zones with their own lifestyles. Please think of code reviews as a limited resource and use it wisely: the more concise and polished a PR is, the sooner it will get reviewed and merged.
+Most GsTaichi contributors have their main jobs. Please be considerate of others, who may live in different time zones with their own lifestyles. Please think of code reviews as a limited resource and use it wisely: the more concise and polished a PR is, the sooner it will get reviewed and merged.
 
 ### Modest
 
@@ -39,6 +39,6 @@ Intimidation or harassment (online or in-person).
 ## Enforcement
 
 - Understand that speech and actions have consequences, and unacceptable behavior will not be tolerated.
-- If you are the subject of, or witness to any violations of this Code of Conduct, please contact us via email at community@taichi.graphics
+- If you are the subject of, or witness to any violations of this Code of Conduct, please contact us via email at community@gstaichi.graphics
 - If violations occur, organizers will take any action they deem appropriate for the infraction, up to and including expulsion.
 - Portions derived from [Slack Developer Community Code of Conduct](https://api.slack.com/community/code-of-conduct) under a Creative Commons [Attribution-ShareAlike](https://creativecommons.org/licenses/by-sa/3.0/) license.

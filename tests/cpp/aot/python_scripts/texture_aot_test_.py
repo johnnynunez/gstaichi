@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_aot(arch, is_graph):
@@ -36,8 +36,8 @@ def compile_aot(arch, is_graph):
             value1 = tex1.fetch(ti.Vector([i, j]), 0)
             arr[i, j] = value0.x + value1.x
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    tmpdir = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    tmpdir = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     mod = ti.aot.Module()
     if is_graph:

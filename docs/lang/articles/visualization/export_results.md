@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Export Your Results
 
-Taichi has functions that help you **export visual results to images or
+GsTaichi has functions that help you **export visual results to images or
 videos**. This tutorial demonstrates how to use them step by step.
 
 ## Export images
@@ -12,7 +12,7 @@ videos**. This tutorial demonstrates how to use them step by step.
 - There are two ways to export visual results of your program to
   images.
 - The first and easier way is to make use of `ti.GUI`.
-- The second way is to call some Taichi functions such as
+- The second way is to call some GsTaichi functions such as
   `ti.tools.imwrite`.
 
 ### Export images using `ti.GUI.show`
@@ -21,11 +21,11 @@ videos**. This tutorial demonstrates how to use them step by step.
   screen, but also save the image to your specified `filename`.
 - Note that the format of the image is fully determined by the suffix
   of `filename`.
-- Taichi now supports saving to `png`, `jpg`, and `bmp` formats.
+- GsTaichi now supports saving to `png`, `jpg`, and `bmp` formats.
 - We recommend using `png` format. For example:
 
 ```python {23}
-import taichi as ti
+import gstaichi as ti
 import os
 
 ti.init()
@@ -58,7 +58,7 @@ To save images without invoking `ti.GUI.show(filename)`, use
 `ti.tools.imwrite(filename)`. For example:
 
 ```python {14}
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 
@@ -75,7 +75,7 @@ ti.tools.imwrite(pixels.to_numpy(), filename)
 print(f'The image has been saved to {filename}')
 ```
 
-- `ti.tools.imwrite` can export Taichi fields (`ti.Matrix.field`,
+- `ti.tools.imwrite` can export GsTaichi fields (`ti.Matrix.field`,
   `ti.Vector.field`, `ti.field`) and numpy arrays `np.ndarray`.
 - Same as above `ti.GUI.show(filename)`, the image format (`png`,
   `jpg` and `bmp`) is also controlled by the suffix of `filename` in
@@ -89,13 +89,13 @@ print(f'The image has been saved to {filename}')
   field should have a shape `(w, h, 3)` or `(w, h, 4)` respectively.
 
 :::note
-All Taichi fields have their own data types, such as `ti.u8` and
+All GsTaichi fields have their own data types, such as `ti.u8` and
 `ti.f32`. Different data types can lead to different behaviors of
 `ti.tools.imwrite`. Please check out [GUI system](./gui_system.md) for
 more details.
 :::
 
-- Taichi offers other helper functions that read and show images in
+- GsTaichi offers other helper functions that read and show images in
   addition to `ti.tools.imwrite`. They are also demonstrated in
   [GUI system](./gui_system.md).
 
@@ -116,7 +116,7 @@ Use `ti video -f40` for creating a video with 40 FPS.
 ## Export videos
 
 :::note
-The video export utilities of Taichi depend on `ffmpeg`. If `ffmpeg` is
+The video export utilities of GsTaichi depend on `ffmpeg`. If `ffmpeg` is
 not installed on your machine, please follow the installation
 instructions of `ffmpeg` at the end of this page.
 :::
@@ -125,7 +125,7 @@ instructions of `ffmpeg` at the end of this page.
   format. For example,
 
 ```python {13,24}
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 
@@ -227,7 +227,7 @@ brew install ffmpeg
   with vertices randomly colored,
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 
 ti.init(arch=ti.cpu)

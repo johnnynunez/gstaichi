@@ -1,17 +1,17 @@
 #include "gtest/gtest.h"
-#include "taichi/ir/ir_builder.h"
-#include "taichi/ir/statements.h"
-#include "taichi/inc/constants.h"
-#include "taichi/program/program.h"
+#include "gstaichi/ir/ir_builder.h"
+#include "gstaichi/ir/statements.h"
+#include "gstaichi/inc/constants.h"
+#include "gstaichi/program/program.h"
 #include "tests/cpp/program/test_program.h"
-#include "taichi/aot/graph_data.h"
+#include "gstaichi/aot/graph_data.h"
 #include "tests/cpp/ir/ndarray_kernel.h"
-#include "taichi/program/graph_builder.h"
+#include "gstaichi/program/graph_builder.h"
 #ifdef TI_WITH_VULKAN
-#include "taichi/rhi/vulkan/vulkan_loader.h"
+#include "gstaichi/rhi/vulkan/vulkan_loader.h"
 #endif
 
-using namespace taichi;
+using namespace gstaichi;
 using namespace lang;
 #ifdef TI_WITH_VULKAN
 TEST(GraphTest, SimpleGraphRun) {

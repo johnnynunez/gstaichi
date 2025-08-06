@@ -9,7 +9,7 @@ sidebar_position: 2
 | OS           | Windows / Linux / Mac OS X |
 | Backend      | x64 / CUDA / Vulkan        |
 
-Starting from v0.8.0, Taichi adds a new UI system GGUI. The new system uses GPU for rendering, making it much faster to render 3D scenes. That is why this new system gets its name as GGUI. This document describes the APIs that it provides.
+Starting from v0.8.0, GsTaichi adds a new UI system GGUI. The new system uses GPU for rendering, making it much faster to render 3D scenes. That is why this new system gets its name as GGUI. This document describes the APIs that it provides.
 
 :::caution IMPORTANT
 If you choose Vulkan as backend, ensure that you [install the Vulkan environment](https://vulkan.lunarg.com/sdk/home).
@@ -75,7 +75,7 @@ canvas.lines(vertices, width, indices, color, per_vertex_color)
 canvas.set_image(window.get_image_buffer_as_numpy())
 ```
 
-The arguments `vertices`, `indices`, `per_vertex_color`, and `image` must be Taichi fields. If `per_vertex_color` is provided, `color` is ignored.
+The arguments `vertices`, `indices`, `per_vertex_color`, and `image` must be GsTaichi fields. If `per_vertex_color` is provided, `color` is ignored.
 
 The positions/centers of geometries are represented as floats between `0.0` and `1.0`, which indicate the relative positions of the geometries on the canvas. For `circles()` and `lines()`, the `radius` and `width` arguments are relative to the height of the window.
 
@@ -120,7 +120,7 @@ scene.mesh(vertices_3d, indices, normals, color, per_vertex_color)
 scene.particles(vertices_3d, radius, color, per_vertex_color)
 ```
 
-The arguments `vertices`, `indices`, `per_vertex_color`, and `image` are all expected to be Taichi fields. If `per_vertex_color` is provided, `color` is ignored.
+The arguments `vertices`, `indices`, `per_vertex_color`, and `image` are all expected to be GsTaichi fields. If `per_vertex_color` is provided, `color` is ignored.
 
 The positions/centers of geometries should be in the world-space coordinates.
 
@@ -135,7 +135,7 @@ If a mesh has `num` triangles, the `indices` should be a 1D scalar field with a 
 1. An example of drawing 3d-lines
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init(arch=ti.cuda)
 
@@ -227,7 +227,7 @@ scene.mesh(
 2. An example of drawing part of lines
 
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init(arch=ti.cuda)
 
@@ -347,7 +347,7 @@ while window.running:
 
 If `indices` is not provided, consider using like this:
 
-```python preludes:vars skip-ci:Taichi-Bug
+```python preludes:vars skip-ci:GsTaichi-Bug
 scene = window.get_scene()
 scene.mesh(vertices_3d, normals, color, per_vertex_color, vertex_offset=0, vertex_count=50, show_wireframe=True)
 ```
@@ -379,7 +379,7 @@ depth = window.get_depth_buffer_as_numpy()
 ```
 
 After rendering the current scene, you can fetch the color and depth information of the current scene using `get_image_buffer_as_numpy()` and `get_depth_buffer_as_numpy()`, which copy the gpu data to a NumPy array(cpu).
-`get_depth_buffer()` copies the GPU data to a Taichi field (depend on the `arch` you choose) or copies data from GPU to GPU.
+`get_depth_buffer()` copies the GPU data to a GsTaichi field (depend on the `arch` you choose) or copies data from GPU to GPU.
 
 :::example
 
@@ -468,7 +468,7 @@ To check if a key is pressed:
 
 - `window.is_pressed(key)`
 
-The following is a user input processing example from [**mpm128**](https://github.com/taichi-dev/taichi/blob/master/python/taichi/examples/ggui_examples/mpm128_ggui.py):
+The following is a user input processing example from [**mpm128**](https://github.com/taichi-dev/gstaichi/blob/master/python/gstaichi/examples/ggui_examples/mpm128_ggui.py):
 
 ```python cont
 gravity = ti.Vector.field(2, ti.f32, shape=())

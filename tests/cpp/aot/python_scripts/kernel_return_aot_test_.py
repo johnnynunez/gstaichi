@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_kernel_return_aot(arch):
@@ -13,8 +13,8 @@ def compile_kernel_return_aot(arch):
     def test_ret() -> s:
         return s(1, ti.math.vec3([2, 3, 4]))
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     m = ti.aot.Module()
 

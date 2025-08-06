@@ -1,5 +1,5 @@
 #pragma once
-#include "taichi_core_impl.h"
+#include "gstaichi_core_impl.h"
 
 namespace capi {
 namespace utils {

@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import taichi as ti
-from taichi.lang.misc import get_host_arch_list
+import gstaichi as ti
+from gstaichi.lang.misc import get_host_arch_list
 from tests import test_utils
 
 
@@ -74,7 +74,7 @@ def test_set_image_fast_gui_with_offset(channel, dtype, color, offset):
     fast_image = gui.img
 
     alpha = 0xFF << 24
-    from taichi._lib.utils import get_os_name  # pylint: disable=C0415
+    from gstaichi._lib.utils import get_os_name  # pylint: disable=C0415
 
     rgb_color = (
         (color << 16) + (color << 8) + color

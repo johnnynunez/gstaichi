@@ -5,9 +5,9 @@ sidebar_position: 1
 
 # Fields
 
-The term _field_ is borrowed from mathematics and physics. If you already know [scalar field](https://en.wikipedia.org/wiki/Scalar_field) (for example heat field), or vector field (for example [gravitational field](https://en.wikipedia.org/wiki/Gravitational_field)), then it is easy for you to understand fields in Taichi.
+The term _field_ is borrowed from mathematics and physics. If you already know [scalar field](https://en.wikipedia.org/wiki/Scalar_field) (for example heat field), or vector field (for example [gravitational field](https://en.wikipedia.org/wiki/Gravitational_field)), then it is easy for you to understand fields in GsTaichi.
 
-Fields in Taichi are the _global_ data containers, which can be accessed from both the Python scope and the Taichi scope. Just like an ndarray in NumPy or a tensor in PyTorch, a field in Taichi is defined as a multi-dimensional array of elements, and elements in a field can be a Scalar, a Vector, a Matrix, or a Struct.
+Fields in GsTaichi are the _global_ data containers, which can be accessed from both the Python scope and the GsTaichi scope. Just like an ndarray in NumPy or a tensor in PyTorch, a field in GsTaichi is defined as a multi-dimensional array of elements, and elements in a field can be a Scalar, a Vector, a Matrix, or a Struct.
 
 ## Scalar fields
 
@@ -91,14 +91,14 @@ Scalar fields of higher dimensions can be similarly defined.
 
 :::caution WARNING
 
-Taichi only supports fields of dimensions &le; 8.
+GsTaichi only supports fields of dimensions &le; 8.
 
 :::
 
 
 ### Accessing elements in a scalar field
 
-Once a field is declared, Taichi automatically initializes its elements to zero.
+Once a field is declared, GsTaichi automatically initializes its elements to zero.
 
 To access an element in a scalar field, you need to explicitly specify the element's index.
 
@@ -174,7 +174,7 @@ When accessing a 0D field `x`, use `x[None] = 0`, *not* `x = 0`.
 You can use a 2D scalar field to represent a 2D grid of values. The following code snippet creates and displays a 640&times;480 gray scale image of randomly-generated values:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init(arch=ti.cpu)
 
 width, height = 640,480
@@ -197,7 +197,7 @@ while gui.running:
 
 :::caution WARNING
 
-Taichi fields do not support slicing. Neither of the following usages are correct:
+GsTaichi fields do not support slicing. Neither of the following usages are correct:
 
 ```python skip-ci:NegativeExample
 for x in f_2d[0]:  # Error! You tried to access its first row，but it is not supported
@@ -361,7 +361,7 @@ To access the 0D matrix field `x = ti.Matrix.field(n=3, m=4, dtype=ti.f32, shape
 Matrix operations are unrolled at compile time. Take a look at the following example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 a = ti.Matrix.field(n=2, m=3, dtype=ti.f32, shape=(2, 2))
@@ -423,7 +423,7 @@ particle_field = ti.Struct.field({
 Besides *directly* using `ti.Struct.field()`, you can first declare a compound type `particle` and then create a field of it:
 
 ```python
-# vec3 is a built-in vector type suppied in the `taichi.math` module
+# vec3 is a built-in vector type suppied in the `gstaichi.math` module
 vec3 = ti.math.vec3
 n = 10
 # Declares a struct comprising three vectors and one floating-point number

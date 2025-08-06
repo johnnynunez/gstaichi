@@ -1,10 +1,10 @@
-#include "taichi/ir/ir_builder.h"
-#include "taichi/ir/statements.h"
-#include "taichi/program/program.h"
+#include "gstaichi/ir/ir_builder.h"
+#include "gstaichi/ir/statements.h"
+#include "gstaichi/program/program.h"
 
 int main() {
   /*
-  import taichi as ti, numpy as np
+  import gstaichi as ti, numpy as np
   ti.init()
 
   n = 10
@@ -38,7 +38,7 @@ int main() {
   print(b.grad)
   print(c.to_numpy())
   */
-  using namespace taichi;
+  using namespace gstaichi;
   using namespace lang;
 
   auto program = Program(host_arch());
@@ -187,11 +187,11 @@ int main() {
   auto ctx_backward = kernel_backward->make_launch_context();
   auto ctx_ext = kernel_ext->make_launch_context();
   std::vector<float> ext_a(n), ext_b(n), ext_c(n);
-  ctx_ext.set_arg_external_array_with_shape({0}, taichi::uint64(ext_a.data()),
+  ctx_ext.set_arg_external_array_with_shape({0}, gstaichi::uint64(ext_a.data()),
                                             n, {n});
-  ctx_ext.set_arg_external_array_with_shape({1}, taichi::uint64(ext_b.data()),
+  ctx_ext.set_arg_external_array_with_shape({1}, gstaichi::uint64(ext_b.data()),
                                             n, {n});
-  ctx_ext.set_arg_external_array_with_shape({2}, taichi::uint64(ext_c.data()),
+  ctx_ext.set_arg_external_array_with_shape({2}, gstaichi::uint64(ext_c.data()),
                                             n, {n});
 
   {

@@ -1,9 +1,9 @@
 // Note: this is not really a test case.
 
-#include "taichi/gui/gui.h"
-#include "taichi/common/task.h"
+#include "gstaichi/gui/gui.h"
+#include "gstaichi/common/task.h"
 
-namespace taichi {
+namespace gstaichi {
 
 auto test_gui = []() {
   // GUI gui("GUI Test", 1000, 400, false);
@@ -47,4 +47,4 @@ auto test_gui = []() {
 
 TI_REGISTER_TASK(test_gui);
 
-}  // namespace taichi
+}  // namespace gstaichi

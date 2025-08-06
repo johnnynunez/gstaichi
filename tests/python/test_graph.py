@@ -3,8 +3,8 @@ import platform
 import numpy as np
 import pytest
 
-import taichi as ti
-from taichi.lang.exception import TaichiCompilationError
+import gstaichi as ti
+from gstaichi.lang.exception import GsTaichiCompilationError
 from tests import test_utils
 
 supported_floating_types = [ti.f32] if platform.system() == "Darwin" else [ti.f32, ti.f64]
@@ -90,7 +90,7 @@ def test_arg_mismatched_ndim():
 
     sym_pos = ti.graph.Arg(ti.graph.ArgKind.NDARRAY, "pos", ti.f32, ndim=2)
     g_init = ti.graph.GraphBuilder()
-    with pytest.raises(TaichiCompilationError, match="doesn't match kernel's annotated ndim"):
+    with pytest.raises(GsTaichiCompilationError, match="doesn't match kernel's annotated ndim"):
         g_init.dispatch(test, sym_pos)
 
 
@@ -148,7 +148,7 @@ def test_arg_mismatched_scalar_dtype():
     sym_pos = ti.graph.Arg(ti.graph.ArgKind.NDARRAY, "pos", ti.f32, 1)
     sym_val = ti.graph.Arg(ti.graph.ArgKind.SCALAR, "val", ti.i32)
     g_init = ti.graph.GraphBuilder()
-    with pytest.raises(TaichiCompilationError, match="doesn't match kernel's annotated dtype"):
+    with pytest.raises(GsTaichiCompilationError, match="doesn't match kernel's annotated dtype"):
         g_init.dispatch(test, sym_pos, sym_val)
 
 
@@ -163,7 +163,7 @@ def test_arg_mismatched_ndarray_dtype():
 
     sym_pos = ti.graph.Arg(ti.graph.ArgKind.NDARRAY, "pos", ti.i32, 1)
     g_init = ti.graph.GraphBuilder()
-    with pytest.raises(TaichiCompilationError, match="doesn't match kernel's annotated dtype"):
+    with pytest.raises(GsTaichiCompilationError, match="doesn't match kernel's annotated dtype"):
         g_init.dispatch(test, sym_pos)
 
 

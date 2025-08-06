@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Data-Oriented Class
 
-To define a Taichi kernel as a Python class member function:
+To define a GsTaichi kernel as a Python class member function:
 
 1. Decorate the class with a `@ti.data_oriented` decorator.
 2. Define `ti.kernel`s and `ti.func`s in your Data-Oriented Python class.
@@ -30,10 +30,10 @@ a = TiArray(32)
 a.inc()
 ```
 
-Definitions of Taichi fields can be made not only in _init_ functions, but also at any place of a Python-scope function in a Data-Oriented class.
+Definitions of GsTaichi fields can be made not only in _init_ functions, but also at any place of a Python-scope function in a Data-Oriented class.
 
 ```python {21,25}
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 
@@ -67,7 +67,7 @@ print(a.temp)  # will print [1 1 1 1 1 1 1 1]
 
 Another memory recycling example:
 ```python known-error
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 
@@ -103,11 +103,11 @@ To know more about `FieldsBuilder`, please refer to [FieldsBuilder](https://docs
 
 ## Inheritance of Data-Oriented classes
 
-The Data-Oriented property is automatically carried along with the Python class inheritance. This implies that you can call a Taichi Kernel if any of its ancestor classes is decorated with `@ti.data_oriented`, which is shown in the example below:
+The Data-Oriented property is automatically carried along with the Python class inheritance. This implies that you can call a GsTaichi Kernel if any of its ancestor classes is decorated with `@ti.data_oriented`, which is shown in the example below:
 
 An example:
 ```python
-import taichi as ti
+import gstaichi as ti
 
 ti.init(arch=ti.cuda)
 
@@ -158,7 +158,7 @@ c = BaseClass()
 
 ## Python built-in decorators
 
-Common decorators that are pre-built in Python, `@staticmethod`[^1] and `@classmethod`[^2], can decorate a Taichi kernel in Data-Oriented classes.
+Common decorators that are pre-built in Python, `@staticmethod`[^1] and `@classmethod`[^2], can decorate a GsTaichi kernel in Data-Oriented classes.
 
 [^1]: [Python built-in functions - staticmethod](https://docs.python.org/3/library/functions.html#staticmethod)
 [^2]: [Python built-in functions - classmethod](https://docs.python.org/3/library/functions.html#classmethod)
@@ -167,7 +167,7 @@ Common decorators that are pre-built in Python, `@staticmethod`[^1] and `@classm
 `staticmethod` example:
 
 ```python {16}
-import taichi as ti
+import gstaichi as ti
 
 ti.init()
 
@@ -184,7 +184,7 @@ class Array2D:
 
 `classmethod` example:
 ```python {12}
-import taichi as ti
+import gstaichi as ti
 
 ti.init(arch=ti.cuda)
 

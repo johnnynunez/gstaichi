@@ -2,18 +2,18 @@
 sidebar_position: 4
 ---
 
-# Accelerate PyTorch with Taichi
+# Accelerate PyTorch with GsTaichi
 
-Taichi and Torch serve different application scenarios but can complement each other.
+GsTaichi and Torch serve different application scenarios but can complement each other.
 
-- Taichi provides finer control over parallelization and enables more 'granular' (element-level) operations, giving its users much more flexibilities.
+- GsTaichi provides finer control over parallelization and enables more 'granular' (element-level) operations, giving its users much more flexibilities.
 - Torch abstracts such details into Tensor-level operations like LEGO bricks, enabling its users to focus on building ML (Machine Learning) models.
 
-This document uses two examples to explain how to use Taichi kernel to implement data preprocessing operators and custom high-performance ML operators.
+This document uses two examples to explain how to use GsTaichi kernel to implement data preprocessing operators and custom high-performance ML operators.
 
 ## Data preprocessing
 
-This section uses padding as an example to show you how Taichi can complement PyTorch in data preprocessing.
+This section uses padding as an example to show you how GsTaichi can complement PyTorch in data preprocessing.
 
 Padding is a commonly-used data preprocessing technique in machine learning. For example, padding can prevent convolution operations from changing the size of the input image. However, no PyTorch operators are designed specifically for padding in a specific customized pattern. Previously, you have two options to work around this:
 
@@ -22,9 +22,9 @@ Padding is a commonly-used data preprocessing technique in machine learning. For
 
 The former has very poor efficiency and could become a drain of the neural network training performance; the latter requires large amount of domain-specific knowledge about the underlying hardware architectures and it could take a long while to get started.
 
-Now, you can use Taichi to pad a brick wall of a specific customized pattern in a much more efficient way.
+Now, you can use GsTaichi to pad a brick wall of a specific customized pattern in a much more efficient way.
 
-The following sections compare PyTorch's implementation of this workflow with Taichi's implementation:
+The following sections compare PyTorch's implementation of this workflow with GsTaichi's implementation:
 
 1. Create a 'brick' and fill it with changing colors.
 
@@ -63,11 +63,11 @@ with Timer():
     torch.cuda.synchronize(device=device)
 ```
 
-### Padding with Taichi
+### Padding with GsTaichi
 
-The following code implements a Taichi kernel `ti_pad()` for padding. The kernel iterates over the pixels in the output image, works out each pixel's corresponding position in the input 'brick', and fills the pixel with the RGB color in that position.
+The following code implements a GsTaichi kernel `ti_pad()` for padding. The kernel iterates over the pixels in the output image, works out each pixel's corresponding position in the input 'brick', and fills the pixel with the RGB color in that position.
 
-Taichi automatically runs the top-level for-loops in parallel, and matrix operations written in Taichi are much more readable. Moreover, as you can tell from the following code, `ti_pad()` takes in the PyTorch tensors directly so that it can reuse the memory allocated by PyTorch and would not cause extra overhead from the data transfer between the two frameworks.
+GsTaichi automatically runs the top-level for-loops in parallel, and matrix operations written in GsTaichi are much more readable. Moreover, as you can tell from the following code, `ti_pad()` takes in the PyTorch tensors directly so that it can reuse the memory allocated by PyTorch and would not cause extra overhead from the data transfer between the two frameworks.
 
 ```python
 @ti.kernel
@@ -90,9 +90,9 @@ with Timer():
 
 ### Performance comparison
 
-As the following table shows, the PyTorch kernel takes 30.392 ms[1] to complete padding; the Taichi kernel takes 0.267 ms only. Taichi outruns PyTorch by more than 100x (30.392/0.267).
+As the following table shows, the PyTorch kernel takes 30.392 ms[1] to complete padding; the GsTaichi kernel takes 0.267 ms only. GsTaichi outruns PyTorch by more than 100x (30.392/0.267).
 
-`torch_pad()` launches 58 CUDA kernels, whilst Taichi compiles all computation into one CUDA kernel. The fewer the CUDA kernels, the less GPU launch overhead is incurred. Moreover, the Taichi kernel manages to save a lot more redundant memory operations than the PyTorch kernel. The GPU launch overhead and the redundant memory operations are the potential source for optimization and acceleration.
+`torch_pad()` launches 58 CUDA kernels, whilst GsTaichi compiles all computation into one CUDA kernel. The fewer the CUDA kernels, the less GPU launch overhead is incurred. Moreover, the GsTaichi kernel manages to save a lot more redundant memory operations than the PyTorch kernel. The GPU launch overhead and the redundant memory operations are the potential source for optimization and acceleration.
 
 | Kernel function  | Average time (ms)  | CUDA kernels launched (number)  |
 | :--------------- | :----------------- | :------------------------------ |
@@ -100,7 +100,7 @@ As the following table shows, the PyTorch kernel takes 30.392 ms[1] to complete 
 | `ti_pad()`       | 0.267              | 1                               |
 
 > - GPU: RTX3090
-> - PyTorch version: v1.12.1; Taichi version: v1.1.0
+> - PyTorch version: v1.12.1; GsTaichi version: v1.1.0
 > - The actual acceleration rate may vary depending on your implementation and GPU setup.
 
 ## Customize ML operators
@@ -109,7 +109,7 @@ Researchers in machine learning usually spend a lot of time designing model arch
 
 [This repo](https://github.com/BlinkDL/RWKV-CUDA) introduces an example of customizing an ML operator in CUDA. The author developed an RWKV language model using sort of a one-dimensional depthwise convolution custom operator. The model does not involve much computation but still runs slow because PyTorch does not have native support for it.  So, the author customized the operator in CUDA using a set of optimization techniques, such as loop fusion and Shared Memory, and achieved a performance 20x better than he did with PyTorch.
 
-Referring to the CUDA code[^3], we customized a Taichi depthwise convolution operator[^4] in the RWKV model using the same optimization techniques.
+Referring to the CUDA code[^3], we customized a GsTaichi depthwise convolution operator[^4] in the RWKV model using the same optimization techniques.
 
 The function of the depth wise convolution operator:
 
@@ -117,14 +117,14 @@ The function of the depth wise convolution operator:
 2. Adds up the product of the respective elements in `w` and `k` into `s`,
 3. Saves `s` to an output Tensor `out`.
 
-The following subsections take the Baseline implementations as an example to show you how to implement a depthwise convolution operator with Python, PyTorch, CUDA, and Taichi, and how they compare to each other. With Taichi, you can accelerate your ML model development with ease and get rid of the tedious low-level parallel programming.
+The following subsections take the Baseline implementations as an example to show you how to implement a depthwise convolution operator with Python, PyTorch, CUDA, and GsTaichi, and how they compare to each other. With GsTaichi, you can accelerate your ML model development with ease and get rid of the tedious low-level parallel programming.
 
 |  Implementation |  Readability |  Performance                               |
 | :-------------- | :----------- | :----------------------------------------- |
 | Python          | Excellent    | The slowest                                |
 | PyTorch         | Poor         | Slow                                       |
 | CUDA            | Poor         | Fast                                       |
-| Taichi          | Excellent    | Comparable to that of CUDA or even better  |
+| GsTaichi          | Excellent    | Comparable to that of CUDA or even better  |
 
 ### Implement a depthwise convolution operator with Python
 
@@ -173,13 +173,13 @@ __global__ void kernel_forward(const float* w, const float* k, float* x,
 
 Further, you need a proper compile environment to run your CUDA code! If you have precompiled your CUDA code into a dynamic link library, then you also need to spend time working hard on trivial matters such as environment settings and Python API encapsulation.
 
-### Implement a depthwise convolution operator with Taichi
+### Implement a depthwise convolution operator with GsTaichi
 
-The Taichi reference code is almost identical to its Python counterpart. And a good advantage that Taichi has over CUDA is that, without worrying about low-level details like parallelization and pointer offsets, one can easily use Taichi to achieve comparable performance.
+The GsTaichi reference code is almost identical to its Python counterpart. And a good advantage that GsTaichi has over CUDA is that, without worrying about low-level details like parallelization and pointer offsets, one can easily use GsTaichi to achieve comparable performance.
 
 ```python
 @ti.kernel
-def taichi_forward_v0(
+def gstaichi_forward_v0(
         out: ti.types.ndarray(ndim=3),
         w: ti.types.ndarray(ndim=3),
         k: ti.types.ndarray(ndim=3),
@@ -194,7 +194,7 @@ def taichi_forward_v0(
 
 ### Performance comparison
 
-The following diagram shows that Taichi always shows a performance that is comparable to its CUDA counterpart or even better under certain circumstances.
+The following diagram shows that GsTaichi always shows a performance that is comparable to its CUDA counterpart or even better under certain circumstances.
 
 ![comparison](https://user-images.githubusercontent.com/93570324/191012778-99408533-c3a2-4868-a750-e853a63d2697.png)
 
@@ -206,18 +206,18 @@ The following diagram shows that Taichi always shows a performance that is compa
 
 PyTorch is efficient in handling a large proportion of computation tasks in machine learning. Still, there are niches and needs that it falls short of addressing, such as native support for many operators and unsatisfactory runtime performance.
 
-As a high-performance programming language embedded in Python, Taichi features:
+As a high-performance programming language embedded in Python, GsTaichi features:
 
 - Easy readability,
 - Optimized memory consumption,
 - Runtime performance comparable to that of CUDA,
 - Good portability that encourages reproducible code sharing among the community.
 
-All these features set Taichi apart as a convenient tool for ML operator customization.The two examples provided in this document give you a glimpse of how Taichi and PyTorch can complement each other to solve real-world high-performance programming issues.
+All these features set GsTaichi apart as a convenient tool for ML operator customization.The two examples provided in this document give you a glimpse of how GsTaichi and PyTorch can complement each other to solve real-world high-performance programming issues.
 
 ## Reference
 
 [^1] [Pure PyTorch padding](https://github.com/ailzhang/blog_code/blob/master/tile/demo_torch.py)
-[^2] [Padding PyTorch tensor in Taichi kernel](https://github.com/ailzhang/blog_code/blob/master/tile/demo_taichi.py)
+[^2] [Padding PyTorch tensor in GsTaichi kernel](https://github.com/ailzhang/blog_code/blob/master/tile/demo_gstaichi.py)
 [^3] [RWKV-CUDA](https://github.com/BlinkDL/RWKV-CUDA/tree/main/depthwise_conv1d)
-[^4] [RWKV-Taichi ](https://github.com/ailzhang/blog_code/tree/master/rwkv)
+[^4] [RWKV-GsTaichi ](https://github.com/ailzhang/blog_code/tree/master/rwkv)

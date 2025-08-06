@@ -1,10 +1,10 @@
-#include "taichi/ir/ir_builder.h"
-#include "taichi/ir/statements.h"
-#include "taichi/program/program.h"
-using namespace taichi;
+#include "gstaichi/ir/ir_builder.h"
+#include "gstaichi/ir/statements.h"
+#include "gstaichi/program/program.h"
+using namespace gstaichi;
 using namespace lang;
 
-void run_aot(taichi::Arch arch) {
+void run_aot(gstaichi::Arch arch) {
   default_compile_config.advanced_optimization = false;
   auto program = Program(arch);
 
@@ -73,14 +73,14 @@ void run_aot(taichi::Arch arch) {
   aot_builder->add_field("place", place, true, place->dt, {n}, 1, 1);
   aot_builder->add("init", kernel_init.get());
   aot_builder->add("ret", kernel_ret.get());
-  aot_builder->dump(".", taichi::arch_name(arch) + "_aot.tcb");
+  aot_builder->dump(".", gstaichi::arch_name(arch) + "_aot.tcb");
   std::cout << "done" << std::endl;
 }
 
 int main() {
   run_aot(host_arch());
 #ifdef TI_WITH_VULKAN
-  run_aot(taichi::Arch::vulkan);
+  run_aot(gstaichi::Arch::vulkan);
 #endif
 #ifdef TI_WITH_DX12
   run_aot(Arch::dx12);

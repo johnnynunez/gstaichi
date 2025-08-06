@@ -1,10 +1,10 @@
-#include "taichi/ir/ir_builder.h"
-#include "taichi/ir/statements.h"
-#include "taichi/program/program.h"
+#include "gstaichi/ir/ir_builder.h"
+#include "gstaichi/ir/statements.h"
+#include "gstaichi/program/program.h"
 
 int main() {
   /*
-  import taichi as ti, numpy as np
+  import gstaichi as ti, numpy as np
   ti.init()
   #ti.init(print_ir = True)
 
@@ -37,7 +37,7 @@ int main() {
   print(ext_arr)
   */
 
-  using namespace taichi;
+  using namespace gstaichi;
   using namespace lang;
   auto program = Program(host_arch());
   const auto &config = program.compile_config();
@@ -131,7 +131,7 @@ int main() {
   auto ctx_ret = kernel_ret->make_launch_context();
   auto ctx_ext = kernel_ext->make_launch_context();
   std::vector<int> ext_arr(n);
-  ctx_ext.set_arg_external_array_with_shape({0}, taichi::uint64(ext_arr.data()),
+  ctx_ext.set_arg_external_array_with_shape({0}, gstaichi::uint64(ext_arr.data()),
                                             n, {n});
 
   {

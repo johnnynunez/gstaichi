@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def main(arch):
@@ -12,8 +12,8 @@ def main(arch):
 
     arr = ti.ndarray(int, shape=16)
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     m = ti.aot.Module()
 

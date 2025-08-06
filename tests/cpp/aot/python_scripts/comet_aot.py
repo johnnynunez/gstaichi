@@ -2,8 +2,8 @@ import argparse
 import math
 import os
 
-import taichi as ti
-from taichi.lang.impl import grouped
+import gstaichi as ti
+from gstaichi.lang.impl import grouped
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--arch", type=str)
@@ -147,8 +147,8 @@ def save_kernels(arch):
     mod.add_field("count", count)
     mod.add_field("img", img)
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    tmpdir = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    tmpdir = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     mod.save(tmpdir)
 

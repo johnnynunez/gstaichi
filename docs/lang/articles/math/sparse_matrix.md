@@ -4,9 +4,9 @@ sidebar_position: 2
 
 # Sparse Matrix
 
-Sparse matrices are frequently involved in solving linear systems in science and engineering. Taichi provides useful APIs for sparse matrices on the CPU and CUDA backends.
+Sparse matrices are frequently involved in solving linear systems in science and engineering. GsTaichi provides useful APIs for sparse matrices on the CPU and CUDA backends.
 
-To use sparse matrices in Taichi programs, follow these three steps:
+To use sparse matrices in GsTaichi programs, follow these three steps:
 
 1. Create a `builder` using `ti.linalg.SparseMatrixBuilder()`.
 2. Call `ti.kernel` to fill the `builder` with your matrices' data.
@@ -20,7 +20,7 @@ The sparse matrix feature is still under development. There are some limitations
 :::
 Here's an example:
 ```python
-import taichi as ti
+import gstaichi as ti
 arch = ti.cpu # or ti.cuda
 ti.init(arch=arch)
 

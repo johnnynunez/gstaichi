@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_bitmasked_aot(arch):
@@ -57,8 +57,8 @@ def compile_bitmasked_aot(arch):
         assert not ti.is_active(pixel, 6)
         assert not ti.is_active(pixel, 7)
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     m = ti.aot.Module()
 

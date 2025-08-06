@@ -2,13 +2,13 @@
 
 #ifdef TI_WITH_DX11
 
-#include "taichi/ir/ir_builder.h"
-#include "taichi/rhi/dx/dx_device.h"
-#include "taichi/rhi/dx/dx_info_queue.h"
-#include "taichi/runtime/program_impls/dx/dx_program.h"
+#include "gstaichi/ir/ir_builder.h"
+#include "gstaichi/rhi/dx/dx_device.h"
+#include "gstaichi/rhi/dx/dx_info_queue.h"
+#include "gstaichi/runtime/program_impls/dx/dx_program.h"
 #include "tests/cpp/program/test_program.h"
 
-namespace taichi::lang {
+namespace gstaichi::lang {
 namespace directx11 {
 
 TEST(Dx11DeviceCreationTest, CreateDeviceAndAllocateMemory) {
@@ -33,15 +33,15 @@ TEST(Dx11DeviceCreationTest, CreateDeviceAndAllocateMemory) {
     EXPECT_EQ(count0, 8);
   }
 
-  taichi::lang::Device::AllocParams params;
+  gstaichi::lang::Device::AllocParams params;
   params.size = 1048576;
   params.host_read = true;
   params.host_write = true;
-  taichi::lang::DeviceAllocation device_alloc;
+  gstaichi::lang::DeviceAllocation device_alloc;
   EXPECT_EQ(device->allocate_memory(params, &device_alloc), RhiResult::success);
 
   // The purpose of the device_alloc_guard is to rule out double free
-  const taichi::lang::DeviceAllocationGuard device_alloc_guard(device_alloc);
+  const gstaichi::lang::DeviceAllocationGuard device_alloc_guard(device_alloc);
   if (kD3d11DebugEnabled) {
     count1 = device->live_dx11_object_count();
     // Should have allocated an UAV and a Buffer, so 2 more objects.
@@ -51,7 +51,7 @@ TEST(Dx11DeviceCreationTest, CreateDeviceAndAllocateMemory) {
   // Map to CPU, write some values, then check those values
   void *mapped;
   EXPECT_TRUE(device->map(device_alloc, &mapped) ==
-              taichi::lang::RhiResult::success);
+              gstaichi::lang::RhiResult::success);
   int *mapped_int = reinterpret_cast<int *>(mapped);
   for (int i = 0; i < 100; i++) {
     mapped_int[i] = i;
@@ -59,7 +59,7 @@ TEST(Dx11DeviceCreationTest, CreateDeviceAndAllocateMemory) {
   device->unmap(device_alloc);
 
   EXPECT_TRUE(device->map(device_alloc, &mapped) ==
-              taichi::lang::RhiResult::success);
+              gstaichi::lang::RhiResult::success);
   mapped_int = reinterpret_cast<int *>(mapped);
   for (int i = 0; i < 100; i++) {
     EXPECT_EQ(mapped_int[i], i);
@@ -157,6 +157,6 @@ TEST(Dx11ProgramTest, MaterializeRuntimeTest) {
 }
 
 }  // namespace directx11
-}  // namespace taichi::lang
+}  // namespace gstaichi::lang
 
 #endif

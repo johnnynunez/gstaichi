@@ -5,23 +5,23 @@ sidebar_position: 5
 # Interacting with External Arrays
 
 
-This document provides instructions on how to transfer data from external arrays to the Taichi scope and vice versa. For now, the external arrays supported by Taichi are NumPy arrays, PyTorch tensors, and Paddle tensors.
+This document provides instructions on how to transfer data from external arrays to the GsTaichi scope and vice versa. For now, the external arrays supported by GsTaichi are NumPy arrays, PyTorch tensors, and Paddle tensors.
 
-We use NumPy arrays as an example to illustrate the data transfer process because NumPy arrays are the most commonly used external arrays in Taichi. The same steps apply to PyTorch tensors and Paddle tensors.
+We use NumPy arrays as an example to illustrate the data transfer process because NumPy arrays are the most commonly used external arrays in GsTaichi. The same steps apply to PyTorch tensors and Paddle tensors.
 
-There are two ways to import a NumPy array `arr` to the Taichi scope:
+There are two ways to import a NumPy array `arr` to the GsTaichi scope:
 
-- Create a Taichi field `f`, whose shape and dtype match the shape and dtype of `arr`, and call `f.from_numpy(arr)` to copy the data in `arr` into `f`. This approach is preferred when the original array is visited frequently from elsewhere in the Taichi scope (for example, in texture sampling).
+- Create a GsTaichi field `f`, whose shape and dtype match the shape and dtype of `arr`, and call `f.from_numpy(arr)` to copy the data in `arr` into `f`. This approach is preferred when the original array is visited frequently from elsewhere in the GsTaichi scope (for example, in texture sampling).
 
-- Pass `arr` as an argument to a kernel or a Taichi function using `ti.types.ndarray()` as type hint. The argument is passed by reference without creating a copy of `arr`. Thus, any modification to this argument from inside a kernel or Taichi function also changes the original array `arr`. This approach is preferred when the kernel or Taichi function that takes in the argument needs to process the original array (for storage or filtering, for example).
+- Pass `arr` as an argument to a kernel or a GsTaichi function using `ti.types.ndarray()` as type hint. The argument is passed by reference without creating a copy of `arr`. Thus, any modification to this argument from inside a kernel or GsTaichi function also changes the original array `arr`. This approach is preferred when the kernel or GsTaichi function that takes in the argument needs to process the original array (for storage or filtering, for example).
 
 :::note
-`from_numpy() / from_torch()` can take in any numpy array or torch Tensor, no matter it's contiguous or not. Taichi will manage its own copy of data. However, when passing an argument to a Taichi kernel, only contiguous numpy arrays or torch Tensors are supported.
+`from_numpy() / from_torch()` can take in any numpy array or torch Tensor, no matter it's contiguous or not. GsTaichi will manage its own copy of data. However, when passing an argument to a GsTaichi kernel, only contiguous numpy arrays or torch Tensors are supported.
 :::
 
-## Data transfer between NumPy arrays and Taichi fields
+## Data transfer between NumPy arrays and GsTaichi fields
 
-To import data from a NumPy array to a Taichi field, first make sure that the field and the array have the same shape:
+To import data from a NumPy array to a GsTaichi field, first make sure that the field and the array have the same shape:
 
 ```python
 x = ti.field(float, shape=(3, 3))
@@ -46,9 +46,9 @@ arr = x.to_numpy()
 #       [6, 7, 8]], dtype=int32)
 ```
 
-## Data transfer between PyTorch/Paddle tensors and Taichi fields
+## Data transfer between PyTorch/Paddle tensors and GsTaichi fields
 
-Data transfer between a PyTorch tensor and a Taichi field is similar to the NumPy case above: Call `from_torch()` for data import and `to_torch()` for data export. But note that `to_torch()` requires one more argument `device`, which specifies the PyTorch device:
+Data transfer between a PyTorch tensor and a GsTaichi field is similar to the NumPy case above: Call `from_torch()` for data import and `to_torch()` for data export. But note that `to_torch()` requires one more argument `device`, which specifies the PyTorch device:
 
 ```python cont
 tensor = x.to_torch(device="cuda:0")
@@ -150,7 +150,7 @@ When transferring data between a `ti.field/ti.Vector.field/ti.Matrix.field` and 
     field.from_numpy(array_dict) # the input array must have the same keys as the field
     ```
 
-## Using external arrays as Taichi kernel arguments
+## Using external arrays as GsTaichi kernel arguments
 
 Use type hint `ti.types.ndarray()` to pass external arrays as kernel arguments.
 
@@ -159,7 +159,7 @@ Use type hint `ti.types.ndarray()` to pass external arrays as kernel arguments.
 The following example shows the most basic way to call `ti.types.ndarray()`:
 
 ```python {10}
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 ti.init()
 
@@ -192,7 +192,7 @@ b[1:-1, 1:-1] += (               a[ :-2, 1:-1] +
                                  a[2:  , 1:-1])
 ```
 
-But Taichi can meet the same purpose in one parallel `for` loop only:
+But GsTaichi can meet the same purpose in one parallel `for` loop only:
 
 ```python
 @ti.kernel
@@ -206,7 +206,7 @@ def test(a: ti.types.ndarray(), b: ti.types.ndarray()):  # assume a, b have the 
 Not only is this code snippet more readable than the NumPy version above, but it also runs way faster even on the CPU backend.
 
 :::note
-The elements in an external array must be indexed using a single square bracket. This contrasts with a Taichi vector field or matrix field where field members and elements are indexed separately:
+The elements in an external array must be indexed using a single square bracket. This contrasts with a GsTaichi vector field or matrix field where field members and elements are indexed separately:
 :::
 
 ```python
@@ -222,7 +222,7 @@ def copy_vector(x: ti.template(), y: ti.types.ndarray()):
             # y[i, j][k] = x[i, j][k] incorrect
 ```
 
-In addition, external arrays in a Taichi kernel are indexed using their **physical memory layout**. For PyTorch users, this means that a PyTorch tensor [needs to be made contiguous](https://pytorch.org/docs/stable/generated/torch.Tensor.contiguous.html) before being passed into a Taichi kernel:
+In addition, external arrays in a GsTaichi kernel are indexed using their **physical memory layout**. For PyTorch users, this means that a PyTorch tensor [needs to be made contiguous](https://pytorch.org/docs/stable/generated/torch.Tensor.contiguous.html) before being passed into a GsTaichi kernel:
 
 ```python known-error:CopyNotDefined
 x = ti.field(dtype=int, shape=(3, 3))
@@ -243,7 +243,7 @@ copy(x, y.contiguous()) # correct
 
 ### Can I use `@ti.kernel` to accelerate a NumPy function?
 
-Unlike other Python acceleration frameworks, such as Numba, Taichi does not compile NumPy functions. Calling NumPy functions inside the Taichi scope is not supported, as the following example shows:
+Unlike other Python acceleration frameworks, such as Numba, GsTaichi does not compile NumPy functions. Calling NumPy functions inside the GsTaichi scope is not supported, as the following example shows:
 
 ```python
 import numpy as np
@@ -255,7 +255,7 @@ def invalid_sum(arr: ti.types.ndarray()):
 ```
 
 
-If you want to use a NumPy function, which lacks a counterpart in Taichi, you can call the function in the Python scope as usual and pass the processed array to Taichi kernels via `ti.types.ndarray()`. For example:
+If you want to use a NumPy function, which lacks a counterpart in GsTaichi, you can call the function in the Python scope as usual and pass the processed array to GsTaichi kernels via `ti.types.ndarray()`. For example:
 
 ```python
 arr = np.random.random(233)

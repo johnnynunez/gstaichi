@@ -6,11 +6,11 @@ sidebar_position: 2
 
 Modern processor cores compute orders of magnitude faster than their equipped memory systems. To shrink this  performance gap, multi-level cache systems and high-bandwidth multi-channel memories are built into the computer architectures.
 
-After familiarizing yourself with the basics of Taichi [Fields](./field.md), this article helps you one step further by explaining the underlying memory layout that is essential to write high-performance Taichi programs. In particular, we present how to organize an efficient data layout and how to manage memory occupancy.
+After familiarizing yourself with the basics of GsTaichi [Fields](./field.md), this article helps you one step further by explaining the underlying memory layout that is essential to write high-performance GsTaichi programs. In particular, we present how to organize an efficient data layout and how to manage memory occupancy.
 
 ## Organizing an efficient data layout
 
-In this section, we introduce how to organize data layouts in Taichi fields. The central principle of efficient data layout is _locality_. Generally speaking, a program with desirable locality has at least one of the following features:
+In this section, we introduce how to organize data layouts in GsTaichi fields. The central principle of efficient data layout is _locality_. Generally speaking, a program with desirable locality has at least one of the following features:
 
 * Dense data structures
 * Small-range data looping (within 32KB is good for most processors)
@@ -28,7 +28,7 @@ For sparse fields, see the [Sparse computation](./sparse.md).
 ### Layout 101: from `shape` to `ti.root.X`
 
 <!-- haidong: what's else optional in ti.root? -->
-In basic usages, we use the `shape` descriptor to construct a field. Taichi provides flexible statements to describe more advanced data organizations, the `ti.root.X`.
+In basic usages, we use the `shape` descriptor to construct a field. GsTaichi provides flexible statements to describe more advanced data organizations, the `ti.root.X`.
 Here are some examples:
 
 * Declare a 0-D field:
@@ -109,17 +109,17 @@ for i, j in A:
     A[i, j] += 1
 ```
 
-The Taichi compiler is capable of automatically deducing the underlying data layout and applying a proper data access order. This is an advantage over most general-purpose programming languages where the access order has to be optimized manually.
+The GsTaichi compiler is capable of automatically deducing the underlying data layout and applying a proper data access order. This is an advantage over most general-purpose programming languages where the access order has to be optimized manually.
 
 ### Row-major versus column-major
 
-One important thing to note about memory addresses is that their space is linear. Without loss of generality, we omit the differences in data types and assume each data element has size 1. Moreover, we denote the starting memory address of a field as `base`, and the indexing formula for 1D Taichi fields is `base + i` for the `i-th` element.
+One important thing to note about memory addresses is that their space is linear. Without loss of generality, we omit the differences in data types and assume each data element has size 1. Moreover, we denote the starting memory address of a field as `base`, and the indexing formula for 1D GsTaichi fields is `base + i` for the `i-th` element.
 
 For multi-dimensional fields, we can flatten the high-dimension index into the linear memory address space in two ways: Taking a 2D field of shape `(M, N)` as an instance, we can either store `M` rows with `N`-length 1D buffers, say the _row-major_ way, or store `N` columns, say the _column-major_ way. The index flatten formula for the `(i, j)`-th element is `base + i * N + j` for row-major and `base + j * M + i` for column-major, respectively.
 
 Trivially, elements in the same row are close in memory for row-major fields. The selection of the optimal layout is based on how the elements are accessed, namely, the access patterns. Patterns such as frequently accessing elements of the same row in a column-major field typically lead to performance degradation.
 
-The default Taichi field layout is row-major. With the `ti.root` statements, fields can be defined as follows:
+The default GsTaichi field layout is row-major. With the `ti.root` statements, fields can be defined as follows:
 
 ```python {3-4}
 x = ti.field(ti.f32)
@@ -136,7 +136,7 @@ In the code above, the axis denotation in the rightmost `dense` statement indica
 #       y:  y[0, 0]  y[1, 0]  y[2, 0]  y[0, 1]  y[1, 1]  y[2, 1]
 ```
 
-It is worth noting that the accessor is unified for Taichi fields: the `(i, j)-th` element in the field is accessed with the identical 2D index `x[i, j]` and `y[i, j]`. Taichi handles the layout variants and applies proper indexing equations internally. Thanks to this feature, users can specify their desired layout at definition, and use the fields without concerning about the underlying memory organizations. To change the layout, we can simply swap the order of `dense` statements, and leave rest of the code intact.
+It is worth noting that the accessor is unified for GsTaichi fields: the `(i, j)-th` element in the field is accessed with the identical 2D index `x[i, j]` and `y[i, j]`. GsTaichi handles the layout variants and applies proper indexing equations internally. Thanks to this feature, users can specify their desired layout at definition, and use the fields without concerning about the underlying memory organizations. To change the layout, we can simply swap the order of `dense` statements, and leave rest of the code intact.
 
 :::note
 
@@ -154,7 +154,7 @@ for (int i = 0; i < 3; i++) {
 }
 ```
 
-The accessors of `x` and `y` are in reverse order between row-major arrays and column-major arrays, respectively. Compared with Taichi fields, there is much more code to revise when you change the memory layout.
+The accessors of `x` and `y` are in reverse order between row-major arrays and column-major arrays, respectively. Compared with GsTaichi fields, there is much more code to revise when you change the memory layout.
 
 :::
 
@@ -204,7 +204,7 @@ The memory layout then becomes
 #           x[0]  y[0]  x[1]  y[1]  x[2]  y[2] ...
 ```
 
-Here, `place` interleaves the elements of Taichi fields `x` and `y`.
+Here, `place` interleaves the elements of GsTaichi fields `x` and `y`.
 
 As previously introduced, the access methods to `x` and `y` remain the same for both  AoS and SoA. Therefore, the data layout can be changed flexibly without revising the application logic.
 
@@ -339,14 +339,14 @@ We highly recommend that you use power-of-two block size so that accelerated ind
 
 ### Manual field allocation and destruction
 
-Generally, Taichi manages memory allocation and destruction without disturbing the users. However, there are times that users want explicit control over their memory allocations.
+Generally, GsTaichi manages memory allocation and destruction without disturbing the users. However, there are times that users want explicit control over their memory allocations.
 
-In this scenario, Taichi provides the `FieldsBuilder` for manual field memory allocation and destruction. `FieldsBuilder` features identical declaration APIs as `ti.root`. The extra step is to invoke `finalize()` at the end of all declarations. The `finalize()` returns an `SNodeTree` object to handle subsequent destructions.
+In this scenario, GsTaichi provides the `FieldsBuilder` for manual field memory allocation and destruction. `FieldsBuilder` features identical declaration APIs as `ti.root`. The extra step is to invoke `finalize()` at the end of all declarations. The `finalize()` returns an `SNodeTree` object to handle subsequent destructions.
 
 Let's see a simple example:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init()
 
 @ti.kernel

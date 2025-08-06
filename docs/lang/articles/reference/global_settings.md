@@ -4,17 +4,17 @@ sidebar_position: 3
 
 # Global Settings
 
-Every Taichi program starts with `ti.init()`. You can customize your Taichi runtime by passing arguments to `ti.init()` or setting environment variables. Each argument or environment variable controls one specific behavior of the Taichi runtime. For example, the argument `arch` specifies the backend, and the argument `debug` decides whether to run the program in debug mode.
+Every GsTaichi program starts with `ti.init()`. You can customize your GsTaichi runtime by passing arguments to `ti.init()` or setting environment variables. Each argument or environment variable controls one specific behavior of the GsTaichi runtime. For example, the argument `arch` specifies the backend, and the argument `debug` decides whether to run the program in debug mode.
 
-Taichi executes the following to initialize a specific configuration in the `ti.init()` method call. Taking the `arch` argument as an example:
+GsTaichi executes the following to initialize a specific configuration in the `ti.init()` method call. Taking the `arch` argument as an example:
 
-1. Taichi first looks for the arguments passed to `ti.init()`. In this case, after Taichi reads `ti.init(arch=cuda)`, it chooses CUDA as the backend and ignores the corresponding environment variable for backend setting, namely, `TI_ARCH`.
-2. If no argument is found, Taichi checks the corresponding environment variable. In this case, if `arch` is not specified but the environment variable is set to `export TI_ARCH=cuda`, Taichi still chooses CUDA as the backend.
-3. If no customized setting is found, Taichi uses a default configuration. In this case, if neither the argument `arch` is specified nor an environment variable `TI_ARCH` is found, Taichi adopts the default backend `arch=ti.cpu`.
+1. GsTaichi first looks for the arguments passed to `ti.init()`. In this case, after GsTaichi reads `ti.init(arch=cuda)`, it chooses CUDA as the backend and ignores the corresponding environment variable for backend setting, namely, `TI_ARCH`.
+2. If no argument is found, GsTaichi checks the corresponding environment variable. In this case, if `arch` is not specified but the environment variable is set to `export TI_ARCH=cuda`, GsTaichi still chooses CUDA as the backend.
+3. If no customized setting is found, GsTaichi uses a default configuration. In this case, if neither the argument `arch` is specified nor an environment variable `TI_ARCH` is found, GsTaichi adopts the default backend `arch=ti.cpu`.
 
 Following are some frequently-used configurations in `ti.init()`:
 
-**Customize Taichi runtime via arguments**
+**Customize GsTaichi runtime via arguments**
 
 ```
 [Backend Options]
@@ -53,10 +53,10 @@ Following are some frequently-used configurations in `ti.init()`:
         Set the number of threads in a block on GPU.
 
     default_fp: [ti.f32, ti.f64]
-        Set the default precision of floating-point numbers in the Taichi scope.
+        Set the default precision of floating-point numbers in the GsTaichi scope.
 
     default_ip: [ti.i32, ti.i64]
-        Set the default precision of integers in the Taichi scope.
+        Set the default precision of integers in the GsTaichi scope.
 
     kernel_profiler: bool
         Turn on/off kernel performance profiling.
@@ -83,13 +83,13 @@ Following are some frequently-used configurations in `ti.init()`:
 [Develop Options]
 
     gdb_trigger: bool
-        Enable/disable GDB when Taichi crashes. For example, `ti.init(gdb_trigger=True)` enables GDB.
+        Enable/disable GDB when GsTaichi crashes. For example, `ti.init(gdb_trigger=True)` enables GDB.
 ```
 
 
-**Customize Taichi runtime via environment variables**
+**Customize GsTaichi runtime via environment variables**
 
-Taichi allows a number of environment variables for runtime customization. Some provide an alternative to the `ti.init()` arguments listed above. For example, as mentioned above, `arch` is interchangeable with `TI_ARCH`. But not all of the environment variables can be replaced by arguments, and vice versa.
+GsTaichi allows a number of environment variables for runtime customization. Some provide an alternative to the `ti.init()` arguments listed above. For example, as mentioned above, `arch` is interchangeable with `TI_ARCH`. But not all of the environment variables can be replaced by arguments, and vice versa.
 
 ```
 [Backend Options]
@@ -148,7 +148,7 @@ Taichi allows a number of environment variables for runtime customization. Some 
 
 :::note
 
-If you want to use CUDA and Taichi's GGUI system at the same time on a machine with multiple GPU cards, ensure that `CUDA_VISIBLE_DEVICES` matches `TI_VISIBLE_DEVICE`. In principle, `CUDA_VISIBLE_DEVICES` and `TI_VISIBLE_DEVICE` should point to the same GPU device identified with UUID. Use `nvidia-smi -L` to retrieve the details of your GPU devices.
+If you want to use CUDA and GsTaichi's GGUI system at the same time on a machine with multiple GPU cards, ensure that `CUDA_VISIBLE_DEVICES` matches `TI_VISIBLE_DEVICE`. In principle, `CUDA_VISIBLE_DEVICES` and `TI_VISIBLE_DEVICE` should point to the same GPU device identified with UUID. Use `nvidia-smi -L` to retrieve the details of your GPU devices.
 
 :::
 
@@ -161,15 +161,15 @@ If you want to use CUDA and Taichi's GGUI system at the same time on a machine w
 
 ## Runtime
 
-- To restart the entire Taichi system (and erase all fields and kernels): `ti.reset()`.
+- To restart the entire GsTaichi system (and erase all fields and kernels): `ti.reset()`.
 - To start a program in debug mode: `ti.init(debug=True)`. Alternatively, you can set the environment variable `TI_DEBUG` or run your code via `ti debug your_script.py`.
 - To disable the import of torch upon startup: `export TI_ENABLE_TORCH=0`.
 - To disable the import of paddle upon startup: `export TI_ENABLE_PADDLE=0`.
 - To set a custom seed for the random number generator used by `ti.random()`: `ti.init(random_seed=seed)`. `seed` should be an integer. An example: `ti.init(random_seed=int(time.time()))`.
-- To set the default precision of floating-point numbers of Taichi runtime to `ti.f64`: `ti.init(default_fp=ti.i64)`.
-- To set the default precision of floating-point numbers of Taichi runtime to `ti.i32`: `ti.init(default_ip=ti.i32)`.
+- To set the default precision of floating-point numbers of GsTaichi runtime to `ti.f64`: `ti.init(default_fp=ti.i64)`.
+- To set the default precision of floating-point numbers of GsTaichi runtime to `ti.i32`: `ti.init(default_ip=ti.i32)`.
 - To disable the offline cache of compiled kernels: `ti.init(offline_cache=False)`. See the [Offline cache](../performance_tuning/performance.md#offline-cache) for more information.
-- To enable the use of variables as indices to access vector/matrix elements in the Taichi scope: `ti.init(dynamic_index=True)`.
+- To enable the use of variables as indices to access vector/matrix elements in the GsTaichi scope: `ti.init(dynamic_index=True)`.
 - To turn on kernel profiling: `ti.init(kernel_profiler=True)`. See the [Profiler](../performance_tuning/profiler.md#kernelprofiler) for more information.
 
 
@@ -180,7 +180,7 @@ If you want to use CUDA and Taichi's GGUI system at the same time on a machine w
 
 ## Develop
 
-- To trigger GDB when Taichi crashes: `ti.init(gdb_trigger=True)`.
+- To trigger GDB when GsTaichi crashes: `ti.init(gdb_trigger=True)`.
 - To cache compiled runtime bitcode in **dev mode**: `export TI_CACHE_RUNTIME_BITCODE=1`, which saves startup time.
 - To allocate four threads to run a test: `export TI_TEST_THREADS=4` or `python tests/run_tests.py -t4`.
 
@@ -201,10 +201,10 @@ print(ti.cfg.debug)  # False
 
 ## Going high precision
 
-The default setting `fast_math=True` may cause unexpected precision problems, which can be hard to debug. For example, the function `ti.sqrt` (and those that rely on it, such as `ti.norm`) may have a lower precision on the CUDA backend than on the CPU backends. See this [issue](https://github.com/taichi-dev/taichi/issues/6346) for more information. To work around this problem, set the default precision to `ti.f64` and turn off the `fast_math` option:
+The default setting `fast_math=True` may cause unexpected precision problems, which can be hard to debug. For example, the function `ti.sqrt` (and those that rely on it, such as `ti.norm`) may have a lower precision on the CUDA backend than on the CPU backends. See this [issue](https://github.com/taichi-dev/gstaichi/issues/6346) for more information. To work around this problem, set the default precision to `ti.f64` and turn off the `fast_math` option:
 
 ```python
 ti.init(default_fp=ti.f64, fast_math=False)
 ```
 
-If you encounter other precision loss problems, set `ti.init(fast_math=False)` and see if it works. If not, [report an issue](https://github.com/taichi-dev/taichi/issues) to us.
+If you encounter other precision loss problems, set `ti.init(fast_math=False)` and see if it works. If not, [report an issue](https://github.com/taichi-dev/gstaichi/issues) to us.

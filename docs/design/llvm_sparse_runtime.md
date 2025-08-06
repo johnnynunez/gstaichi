@@ -1,15 +1,15 @@
-# How is Taichi's LLVM Sparse Runtime Implemented?
+# How is GsTaichi's LLVM Sparse Runtime Implemented?
 
 Last update: 2022-04-21
 
 ---
-The Taichi LLVM sparse runtime can be found in the taichi/runtime/llvm directory of the Taichi repository on GitHub. It consists of one header file for each SNode type and a single common source file, **runtime.cpp**, which applies to all SNode types. The URL for the Taichi repository on GitHub is: <https://github.com/taichi-dev/taichi/tree/master/taichi/runtime/llvm/runtime_module>
+The GsTaichi LLVM sparse runtime can be found in the gstaichi/runtime/llvm directory of the GsTaichi repository on GitHub. It consists of one header file for each SNode type and a single common source file, **runtime.cpp**, which applies to all SNode types. The URL for the GsTaichi repository on GitHub is: <https://github.com/taichi-dev/gstaichi/tree/master/gstaichi/runtime/llvm/runtime_module>
 
 # SNode
 
-There are four types of SNodes in Taichi: `dense`, `bitmasked`, `pointer` and `dynamic`. `dynamic` or `pointer` SNodes are spatially sparse in nature: Cells in them are not necessarily stored contiguously. Therefore, when this doc talks about sparse SNodes hereafter, it refers to `dynamic` and `pointer` SNodes.
+There are four types of SNodes in GsTaichi: `dense`, `bitmasked`, `pointer` and `dynamic`. `dynamic` or `pointer` SNodes are spatially sparse in nature: Cells in them are not necessarily stored contiguously. Therefore, when this doc talks about sparse SNodes hereafter, it refers to `dynamic` and `pointer` SNodes.
 
-Each SNode type comes with an `XMeta` struct derived from [`StructMeta`](https://github.com/taichi-dev/taichi/blob/2cdc58078ecd2aef2cde608f07325108c5b3d5a5/taichi/runtime/llvm/runtime.cpp#L365-L383). `StructMeta` has the following properties:
+Each SNode type comes with an `XMeta` struct derived from [`StructMeta`](https://github.com/taichi-dev/gstaichi/blob/2cdc58078ecd2aef2cde608f07325108c5b3d5a5/gstaichi/runtime/llvm/runtime.cpp#L365-L383). `StructMeta` has the following properties:
 
 * `snode_id`: SNode ID.
 * `i32 X_get_num_elements(Ptr meta, Ptr node)`: Returns the capacity this SNode can hold. Note that it is *not* the current number of active cells, but the maximum.
@@ -27,7 +27,7 @@ However, this additional API is subject to change to make all SNodes share the s
 
 ## `dense` SNode
 
-`dense` is the simplest form of SNode. It is just an array of cells living in a chunk of contiguous memory, or `std::array<Cell, N>` for users with a C++ background. Its header file is in [`node_dense.h`](https://github.com/taichi-dev/taichi/blob/master/taichi/runtime/llvm/runtime_module/node_dense.h).
+`dense` is the simplest form of SNode. It is just an array of cells living in a chunk of contiguous memory, or `std::array<Cell, N>` for users with a C++ background. Its header file is in [`node_dense.h`](https://github.com/taichi-dev/gstaichi/blob/master/gstaichi/runtime/llvm/runtime_module/node_dense.h).
 
 
 * `Dense_get_num_elements`: This is just `max_num_elements` stored in `DenseMeta`.
@@ -51,7 +51,7 @@ Layout of a `dense` SNode:
 
 The pointer SNode is a popular choice for sparse computation. It dynamically allocates memory only for activated cells and recycles it back into a memory pool once the cell is deactivated, conserving memory resources in large-scale grid computation. The pointer SNode can be thought of as an `std::array<Cell*, N>`.
 
-Upon initialization, Taichi preallocates a chunk of memory space named `ambient_elements`, which is shared across all inactive sparse SNodes. Therefore, dereferencing an inactive sparse SNode generates the default value (usually zero) stored in `ambient_elements`.
+Upon initialization, GsTaichi preallocates a chunk of memory space named `ambient_elements`, which is shared across all inactive sparse SNodes. Therefore, dereferencing an inactive sparse SNode generates the default value (usually zero) stored in `ambient_elements`.
 
 Layout of a `pointer` SNode:
 
@@ -75,7 +75,7 @@ Layout of a `pointer` SNode:
                                                                                  +------------+
 ```
 
-We can follow [`Pointer_activate`](https://github.com/taichi-dev/taichi/blob/0f4fb9c662e6e3ffacc26e7373258d8d0414423b/taichi/runtime/llvm/node_pointer.h#L41-L65) to see how the `pointer` SNode is implemented using the sparse runtime infrastructure.
+We can follow [`Pointer_activate`](https://github.com/taichi-dev/gstaichi/blob/0f4fb9c662e6e3ffacc26e7373258d8d0414423b/gstaichi/runtime/llvm/node_pointer.h#L41-L65) to see how the `pointer` SNode is implemented using the sparse runtime infrastructure.
 
 ```cpp
 void Pointer_activate(Ptr meta_, Ptr node, int i) {
@@ -110,7 +110,7 @@ void Pointer_activate(Ptr meta_, Ptr node, int i) {
 1. Retrieves both the lock and the pointer for the `i`-th cell. Note that the pointer size is assumed to be 8-byte wide. Locks are simply 64-bit integers. According to the layout, there are `max_num_elements` number of locks, followed by `max_num_elements` number of pointers to cells.
 2. Checks whether the content of `data_ptr` is `nullptr` without any locking. This is the classical [double-checked locking](https://en.wikipedia.org/wiki/Double-checked_locking) pattern.
 3. If 2 is true, pick one thread within a CUDA warp to acquire the lock. This is a small optimization to prevent lock contention. On pre-Volta devices without [independent thread scheduling](https://docs.nvidia.com/cuda/volta-tuning-guide/index.html#sm-independent-thread-scheduling), this also prevents deadlocking.
-4. The winning thread tries to acquire the lock using [`locked_task`](https://github.com/taichi-dev/taichi/blob/master/taichi/runtime/llvm/runtime_module/locked_task.h).
+4. The winning thread tries to acquire the lock using [`locked_task`](https://github.com/taichi-dev/gstaichi/blob/master/gstaichi/runtime/llvm/runtime_module/locked_task.h).
 5. Retrieves the memory allocator (`node_allocators`) for this particular SNode, allocates a new cell, and stores the address of the allocated cell into `data_ptr`. Because the cell size of each SNode is different, the runtime has a dedicated allocator for each SNode, which knows how much space to allocate per cell.
 
 The procedures for deactivating and checking the active status of cells are similar, so they have been omitted for brevity.
@@ -119,7 +119,7 @@ The procedures for deactivating and checking the active status of cells are simi
 
 `dynamic` is a special kind of SNodes in a few ways:
 
-* It must be a 1-D, terminating SNode. By terminating, it means `dynamic` can only be followed by `place`-ing a Taichi field.
+* It must be a 1-D, terminating SNode. By terminating, it means `dynamic` can only be followed by `place`-ing a GsTaichi field.
 * The axis of `dynamic` must be different from those of all its predecessors. For example:
   * `dense(ti.ij, (2, 4)).dynamic(ti.k, 8)`: This is OK, because `dynamic`'s axis is unique.
   * `dense(ti.ij, (2, 4)).dynamic(ti.j, 8)`: This results in an error, because `dynamic`'s axis and `dense`'s overlaps on axis `j`.
@@ -160,7 +160,7 @@ Below shows the layout of a `dynamic` SNode. Logically speaking, `dynamic` SNode
                                               +------------+
 ```
 
-The activation/deactivation process is no different from that of `pointer`. We can trace through [`Dynamic_append`](https://github.com/taichi-dev/taichi/blob/0f4fb9c662e6e3ffacc26e7373258d8d0414423b/taichi/runtime/llvm/node_dynamic.h#L61-L87) to better understand the layout.
+The activation/deactivation process is no different from that of `pointer`. We can trace through [`Dynamic_append`](https://github.com/taichi-dev/gstaichi/blob/0f4fb9c662e6e3ffacc26e7373258d8d0414423b/gstaichi/runtime/llvm/node_dynamic.h#L61-L87) to better understand the layout.
 
 ```cpp
 i32 Dynamic_append(Ptr meta_, Ptr node_, i32 data) {
@@ -207,9 +207,9 @@ i32 Dynamic_append(Ptr meta_, Ptr node_, i32 data) {
 
 # Runtime
 
-The runtime code for the LLVM backends can be found at this URL: <https://github.com/taichi-dev/taichi/blob/master/taichi/runtime/llvm/runtime_module/runtime.cpp>. It is important to note that this file is not linked into the core C++ library of Taichi, but instead is compiled into an LLVM byte code file (`.bc`). When Taichi starts, the `.bc` file is loaded into memory, deserialized into an `llvm::Module`, and linked with the JIT compiled Taichi kernels. This design allows the runtime code to be written once and shared between all LLVM backends, such as CPU and CUDA. Furthermore, the sparse runtime can be implemented in any language with sufficient abstraction (e.g., C++) rather than in raw LLVM IR.
+The runtime code for the LLVM backends can be found at this URL: <https://github.com/taichi-dev/gstaichi/blob/master/gstaichi/runtime/llvm/runtime_module/runtime.cpp>. It is important to note that this file is not linked into the core C++ library of GsTaichi, but instead is compiled into an LLVM byte code file (`.bc`). When GsTaichi starts, the `.bc` file is loaded into memory, deserialized into an `llvm::Module`, and linked with the JIT compiled GsTaichi kernels. This design allows the runtime code to be written once and shared between all LLVM backends, such as CPU and CUDA. Furthermore, the sparse runtime can be implemented in any language with sufficient abstraction (e.g., C++) rather than in raw LLVM IR.
 
-The core data structure of this runtime is [`LLVMRuntime`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L543), which holds a handful of data:
+The core data structure of this runtime is [`LLVMRuntime`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L543), which holds a handful of data:
 
 * All the root SNodes info (`roots` and `root_mem_sizes`).
 * SNode memory allocators.
@@ -221,15 +221,15 @@ The SNode memory allocator is the bedrock of sparse SNodes. The following sectio
 
 ## `NodeManager`: a recycling memory allocator
 
-Each SNode is associated with its own memory allocator. These allocators are stored in an array, [`node_allocators`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L562).
+Each SNode is associated with its own memory allocator. These allocators are stored in an array, [`node_allocators`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L562).
 
-The allocator is of type [`NodeManager`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L619). It contains [three linked lists of type `ListManager`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L627):
+The allocator is of type [`NodeManager`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L619). It contains [three linked lists of type `ListManager`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L627):
 
 * `data_list`: A list of fixed-sized memory chunks. Each chunk can store `chunk_num_elements` SNode cells. The aforementioned SNode chunks are from this list.
-* `free_list`: Indices of the free SNode cells. Each node in this list is an `int32_t` (or [`list_data_type`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L630)). When allocating, the runtime will first try to reuse a cell in the free list if there is one available, before requesting extra space from the memory allocator. (More details below.)
+* `free_list`: Indices of the free SNode cells. Each node in this list is an `int32_t` (or [`list_data_type`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L630)). When allocating, the runtime will first try to reuse a cell in the free list if there is one available, before requesting extra space from the memory allocator. (More details below.)
 * `recycled_list`: Indices of the released SNode cells. After a GC execution, items in this list will be transferred into `free_list` for reuse. Each node in this list is also an `int32_t`.
 
-Here's how [`allocate()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L655) is implemented:
+Here's how [`allocate()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L655) is implemented:
 
 ```cpp
 Ptr allocate() {
@@ -253,19 +253,19 @@ Ptr allocate() {
 3. Otherwise, re-use the index from `free_list`.
 4. Either way, index `l` points to a memory slot in `data_list`. Returns that slot.
 
-So far, we have analyzed the `allocate` procedure. For the recycle procedure, the code [`recycle()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L672-L675) is self-explanatory.
+So far, we have analyzed the `allocate` procedure. For the recycle procedure, the code [`recycle()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L672-L675) is self-explanatory.
 
 Before jumping into the garbage collection (GC) system, we will also take look at the lower-level `ListManager`.
 
 ## `ListManager`: a CPU/GPU linked list
 
-The way [`ListManager`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L416-L423) gets implemented is described as follows:
+The way [`ListManager`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L416-L423) gets implemented is described as follows:
 
 > A simple list data structure that is infinitely long. Data are organized in chunks, where each chunk is allocated on demand.
 
 Calling it a linked list can be a bit misleading. In fact, it is more like `std::deque` in C++. `ListManager` holds an array of memory chunks in `chunks`, whereas each chunk can hold `max_num_elements_per_chunk` elements.
 
-[`ListManager`'s constructor](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L433-L444) shows the necessary member variables:
+[`ListManager`'s constructor](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L433-L444) shows the necessary member variables:
 
 ```cpp
 ListManager(LLVMRuntime *runtime,
@@ -274,15 +274,15 @@ ListManager(LLVMRuntime *runtime,
     : element_size(element_size),
       max_num_elements_per_chunk(num_elements_per_chunk),
       runtime(runtime) {
-  taichi_assert_runtime(runtime, is_power_of_two(max_num_elements_per_chunk),
+  gstaichi_assert_runtime(runtime, is_power_of_two(max_num_elements_per_chunk),
                         "max_num_elements_per_chunk must be POT.");
   lock = 0;
   num_elements = 0;
-  log2chunk_num_elements = taichi::log2int(num_elements_per_chunk);
+  log2chunk_num_elements = gstaichi::log2int(num_elements_per_chunk);
 }
 ```
 
-The important method for allocating a new element is [`reserve_new_element()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L448-L453):
+The important method for allocating a new element is [`reserve_new_element()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L448-L453):
 
 ```cpp
 i32 reserve_new_element() {
@@ -293,11 +293,11 @@ i32 reserve_new_element() {
 }
 ```
 
-It increments `num_elements` to get the index of this new element, and calculates the belonging chunk ID. Then it ensures that the chunk is actually allocated using [`touch_chunk()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L1570-L1584):
+It increments `num_elements` to get the index of this new element, and calculates the belonging chunk ID. Then it ensures that the chunk is actually allocated using [`touch_chunk()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L1570-L1584):
 
 ```cpp
 void ListManager::touch_chunk(int chunk_id) {
-  taichi_assert_runtime(runtime, chunk_id < max_num_chunks,
+  gstaichi_assert_runtime(runtime, chunk_id < max_num_chunks,
                         "List manager out of chunks.");
   if (!chunks[chunk_id]) {
     locked_task(&lock, [&] {
@@ -313,9 +313,9 @@ void ListManager::touch_chunk(int chunk_id) {
 }
 ```
 
-By now, you should be quite familiar with this double-checked locking pattern. One thing noteworthy is that the fundamental memory allocation function is provided by [`LLVMRuntime::request_allocate_aligned()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L846-L866).
+By now, you should be quite familiar with this double-checked locking pattern. One thing noteworthy is that the fundamental memory allocation function is provided by [`LLVMRuntime::request_allocate_aligned()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L846-L866).
 
-[`get_element_ptr()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L480-L483) illustrates the way to lookup the address of an element from a given index:
+[`get_element_ptr()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L480-L483) illustrates the way to lookup the address of an element from a given index:
 
 ```cpp
 Ptr get_element_ptr(i32 i) {
@@ -324,9 +324,9 @@ Ptr get_element_ptr(i32 i) {
 }
 ```
 
-There is also a reverse operation, [`ptr2index()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L499-L509). It iterates over each chunk to see if the passed-in `ptr` falls into that memory range.
+There is also a reverse operation, [`ptr2index()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L499-L509). It iterates over each chunk to see if the passed-in `ptr` falls into that memory range.
 
-With these primitive helpers, [`allocate()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L1591-L1594) is trivial to implement:
+With these primitive helpers, [`allocate()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L1591-L1594) is trivial to implement:
 
 ```cpp
 Ptr ListManager::allocate() {
@@ -335,7 +335,7 @@ Ptr ListManager::allocate() {
 }
 ```
 
-So is [`append()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L1586-L1589):
+So is [`append()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L1586-L1589):
 
 ```cpp
 void ListManager::append(void *data_ptr) {
@@ -344,14 +344,14 @@ void ListManager::append(void *data_ptr) {
 }
 ```
 
-[`clear()`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L472-L474) simply resets `num_elements` to zero, without doing anything to the list contents.
+[`clear()`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L472-L474) simply resets `num_elements` to zero, without doing anything to the list contents.
 
 ## Garbage collection (GC)
 
 GC will happen (in a parallel way on GPUs), after an offloaded task with possible sparse SNode deactivations.
 The GC process for a given SNode is divided into three stages:
 
-1. [`gc_parallel_0`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L1600-L1626): Moves the remaining, unused indices in `free_list` to its head.
+1. [`gc_parallel_0`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L1600-L1626): Moves the remaining, unused indices in `free_list` to its head.
 
 Normally this can be done via a simple `for` loop that copies data. However, we need to run it in parallel on GPUs and the data source and destination may overlap, so special care is needed.
 Therefore, the code differentiates between the cases where destination and source ranges overlap or not:
@@ -375,7 +375,7 @@ Therefore, the code differentiates between the cases where destination and sourc
 
 Note cell indices 3 and 4 are in both the source and the destination regions.
 
-2. [`gc_parallel_1`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L1628-L1640): Does some bookkeeping for `free_list` and `recycled_list`.
+2. [`gc_parallel_1`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L1628-L1640): Does some bookkeeping for `free_list` and `recycled_list`.
 
 ```cpp
 void gc_parallel_1(RuntimeContext *context, int snode_id) {
@@ -402,7 +402,7 @@ It is important to understand that this stage must run on a single thread in ord
 
 Note: The computation task involved in these steps is relatively simple and does not pose a significant burden in terms of processing time, even when executed in serial.
 
-3. [`gc_parallel_2`](https://github.com/taichi-dev/taichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/taichi/runtime/llvm/runtime.cpp#L1642-L1681): Replenishes `free_list` with the indices in `recycled_list`, then zero-fills all the recycled memory locations.
+3. [`gc_parallel_2`](https://github.com/taichi-dev/gstaichi/blob/172cab8a57fcfc2d766fe2b7cd40af669dadf326/gstaichi/runtime/llvm/runtime.cpp#L1642-L1681): Replenishes `free_list` with the indices in `recycled_list`, then zero-fills all the recycled memory locations.
 
 ```cpp
 void gc_parallel_2(RuntimeContext *context, int snode_id) {

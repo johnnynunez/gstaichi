@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-using namespace taichi::lang;
+using namespace gstaichi::lang;
 
 static void glfw_error_callback(int error, const char *description) {
   TI_WARN("GLFW Error {}: {}", error, description);

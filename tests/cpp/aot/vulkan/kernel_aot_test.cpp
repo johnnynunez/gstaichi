@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
-#include "taichi/rhi/vulkan/vulkan_device.h"
-#include "taichi/rhi/vulkan/vulkan_device_creator.h"
-#include "taichi/rhi/vulkan/vulkan_loader.h"
+#include "gstaichi/rhi/vulkan/vulkan_device.h"
+#include "gstaichi/rhi/vulkan/vulkan_device_creator.h"
+#include "gstaichi/rhi/vulkan/vulkan_loader.h"
 #include "tests/cpp/aot/gfx_utils.h"
 
-using namespace taichi;
+using namespace gstaichi;
 using namespace lang;
 
 TEST(GfxAotTest, VulkanDenseField) {
@@ -14,11 +14,11 @@ TEST(GfxAotTest, VulkanDenseField) {
     return;
   }
 
-  // Create Taichi Device for computation
+  // Create GsTaichi Device for computation
   lang::vulkan::VulkanDeviceCreator::Params evd_params;
   evd_params.api_version = std::nullopt;
   auto embedded_device =
-      std::make_unique<taichi::lang::vulkan::VulkanDeviceCreator>(evd_params);
+      std::make_unique<gstaichi::lang::vulkan::VulkanDeviceCreator>(evd_params);
 
   aot_test_utils::run_dense_field_kernel(Arch::vulkan,
                                          embedded_device->device());
@@ -31,11 +31,11 @@ TEST(GfxAotTest, VulkanKernelTest2) {
     return;
   }
 
-  // Create Taichi Device for computation
+  // Create GsTaichi Device for computation
   lang::vulkan::VulkanDeviceCreator::Params evd_params;
   evd_params.api_version = std::nullopt;
   auto embedded_device =
-      std::make_unique<taichi::lang::vulkan::VulkanDeviceCreator>(evd_params);
+      std::make_unique<gstaichi::lang::vulkan::VulkanDeviceCreator>(evd_params);
 
   aot_test_utils::run_kernel_test2(Arch::vulkan, embedded_device->device());
 }
@@ -47,11 +47,11 @@ TEST(GfxAotTest, VulkanKernelTest1) {
     return;
   }
 
-  // Create Taichi Device for computation
+  // Create GsTaichi Device for computation
   lang::vulkan::VulkanDeviceCreator::Params evd_params;
   evd_params.api_version = std::nullopt;
   auto embedded_device =
-      std::make_unique<taichi::lang::vulkan::VulkanDeviceCreator>(evd_params);
+      std::make_unique<gstaichi::lang::vulkan::VulkanDeviceCreator>(evd_params);
 
   aot_test_utils::run_kernel_test1(Arch::vulkan, embedded_device->device());
 }

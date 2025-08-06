@@ -7,9 +7,9 @@ sidebar_position: 2
 ## Aliases
 
 Creating aliases for global variables and functions with cumbersome
-names can sometimes improve readability. In Taichi, this can be done by
+names can sometimes improve readability. In GsTaichi, this can be done by
 assigning kernel and function local variables with `ti.static()`, which
-forces Taichi to use standard python pointer assignment.
+forces GsTaichi to use standard python pointer assignment.
 
 For example, consider the simple kernel:
 

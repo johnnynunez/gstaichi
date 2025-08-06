@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "c_api_test_utils.h"
-#include "taichi/cpp/taichi.hpp"
+#include "gstaichi/cpp/gstaichi.hpp"
 #include "c_api/tests/gtest_fixture.h"
 
 TEST_F(CapiTest, DryRunGetVersion) {
@@ -168,7 +168,7 @@ TEST_F(CapiTest, FailMapDeviceOnlyMemory) {
     ti::Memory mem = runtime.allocate_memory(100);
     mem.map();
 
-    EXPECT_TAICHI_ERROR(
+    EXPECT_GSTAICHI_ERROR(
         TI_ERROR_INVALID_STATE,
         "Mapping Memory without VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT set",
         /*reset_error=*/true);
@@ -180,7 +180,7 @@ TEST_F(CapiTest, FailMapDeviceOnlyMemory) {
     ti::Memory mem = runtime.allocate_memory(100);
     mem.map();
 
-    EXPECT_TAICHI_ERROR(
+    EXPECT_GSTAICHI_ERROR(
         TI_ERROR_INVALID_STATE,
         "Mapping Memory without VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT set",
         /*reset_error=*/true);
@@ -199,7 +199,7 @@ TEST_F(CapiTest, FailOutOfRangeReadWrite) {
 
     arr.write(data);
 
-    EXPECT_TAICHI_ERROR(TI_ERROR_ARGUMENT_OUT_OF_RANGE);
+    EXPECT_GSTAICHI_ERROR(TI_ERROR_ARGUMENT_OUT_OF_RANGE);
   }
 
   if (ti::is_arch_available(TI_ARCH_METAL)) {
@@ -213,7 +213,7 @@ TEST_F(CapiTest, FailOutOfRangeReadWrite) {
 
     arr.write(data);
 
-    EXPECT_TAICHI_ERROR(TI_ERROR_ARGUMENT_OUT_OF_RANGE);
+    EXPECT_GSTAICHI_ERROR(TI_ERROR_ARGUMENT_OUT_OF_RANGE);
   }
 }
 
@@ -241,7 +241,7 @@ TEST_F(CapiTest, DryRunImageAllocation) {
 
 TEST_F(CapiTest, DryRunVulkanAotModule) {
   if (ti::is_arch_available(TI_ARCH_VULKAN)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -257,7 +257,7 @@ TEST_F(CapiTest, DryRunVulkanAotModule) {
 
 TEST_F(CapiTest, DryRunMetalAotModule) {
   if (ti::is_arch_available(TI_ARCH_METAL)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -273,7 +273,7 @@ TEST_F(CapiTest, DryRunMetalAotModule) {
 
 TEST_F(CapiTest, DryRunOpenglAotModule) {
   if (ti::is_arch_available(TI_ARCH_OPENGL)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -290,7 +290,7 @@ TEST_F(CapiTest, DryRunOpenglAotModule) {
 
 TEST_F(CapiTest, TestLoadTcmAotModuleVulkan) {
   if (ti::is_arch_available(TI_ARCH_VULKAN)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir << "/module.tcm";
@@ -317,7 +317,7 @@ TEST_F(CapiTest, TestLoadTcmAotModuleVulkan) {
 
 TEST_F(CapiTest, TestLoadTcmAotModuleMetal) {
   if (ti::is_arch_available(TI_ARCH_METAL)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir << "/module.tcm";
@@ -344,7 +344,7 @@ TEST_F(CapiTest, TestLoadTcmAotModuleMetal) {
 
 TEST_F(CapiTest, TestCreateTcmAotModuleVulkan) {
   if (ti::is_arch_available(TI_ARCH_VULKAN)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir << "/module.tcm";
@@ -381,7 +381,7 @@ TEST_F(CapiTest, TestCreateTcmAotModuleVulkan) {
 
 TEST_F(CapiTest, TestCreateTcmAotModuleMetal) {
   if (ti::is_arch_available(TI_ARCH_METAL)) {
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir << "/module.tcm";

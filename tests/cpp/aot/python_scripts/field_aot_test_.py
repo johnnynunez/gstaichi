@@ -1,7 +1,7 @@
 import argparse
 import os
 
-import taichi as ti
+import gstaichi as ti
 
 
 def compile_field_aot(arch, compile_for_cgraph=False):
@@ -85,8 +85,8 @@ def compile_field_aot(arch, compile_for_cgraph=False):
         for i in range(3 * 8, 3 * 8 + 8):
             assert y[i] == 0
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     if compile_for_cgraph:
         g_builder = ti.graph.GraphBuilder()

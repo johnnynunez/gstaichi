@@ -2,15 +2,15 @@
 sidebar_position: 2
 ---
 
-# Accelerate Python with Taichi
+# Accelerate Python with GsTaichi
 
-Taichi is a domain-specific language *embedded* in Python. One of its key features is that Taichi can accelerate computation-intensive Python programs and help these programs [achieve comparable performance to C/C++ or even CUDA](https://docs.taichi-lang.org/blog/is-taichi-lang-comparable-to-or-even-faster-than-cuda). This makes Taichi much better positioned in the area of scientific computation.
+GsTaichi is a domain-specific language *embedded* in Python. One of its key features is that GsTaichi can accelerate computation-intensive Python programs and help these programs [achieve comparable performance to C/C++ or even CUDA](https://docs.taichi-lang.org/blog/is-gstaichi-lang-comparable-to-or-even-faster-than-cuda). This makes GsTaichi much better positioned in the area of scientific computation.
 
-In the following sections, we provide two examples to give you a sense as to how much acceleration Taichi can bring to your Python programs.
+In the following sections, we provide two examples to give you a sense as to how much acceleration GsTaichi can bring to your Python programs.
 
 ## Count the primes
 
-Large-scale or nested for loops in Python always leads to poor runtime performance. The following demo counts the primes within a specified range and involves nested for loops (see [here](https://github.com/taichi-dev/faster-python-with-taichi/blob/main/count_primes.py) for the complete version). Simply by importing Taichi or switching to Taichi's GPU backends, you will see a significant boost to the overall performance:
+Large-scale or nested for loops in Python always leads to poor runtime performance. The following demo counts the primes within a specified range and involves nested for loops (see [here](https://github.com/taichi-dev/faster-python-with-gstaichi/blob/main/count_primes.py) for the complete version). Simply by importing GsTaichi or switching to GsTaichi's GPU backends, you will see a significant boost to the overall performance:
 
 ```python
 """Count the prime numbers in the range [1, n]
@@ -55,17 +55,17 @@ user        0m2.235s
 sys        0m0.000s
 ```
 
-2.  Now, let's change the code a bit: import Taichi to your Python code and initialize it using the CPU backend:
+2.  Now, let's change the code a bit: import GsTaichi to your Python code and initialize it using the CPU backend:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 ti.init(arch=ti.cpu)
 ```
 
 3. Decorate `is_prime()` with `@ti.func` and `count_primes()` with `@ti.kernel`:
 
-> - Taichi's compiler compiles the Python code decorated with `@ti.kernel` onto different devices, such as CPU and GPU, for high-performance computation.
-> - See [Kernels & Functions](../kernels/kernel_function.md) for a detailed explanation of Taichi's core concepts: kernels and functions.
+> - GsTaichi's compiler compiles the Python code decorated with `@ti.kernel` onto different devices, such as CPU and GPU, for high-performance computation.
+> - See [Kernels & Functions](../kernels/kernel_function.md) for a detailed explanation of GsTaichi's core concepts: kernels and functions.
 
 ```python
 @ti.func
@@ -104,29 +104,29 @@ sys        0m0.179s
 
 5.  Increase `N` tenfold to `10,000,000` and rerun **count_primes.py**:
 
-   *The calculation time with Taichi is 0.8s vs. 55s with Python only. The calculation speed with Taichi is 70x up.*
+   *The calculation time with GsTaichi is 0.8s vs. 55s with Python only. The calculation speed with GsTaichi is 70x up.*
 
-6. Change Taichi's backend from CPU to GPU and give it a rerun:
+6. Change GsTaichi's backend from CPU to GPU and give it a rerun:
 
 ```python
 ti.init(arch=ti.gpu)
 ```
-   *The calculation time with Taichi is 0.45s vs. 55s with Python only. The calculation speed with Taichi is taken further to 120x up.*
+   *The calculation time with GsTaichi is 0.45s vs. 55s with Python only. The calculation speed with GsTaichi is taken further to 120x up.*
 
 ## Dynamic programming: longest common subsequence
 
-The core philosophy behind dynamic programming is that it sacrifices some storage space for less execution time and stores intermediate results to avoid repetitive computation. In the following section, we will walk you through a complete implementation of DP, and demonstrate another area where Taichi can make a real 'acceleration'.
+The core philosophy behind dynamic programming is that it sacrifices some storage space for less execution time and stores intermediate results to avoid repetitive computation. In the following section, we will walk you through a complete implementation of DP, and demonstrate another area where GsTaichi can make a real 'acceleration'.
 
 The example below follows the philosophy of DP to work out the length of the longest common subsequence (LCS) of two given sequences. For instance, the LCS of sequences a = [**0**, **1**, 0, 2, **4**, **3**, 1, **2**, 1] and b = [4, **0**, **1**, **4**, 5, **3**, 1, **2**],  is [0, 1, 4, 3, 1, 2], and the LCS' length is six. Let's get started:
 
-1. Import NumPy and Taichi to your Python program:
+1. Import NumPy and GsTaichi to your Python program:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 ```
 
-2. Initialize Taichi:
+2. Initialize GsTaichi:
 
 ```python
 ti.init(arch=ti.cpu)
@@ -140,7 +140,7 @@ a_numpy = np.random.randint(0, 100, N, dtype=np.int32)
 b_numpy = np.random.randint(0, 100, N, dtype=np.int32)
 ```
 
-4. Here we define an `N`&times;`N` [Taichi field](../basic/field.md) `f`, using its `[i, j]`-th element to represent the length of the LCS of sequence `a`'s first `i` elements and sequence `b`'s first `j` elements:
+4. Here we define an `N`&times;`N` [GsTaichi field](../basic/field.md) `f`, using its `[i, j]`-th element to represent the length of the LCS of sequence `a`'s first `i` elements and sequence `b`'s first `j` elements:
 
 ```python
 f = ti.field(dtype=ti.i32, shape=(N + 1, N + 1))
@@ -160,7 +160,7 @@ f[i, j] = ti.max(f[i - 1, j - 1] + (a[i - 1] == b[j - 1]),
 def compute_lcs(a: ti.types.ndarray(), b: ti.types.ndarray()) -> ti.i32:
        len_a, len_b = a.shape[0], b.shape[0]
 
-    ti.loop_config(serialize=True) # Disable auto-parallelism in Taichi
+    ti.loop_config(serialize=True) # Disable auto-parallelism in GsTaichi
     for i in range(1, len_a + 1):
         for j in range(1, len_b + 1):
             f[i, j] = ti.max(f[i - 1, j - 1] + (a[i - 1] == b[j - 1]),
@@ -169,14 +169,14 @@ def compute_lcs(a: ti.types.ndarray(), b: ti.types.ndarray()) -> ti.i32:
     return f[len_a, len_b]
 ```
 
-> - NumPy arrays are stored as ndarray in Taichi.
-> - Ensure that you set `ti.loop_config(serialize=True)` to disable auto-parallelism in Taichi. The iterations *here* should not happen in parallelism because the computation of a loop iteration is dependent on its previous iterations.
+> - NumPy arrays are stored as ndarray in GsTaichi.
+> - Ensure that you set `ti.loop_config(serialize=True)` to disable auto-parallelism in GsTaichi. The iterations *here* should not happen in parallelism because the computation of a loop iteration is dependent on its previous iterations.
 
 7. Print the result of `compute_lcs(a_numpy, b_numpy)`.
    *Now you get the following program:*
 
 ```python
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 
 ti.init(arch=ti.cpu)
@@ -198,7 +198,7 @@ else:
 def compute_lcs(a: ti.types.ndarray(), b: ti.types.ndarray()) -> ti.i32:
     len_a, len_b = a.shape[0], b.shape[0]
 
-    ti.loop_config(serialize=True) # Disable auto-parallelism in Taichi
+    ti.loop_config(serialize=True) # Disable auto-parallelism in GsTaichi
     for i in range(1, len_a + 1):
         for j in range(1, len_b + 1):
                f[i, j] = ti.max(f[i - 1, j - 1] + (a[i - 1] == b[j - 1]),
@@ -225,10 +225,10 @@ user        0m1.112s
 sys        0m0.549s
 ```
 
-In [this repo](https://github.com/taichi-dev/faster-python-with-taichi/blob/main/lcs.py), we provide our implementation of this dynamic planning algorithm in Taichi and NumPy:
+In [this repo](https://github.com/taichi-dev/faster-python-with-gstaichi/blob/main/lcs.py), we provide our implementation of this dynamic planning algorithm in GsTaichi and NumPy:
 
 - With Python only, it takes 476s to work out the length of the LCS of two 15,000-long random sequences.
-- With Taichi, it only takes about 0.9s and sees an up to 500x speed up!
+- With GsTaichi, it only takes about 0.9s and sees an up to 500x speed up!
 
 :::note
 The actual execution time may vary depending on your machine, but we believe that the performance improvements you will see is comparable to ours.

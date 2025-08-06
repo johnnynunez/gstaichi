@@ -2,15 +2,15 @@
 sidebar_position: 6
 ---
 
-# Taichi Argument Pack
+# GsTaichi Argument Pack
 
-Taichi provides custom [argpack types](../type_system/type.md#argument-pack-type) for developers to cache unchanged parameters between multiple kernel calls.
+GsTaichi provides custom [argpack types](../type_system/type.md#argument-pack-type) for developers to cache unchanged parameters between multiple kernel calls.
 
-Argument packs, also known as argpacks, are user-defined data types that act as wrappers for parameters. They allow multiple parameters to be stored and used as a single parameter. One key advantage of using argpacks is their ability to buffer parameters. If you have certain parameters that remain unchanged when calling kernels, you can store them in argpacks. Taichi can then cache these argpacks on device, resulting in improved kernel performance.
+Argument packs, also known as argpacks, are user-defined data types that act as wrappers for parameters. They allow multiple parameters to be stored and used as a single parameter. One key advantage of using argpacks is their ability to buffer parameters. If you have certain parameters that remain unchanged when calling kernels, you can store them in argpacks. GsTaichi can then cache these argpacks on device, resulting in improved kernel performance.
 
 ## Creation and Initialization
 
-You can use the function `ti.types.argpack()` to create an argpack type, which can be utilized to represent view params. The following is an example of defining a Taichi argument pack:
+You can use the function `ti.types.argpack()` to create an argpack type, which can be utilized to represent view params. The following is an example of defining a GsTaichi argument pack:
 
 ```python
 view_params_tmpl = ti.types.argpack(view_mtx=ti.math.mat4, proj_mtx=ti.math.mat4, far=ti.f32)
@@ -35,7 +35,7 @@ view_params = view_params_tmpl(
 
 ## Pass Argument Packs to Kernels
 
-Once argument packs are created and initialized, they can be easily used as kernel parameters. Simply pass them to the kernel, and Taichi will intelligently cache them (if their values remain unchanged) across multiple kernel calls, optimizing performance.
+Once argument packs are created and initialized, they can be easily used as kernel parameters. Simply pass them to the kernel, and GsTaichi will intelligently cache them (if their values remain unchanged) across multiple kernel calls, optimizing performance.
 
 ```python cont
 @ti.kernel
@@ -53,16 +53,16 @@ print(p(view_params))  # 1.0
 Argument packs facilitate the caching of parameters within the device buffer, leading to significant performance enhancements for kernels that are repeatedly invoked with identical parameters.
 
 - In the absence of argument packs, parameter values are copied to device memory every time, leading to additional time overhead caused by the memory copying process.
-  ![Copying Operations Performed Without ArgPacks](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/without_argpack_memory_copying.svg)
+  ![Copying Operations Performed Without ArgPacks](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/without_argpack_memory_copying.svg)
 
 - By employing argument packs, parameter values can be stored and cached directly in the device buffer, eliminating the need for redundant and resource-consuming memory copying operations.
-  ![Copying Operations Performed With ArgPacks](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/argument_pack_memory_copying.svg)
+  ![Copying Operations Performed With ArgPacks](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/argument_pack_memory_copying.svg)
 
 
 ### Argpack Nesting
 
 :::note
-This subsection delves into implementation specifics related to argpack, which may not be relevant or necessary for Taichi users to understand or utilize in their own workflows. Therefore, Taichi users can safely skip reading this section as it does not directly impact their usage or requirements.
+This subsection delves into implementation specifics related to argpack, which may not be relevant or necessary for GsTaichi users to understand or utilize in their own workflows. Therefore, GsTaichi users can safely skip reading this section as it does not directly impact their usage or requirements.
 :::
 
 To enhance usability and convenience, argpacks have the ability to be nested within other argpacks. This feature allows for the organization and encapsulation of multiple argument packs within a single parent argpack. By enabling nesting, users can efficiently manage and handle complex sets of arguments, improving code clarity and maintainability.
@@ -71,17 +71,17 @@ To enable nested argpacks, the parent argpack creates a pointer to the argpack b
 
 For example, consider that we want to load a value in `Value #3.1`. We first load Arguments Buffer, then load the pointer to argpack #1. Then we load pointer to argpack #3 inside argpack buffer #1. Finally we load value #3.1 in argpack buffer #3.
 
-![Load Value 3.1 in Nested ArgPacks](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/argpack_nesting_structure.svg)
+![Load Value 3.1 in Nested ArgPacks](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/argpack_nesting_structure.svg)
 
 Value #3.1 is a struct value containing a child struct and an integer. The child struct contains an integer and a float. Consider that we'd like to load this float value. This diagram illustrates the steps to load this float. It also explains `arg_id` and `arg_depth` in detail.
 
-![Load Float Value in Value 3.1](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/argload_stmt_for_argpack_nesting.svg)
+![Load Float Value in Value 3.1](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/argload_stmt_for_argpack_nesting.svg)
 
 
 ### Buffer Values in Argpack
 
 :::note
-This subsection delves into implementation specifics related to argpack, which may not be relevant or necessary for Taichi users to understand or utilize in their own workflows. Therefore, Taichi users can safely skip reading this section as it does not directly impact their usage or requirements.
+This subsection delves into implementation specifics related to argpack, which may not be relevant or necessary for GsTaichi users to understand or utilize in their own workflows. Therefore, GsTaichi users can safely skip reading this section as it does not directly impact their usage or requirements.
 :::
 
 In its implementation, an argpack is specifically designed to store constant values like primitive types, matrices, and dataclasses directly within its buffer. However, for resource types that require more intricate handling, such as Ndarrays, external arrays, sparse matrices, and textures, argpack employs a different approach. Instead of storing these resources directly in the argpack buffer, it temporarily holds them within the Python `ArgPack` class. During kernel launching, argpack passes the pointers to these resources by storing them in the argument buffer.

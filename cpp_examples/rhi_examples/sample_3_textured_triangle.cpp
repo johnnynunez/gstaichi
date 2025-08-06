@@ -271,7 +271,7 @@ class SampleApp : public App {
 
   std::unique_ptr<DeviceAllocationGuard> vertex_buffer{nullptr};
   std::unique_ptr<DeviceAllocationGuard> uniform_buffer{nullptr};
-  taichi::lang::DeviceImageUnique texture{nullptr};
+  gstaichi::lang::DeviceImageUnique texture{nullptr};
 };
 
 int main() {

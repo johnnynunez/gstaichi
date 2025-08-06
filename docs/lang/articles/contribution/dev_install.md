@@ -6,13 +6,13 @@ sidebar_position: 2
 
 ## Target audience
 
-Developers who are interested in the compiler, computer graphics, or high-performance computing, and would like to contribute new features or bug fixes to the [Taichi programming language](https://github.com/taichi-dev/taichi).
+Developers who are interested in the compiler, computer graphics, or high-performance computing, and would like to contribute new features or bug fixes to the [GsTaichi programming language](https://github.com/taichi-dev/gstaichi).
 
 :::danger IMPORTANT
 
-This installation guide is *NOT* intended for end users who only wish to do simulation or high performance numerical computation. We recommend that end users install Taichi via `pip install taichi`. There is no need for you to build Taichi from source.
+This installation guide is *NOT* intended for end users who only wish to do simulation or high performance numerical computation. We recommend that end users install GsTaichi via `pip install gstaichi`. There is no need for you to build GsTaichi from source.
 
-See the [Get Started](https://docs.taichi-lang.org/) for more information on quickly setting up Taichi for end users.
+See the [Get Started](https://docs.taichi-lang.org/) for more information on quickly setting up GsTaichi for end users.
 
 :::
 
@@ -21,10 +21,10 @@ See the [Get Started](https://docs.taichi-lang.org/) for more information on qui
 
   This installation guide covers the following:
 
-  - [Prerequisites for building Taichi from source](#prerequisites)
+  - [Prerequisites for building GsTaichi from source](#prerequisites)
   - [Installing optional dependencies](#install-optional-dependencies)
-  - [Building Taichi from source](#build-taichi-from-source)
-  - [List of TAICHI_CMAKE_ARGS](#list-of-taichi_cmake_args)
+  - [Building GsTaichi from source](#build-gstaichi-from-source)
+  - [List of GSTAICHI_CMAKE_ARGS](#list-of-gstaichi_cmake_args)
   - [Usage and behavior of `build.py`](#design-goals-behaviors-and-usage-of-buildpy)
   - [Troubleshooting and debugging](#troubleshooting-and-debugging)
   - [Frequently asked questions](#frequently-asked-questions)
@@ -37,7 +37,7 @@ Installation instructions vary depending on which operating system (OS) you are 
 
 :::note
 
-With the release of Taichi v1.6.0, a comprehensive build environment preparation script (aka. `build.py` or `ti-build`) has been introduced. This script significantly simplifies the process of configuring a suitable build or development environment.
+With the release of GsTaichi v1.6.0, a comprehensive build environment preparation script (aka. `build.py` or `ti-build`) has been introduced. This script significantly simplifies the process of configuring a suitable build or development environment.
 
 This guide will focus on the `build.py` approach. If you prefer to use the conventional method, you can refer to the previous Developer Installation document.
 
@@ -93,7 +93,7 @@ This guide will focus on the `build.py` approach. If you prefer to use the conve
 
 <blockquote>
 
-Taichi supports building from source with Clang++ >= 10.0 and MSVC from VS2022.
+GsTaichi supports building from source with Clang++ >= 10.0 and MSVC from VS2022.
 
 For macOS developers, it is recommended to use AppleClang, which comes with the Command Line Tools for Xcode. You can install them by running `xcode-select --install`. Alternatively, you can also install Xcode.app from the Apple Store.
 
@@ -184,7 +184,7 @@ To actually use the compiled LLVM binaries, replace the LLVM folder in the cache
 
 ## Install optional dependencies
 
-[CUDA](https://en.wikipedia.org/wiki/CUDA) is NVIDIA's answer to high-performance computing. Taichi has implemented a backend based on CUDA 10.0.0+. Vulkan is a next-generation, cross-platform API, open standard for 3D graphics and computing. Taichi has added a Vulkan backend as of v0.8.0.
+[CUDA](https://en.wikipedia.org/wiki/CUDA) is NVIDIA's answer to high-performance computing. GsTaichi has implemented a backend based on CUDA 10.0.0+. Vulkan is a next-generation, cross-platform API, open standard for 3D graphics and computing. GsTaichi has added a Vulkan backend as of v0.8.0.
 
 This section provides instructions on installing these two optional dependencies.
 
@@ -248,7 +248,7 @@ import TabItem from '@theme/TabItem';
 
 </details>
 
-Vulkan SDK is required to debug Taichi's Vulkan backend.
+Vulkan SDK is required to debug GsTaichi's Vulkan backend.
 `build.py` will automatically download and setup a suitable version of Vulkan SDK.
 
 On Windows, Vulkan SDK requires elevated privileges to install (the installer would set several machine scope environement variables).
@@ -270,10 +270,10 @@ On Windows, Vulkan SDK requires elevated privileges to install (the installer wo
 
   > On Ubuntu, check if a JSON file with a name corresponding to your GPU vendor is in: `/etc/vulkan/icd.d/` or `/usr/share/vulkan/icd.d/`.
 
-2. Add an environment variable `TAICHI_CMAKE_ARGS` with the value `-DTI_WITH_VULKAN:BOOL=ON` to enable the Vulkan backend: (Otherwise Vulkan backend is disabled by default when compiling from source, and `build.py` won't setup Vulkan SDK for you).
+2. Add an environment variable `GSTAICHI_CMAKE_ARGS` with the value `-DTI_WITH_VULKAN:BOOL=ON` to enable the Vulkan backend: (Otherwise Vulkan backend is disabled by default when compiling from source, and `build.py` won't setup Vulkan SDK for you).
 
   ```shell
-  export TAICHI_CMAKE_ARGS="$TAICHI_CMAKE_ARGS -DTI_WITH_VULKAN:BOOL=ON"
+  export GSTAICHI_CMAKE_ARGS="$GSTAICHI_CMAKE_ARGS -DTI_WITH_VULKAN:BOOL=ON"
   ```
 
 3. Check if the SDK is properly installed: Run `vulkaninfo` in the build shell:
@@ -287,10 +287,10 @@ On Windows, Vulkan SDK requires elevated privileges to install (the installer wo
 
 <TabItem value="windows">
 
-1. Add an environment variable `TAICHI_CMAKE_ARGS` with the value `-DTI_WITH_VULKAN:BOOL=ON` to enable the Vulkan backend: (Otherwise Vulkan backend is disabled by default when compiling from source, and `build.py` won't setup Vulkan SDK for you).
+1. Add an environment variable `GSTAICHI_CMAKE_ARGS` with the value `-DTI_WITH_VULKAN:BOOL=ON` to enable the Vulkan backend: (Otherwise Vulkan backend is disabled by default when compiling from source, and `build.py` won't setup Vulkan SDK for you).
 
     ```pwsh
-    $env:TAICHI_CMAKE_ARGS += " -DTI_WITH_VULKAN:BOOL=ON"
+    $env:GSTAICHI_CMAKE_ARGS += " -DTI_WITH_VULKAN:BOOL=ON"
     ```
 
 2. Check if the SDK is properly installed: Run `vulkaninfo` in the build shell:
@@ -307,9 +307,9 @@ On Windows, Vulkan SDK requires elevated privileges to install (the installer wo
 ````
 </details>
 
-## Build Taichi from source
+## Build GsTaichi from source
 
-1. Clone the Taichi repo *recursively* and build[^1]:
+1. Clone the GsTaichi repo *recursively* and build[^1]:
 
 ````mdx-code-block
 <Tabs
@@ -322,12 +322,12 @@ On Windows, Vulkan SDK requires elevated privileges to install (the installer wo
 <TabItem value="linux">
 
   ```shell
-  git clone --recursive https://github.com/taichi-dev/taichi
+  git clone --recursive https://github.com/taichi-dev/gstaichi
 
-  cd taichi
+  cd gstaichi
 
   # Customize with your own needs
-  export TAICHI_CMAKE_ARGS="-DTI_WITH_VULKAN:BOOL=ON -DTI_WITH_CUDA:BOOL=ON"
+  export GSTAICHI_CMAKE_ARGS="-DTI_WITH_VULKAN:BOOL=ON -DTI_WITH_CUDA:BOOL=ON"
 
   # Uncomment if you want to use a different compiler
   # export CC=/path/to/clang
@@ -338,7 +338,7 @@ On Windows, Vulkan SDK requires elevated privileges to install (the installer wo
   # This would drop into a shell with complete build environment,
   ./build.py --shell
 
-  # and then you could install Taichi in development mode
+  # and then you could install GsTaichi in development mode
   python3 setup.py develop
   ```
 </TabItem>
@@ -346,18 +346,18 @@ On Windows, Vulkan SDK requires elevated privileges to install (the installer wo
 <TabItem value="windows">
 
   ```shell
-  git clone --recursive https://github.com/taichi-dev/taichi
+  git clone --recursive https://github.com/taichi-dev/gstaichi
 
-  cd taichi
+  cd gstaichi
 
   # Customize with your own needs
-  $env:TAICHI_CMAKE_ARGS += " -DTI_WITH_VULKAN:BOOL=ON -DTI_WITH_CUDA:BOOL=ON"
+  $env:GSTAICHI_CMAKE_ARGS += " -DTI_WITH_VULKAN:BOOL=ON -DTI_WITH_CUDA:BOOL=ON"
 
   # $env:DEBUG = 1 # Uncomment it if you wish to keep debug information.
 
   # This would drop into a shell with complete build environment,
   ./build.py --shell
-  # and then you could install Taichi in development mode
+  # and then you could install GsTaichi in development mode
   python3 setup.py develop
   ```
 
@@ -377,10 +377,10 @@ ls dist/*.whl
 
 :::
 
-2. Try out some of the demos in the **examples/** folder to see if Taichi is properly installed. For example:
+2. Try out some of the demos in the **examples/** folder to see if GsTaichi is properly installed. For example:
 
   ```shell
-  python3 python/taichi/examples/simulation/mpm128.py
+  python3 python/gstaichi/examples/simulation/mpm128.py
   ```
 
 :::note
@@ -394,7 +394,7 @@ The `develop` command serves the developers' needs better because edits to the P
 
 :::
 
-## List of TAICHI_CMAKE_ARGS
+## List of GSTAICHI_CMAKE_ARGS
 
 | Flag                         | Description                                                | Default |
 | ---------------------------- | ---------------------------------------------------------- | ------- |
@@ -406,7 +406,7 @@ The `develop` command serves the developers' needs better because edits to the P
 | TI_WITH_BACKTRACE            | Use backward-cpp to print out C++ stack trace upon failure | OFF     |
 | TI_WITH_CUDA                 | Build with the CUDA backend                                | ON      |
 | TI_WITH_CUDA_TOOLKIT         | Build with the CUDA toolkit                                | OFF     |
-| TI_WITH_C_API                | Build Taichi runtime C-API library                         | ON      |
+| TI_WITH_C_API                | Build GsTaichi runtime C-API library                         | ON      |
 | TI_WITH_DX11                 | Build with the DX11 backend                                | OFF     |
 | TI_WITH_DX12                 | Build with the DX12 backend                                | OFF     |
 | TI_WITH_GGUI                 | Build with GGUI                                            | OFF     |
@@ -415,7 +415,7 @@ The `develop` command serves the developers' needs better because edits to the P
 | TI_WITH_METAL                | Build with the Metal backend                               | ON      |
 | TI_WITH_OPENGL               | Build with the OpenGL backend                              | ON      |
 | TI_WITH_PYTHON               | Build with Python language binding                         | ON      |
-| TI_WITH_STATIC_C_API         | Build static Taichi runtime C-API library                  | OFF     |
+| TI_WITH_STATIC_C_API         | Build static GsTaichi runtime C-API library                  | OFF     |
 | TI_WITH_VULKAN               | Build with the Vulkan backend                              | OFF     |
 | USE_LLD                      | Use lld (from llvm) linker                                 | OFF     |
 | USE_MOLD                     | Use mold (A Modern Linker)                                 | OFF     |
@@ -460,7 +460,7 @@ Therefore, `build.py` has been created to eliminate this friction. If you find a
 
 ### Designed to be minimally intrusive
 
-Nearly all the dependencies of `build.py` and Taichi are explicitly placed at the cache folder, which can be opened by:
+Nearly all the dependencies of `build.py` and GsTaichi are explicitly placed at the cache folder, which can be opened by:
 
 ```shell
 ./build.py cache
@@ -477,12 +477,12 @@ A typical cache dir will contain sub folders below:
 
 | Sub Folder       | Purpose                                                       | Code Responsible                                                                                                 |
 | ---------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| bootstrap        | Contains Python packages used by `build.py` itself            | [bootstrap.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/bootstrap.py) |
-| deps             | Downloaded external dependencies, before extract/install      | [dep.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/dep.py)             |
-| llvm15           | Managed pre-built LLVM binaries                               | [llvm.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/llvm.py)           |
-| mambaforge       | Managed conda environment dedicated to build / develop Taichi | [python.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/python.py)       |
-| sccache          | Compile cache                                                 | [sccache.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/sccache.py)     |
-| vulkan-1.x.xxx.x | Vulkan SDK location                                           | [vulkan.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/vulkan.py)       |
+| bootstrap        | Contains Python packages used by `build.py` itself            | [bootstrap.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/bootstrap.py) |
+| deps             | Downloaded external dependencies, before extract/install      | [dep.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/dep.py)             |
+| llvm15           | Managed pre-built LLVM binaries                               | [llvm.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/llvm.py)           |
+| mambaforge       | Managed conda environment dedicated to build / develop GsTaichi | [python.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/python.py)       |
+| sccache          | Compile cache                                                 | [sccache.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/sccache.py)     |
+| vulkan-1.x.xxx.x | Vulkan SDK location                                           | [vulkan.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/vulkan.py)       |
 
 The whole cache folder can be safely removed.
 
@@ -494,7 +494,7 @@ On Debian/Ubuntu systems, `apt install python3-pip` is required.
 
 :::caution Behaviors considered intrusive
 
-1. On Ubuntu systems, there's an attempt to install missing development libraries at [ospkg.py](https://github.com/taichi-dev/taichi/blob/master/.github/workflows/scripts/ti_build/ospkg.py) by invoking `sudo apt install libxxxx-dev`
+1. On Ubuntu systems, there's an attempt to install missing development libraries at [ospkg.py](https://github.com/taichi-dev/gstaichi/blob/master/.github/workflows/scripts/ti_build/ospkg.py) by invoking `sudo apt install libxxxx-dev`
    if a terminal is detected. It can be skipped by telling `apt` not to install them.
 
 2. Installing Vulkan SDK on Windows requires elevated privileges, and the installer will set several machine scoped environment variables (`VULKAN_SDK` and `VK_SDK_PATH`).
@@ -504,7 +504,7 @@ On Debian/Ubuntu systems, `apt install python3-pip` is required.
 
 ### Choose your desired Python version, or use your own Python environment.
 
-By default, `build.py` assumes that the same Python version used to invoke it will also be used for building Taichi.
+By default, `build.py` assumes that the same Python version used to invoke it will also be used for building GsTaichi.
 `build.py` will then create an isolated Python environment and use it for all the subsequent Python related tasks.
 To use a different version, please specify the desired version via `--python` option:
 
@@ -554,7 +554,7 @@ You were trying to install packages into the Python environment without write pe
 
 **Root cause**
 
-You did not use the `--recursive` flag when cloning the Taichi repository.
+You did not use the `--recursive` flag when cloning the GsTaichi repository.
 
 **Workaround**
 
@@ -576,7 +576,7 @@ Run the following commands to enter development shell:
 
 ## Frequently asked questions
 
-### How can I get a fresh Taichi build?
+### How can I get a fresh GsTaichi build?
 
 1. Clean up cache from your previous builds:
 
@@ -584,10 +584,10 @@ Run the following commands to enter development shell:
   python3 setup.py clean
   ```
 
-2. Uninstall the Taichi package from your Python environment:
+2. Uninstall the GsTaichi package from your Python environment:
 
-- `python setup.py develop --uninstall`, if you build Taichi using `python setup.py develop`.
-- `pip uninstall taichi`, if you build Taichi using `python setup.py install`.
+- `python setup.py develop --uninstall`, if you build GsTaichi using `python setup.py develop`.
+- `pip uninstall gstaichi`, if you build GsTaichi using `python setup.py install`.
 
 ### What if I don't have `wget` on my macOS?
 
@@ -600,4 +600,4 @@ Run the following commands to enter development shell:
 
 - See [Installation Troubleshooting](../faqs/install.md) for issues that may share with the end-user installation.
 
-- If you encounter any issue that is not covered here, feel free to report it by [opening an issue on GitHub](https://github.com/taichi-dev/taichi/issues/new?labels=potential+bug&template=bug_report.md) and including the details. We are always there to help!
+- If you encounter any issue that is not covered here, feel free to report it by [opening an issue on GitHub](https://github.com/taichi-dev/gstaichi/issues/new?labels=potential+bug&template=bug_report.md) and including the details. We are always there to help!

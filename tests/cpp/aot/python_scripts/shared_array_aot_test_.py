@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-import taichi as ti
+import gstaichi as ti
 
 
 def shared_array_aot_test(arch):
@@ -42,8 +42,8 @@ def shared_array_aot_test(arch):
                 ti.simt.block.sync()
             a[i] = acc
 
-    assert "TAICHI_AOT_FOLDER_PATH" in os.environ.keys()
-    dir_name = str(os.environ["TAICHI_AOT_FOLDER_PATH"])
+    assert "GSTAICHI_AOT_FOLDER_PATH" in os.environ.keys()
+    dir_name = str(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
 
     m = ti.aot.Module()
     m.add_kernel(run, template_args={"v": v_arr, "d": d_arr, "a": a_arr})

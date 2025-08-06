@@ -6,10 +6,10 @@
 #import <GLFW/glfw3native.h>
 #include "glm/glm.hpp"
 
-#include "taichi/rhi/metal/metal_api.h"
-#include "taichi/rhi/metal/metal_device.h"
+#include "gstaichi/rhi/metal/metal_api.h"
+#include "gstaichi/rhi/metal/metal_device.h"
 
-using namespace taichi::lang;
+using namespace gstaichi::lang;
 
 class App {
  public:

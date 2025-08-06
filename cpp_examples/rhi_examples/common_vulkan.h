@@ -1,15 +1,15 @@
 #pragma once
 
-#include "taichi/rhi/vulkan/vulkan_device.h"
-#include "taichi/rhi/vulkan/vulkan_common.h"
-#include "taichi/rhi/vulkan/vulkan_loader.h"
-#include "taichi/rhi/vulkan/vulkan_device_creator.h"
+#include "gstaichi/rhi/vulkan/vulkan_device.h"
+#include "gstaichi/rhi/vulkan/vulkan_common.h"
+#include "gstaichi/rhi/vulkan/vulkan_loader.h"
+#include "gstaichi/rhi/vulkan/vulkan_device_creator.h"
 
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
-using namespace taichi::lang;
+using namespace gstaichi::lang;
 
 static void glfw_error_callback(int code, const char *description) {
   TI_WARN("GLFW Error {}: {}", code, description);
@@ -44,7 +44,7 @@ class App {
   App(int width, int height, const std::string &title) {
     TI_INFO("Creating App '{}' of {}x{}", title, width, height);
 
-    TI_ASSERT(taichi::lang::vulkan::is_vulkan_api_available());
+    TI_ASSERT(gstaichi::lang::vulkan::is_vulkan_api_available());
     glfwInitVulkanLoader(vkGetInstanceProcAddr);
 
     if (glfwInit()) {

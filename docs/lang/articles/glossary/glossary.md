@@ -54,7 +54,7 @@ See also [row-major order](./glossary.md/#row-major-order).
 
 ## Compound type
 
-A compound type is a user-defined array-like or struct-like data type which comprises multiple members of primitive types or other compound types. Supported compound types in Taichi include vectors, metrics, and structs.
+A compound type is a user-defined array-like or struct-like data type which comprises multiple members of primitive types or other compound types. Supported compound types in GsTaichi include vectors, metrics, and structs.
 
 ## Compute shader
 
@@ -62,7 +62,7 @@ A compound type is a user-defined array-like or struct-like data type which comp
 
 ## Coordinate offset
 
-A coordinate offset refers to a value added to another base value, which is an element in a Taichi field.
+A coordinate offset refers to a value added to another base value, which is an element in a GsTaichi field.
 
 You can use offsets when defining a [field](#field) to move the field boundaries.
 
@@ -86,11 +86,11 @@ You can use offsets when defining a [field](#field) to move the field boundaries
 
 External arrays refer to data containers available in the Python scope.
 
-Taichi supports interaction with the following external arrays - Numpy arrays, PyTorch tensors, and Paddle tensors.
+GsTaichi supports interaction with the following external arrays - Numpy arrays, PyTorch tensors, and Paddle tensors.
 
 ## Field
 
-A field is a multi-dimensional array of elements. The elements it accepts can be a scalar, a vector, a matrix, or a struct. It is a global data container provided by Taichi and can be accessed from both the [*Python scope*](#python-scope) and the [*Taichi scope*](#taichi-scope).
+A field is a multi-dimensional array of elements. The elements it accepts can be a scalar, a vector, a matrix, or a struct. It is a global data container provided by GsTaichi and can be accessed from both the [*Python scope*](#python-scope) and the [*GsTaichi scope*](#gstaichi-scope).
 
 ## Field shape
 
@@ -126,7 +126,7 @@ The shape of a field is the number of elements in each dimension.
 
 ## Kernel
 
-A kernel is a function decorated with `@ti.kernel`. A kernel serves as the entry point where Taichi begins to take over the tasks, and it must be called directly by Python code.
+A kernel is a function decorated with `@ti.kernel`. A kernel serves as the entry point where GsTaichi begins to take over the tasks, and it must be called directly by Python code.
 
 ## Lexical-scoped
 
@@ -142,11 +142,11 @@ A kernel is a function decorated with `@ti.kernel`. A kernel serves as the entry
 
 ## Megakernel
 
-A megakernel is a Taichi kernel that can deal with a large amount of computation to achieve high arithmetic intensity.
+A megakernel is a GsTaichi kernel that can deal with a large amount of computation to achieve high arithmetic intensity.
 
 ## Metadata
 
-Metadata refers to the two fundamental attributes of a Taichi field, i.e., data type and shape.
+Metadata refers to the two fundamental attributes of a GsTaichi field, i.e., data type and shape.
 
 Use `field.dtype` and `field.shape` to retrieve the metadata.
 
@@ -164,11 +164,11 @@ Use `field.dtype` and `field.shape` to retrieve the metadata.
 
 ## Primitive type
 
-Primitive data types are commonly-used numerical data types from which all other data types are constructed. Supported primitive data types in Taichi include `ti.i32` (`int32`), `ti.u8` (`uint8`), and `ti.f64` (`float64`)
+Primitive data types are commonly-used numerical data types from which all other data types are constructed. Supported primitive data types in GsTaichi include `ti.i32` (`int32`), `ti.u8` (`uint8`), and `ti.f64` (`float64`)
 
 ## Python scope
 
-Code outside of the Taichi scope is in the Python scope. The code in the Python scope is native Python and executed by Python's virtual machine, not by Taichi's runtime.
+Code outside of the GsTaichi scope is in the Python scope. The code in the Python scope is native Python and executed by Python's virtual machine, not by GsTaichi's runtime.
 
 The Python scope corresponds to the host side in CUDA.
 
@@ -186,7 +186,7 @@ See also [coloum-major order](./glossary.md/#column-major-order).
 
 A matrix is a two-dimensional data object made of m rows and n columns. If a matrix is comprised of mostly zero values, then it is a sparse matrix.
 
-Taichi provides *APIs* for sparse matrices.
+GsTaichi provides *APIs* for sparse matrices.
 
 ## Static scope
 
@@ -202,17 +202,17 @@ A static scope is a scope of the argument of `ti.static`, which is a hint for th
 
 See also [array of structures](./glossary.md/#array-of-structures-aos).
 
-## Taichi function
+## GsTaichi function
 
-A Taichi function is a function decorated with `@ti.func`.
+A GsTaichi function is a function decorated with `@ti.func`.
 
-A Taichi function must be called from inside a kernel or from inside another Taichi function.
+A GsTaichi function must be called from inside a kernel or from inside another GsTaichi function.
 
-## Taichi scope
+## GsTaichi scope
 
-The code inside a kernel or a Taichi function is in the Taichi scope. The code in the Taichi scope is compiled by Taichi's runtime and executed in parallel on CPU or GPU devices for high-performance computation.
+The code inside a kernel or a GsTaichi function is in the GsTaichi scope. The code in the GsTaichi scope is compiled by GsTaichi's runtime and executed in parallel on CPU or GPU devices for high-performance computation.
 
-The Taichi scope corresponds to the device side in CUDA.
+The GsTaichi scope corresponds to the device side in CUDA.
 
 ## Template signature
 

@@ -1,6 +1,6 @@
 """
-Ensure AOT modules compiled by old versions of Taichi is compatible with the
-latest Taichi Runtime.
+Ensure AOT modules compiled by old versions of GsTaichi is compatible with the
+latest GsTaichi Runtime.
 """
 
 import glob
@@ -45,7 +45,7 @@ def run():
     print(run_dict)
     for x in aot_files:
         path_name = Path(x).stem
-        os.environ["TAICHI_AOT_FOLDER_PATH"] = f"{BASE}/aot/python_scripts/{path_name}"
+        os.environ["GSTAICHI_AOT_FOLDER_PATH"] = f"{BASE}/aot/python_scripts/{path_name}"
         if len(os.listdir(f"{BASE}/aot/python_scripts/" + path_name)) == 0:
             continue
         for i in run_dict[path_name]:
@@ -53,9 +53,9 @@ def run():
             try:
                 subprocess.check_call(i)
             except subprocess.SubprocessError:
-                print(os.environ["TAICHI_AOT_FOLDER_PATH"])
+                print(os.environ["GSTAICHI_AOT_FOLDER_PATH"])
                 print(path_name)
-                print(os.listdir(os.environ["TAICHI_AOT_FOLDER_PATH"]))
+                print(os.listdir(os.environ["GSTAICHI_AOT_FOLDER_PATH"]))
                 continue
             except FileNotFoundError:
                 continue

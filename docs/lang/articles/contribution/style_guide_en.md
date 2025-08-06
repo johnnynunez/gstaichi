@@ -4,7 +4,7 @@ sidebar_position: 8
 
 # Document Style Guide
 
-This is a reference for the developers and users at Taichi community to improve their writing and the consistency of Taichi's documentation. You can find detailed style, usage, and grammar in the following sections.
+This is a reference for the developers and users at GsTaichi community to improve their writing and the consistency of GsTaichi's documentation. You can find detailed style, usage, and grammar in the following sections.
 
 ## General principles
 
@@ -40,7 +40,7 @@ Avoid the following:
 ### Abbreviations and acronyms
 
 Abbreviations are the shortened version of a word or phrase used to represent the whole. Examples include "s" for "seconds,” "approx." for "approximately," and "e.g." for "exempli gratia" (meaning "for example").
-Abbreviations and acronyms can affect the clarity of Taichi content for the reader. While many are understood by our readers and do not need to be spelled out, for new or novel terms always spell out the first mention of an abbreviated term in the text, followed immediately by the abbreviation in parentheses . Use the abbreviated form for all subsequent references of the abbreviation on the same page.
+Abbreviations and acronyms can affect the clarity of GsTaichi content for the reader. While many are understood by our readers and do not need to be spelled out, for new or novel terms always spell out the first mention of an abbreviated term in the text, followed immediately by the abbreviation in parentheses . Use the abbreviated form for all subsequent references of the abbreviation on the same page.
 
 #### Latin abbreviations
 
@@ -127,7 +127,7 @@ The imperative mood keeps the content concise. The direct address is more person
 - Use only one space after full stops. Example: Add a space. One after the full stop.
 - Use one space between numbers and units. Example: 256 Kbps.
 - Use spaces around mathematical symbols. Example: V = off, width x height, x < y. Use spaces around dimensions. Example: 3.2 x 3.6 x 0.6 mm.
-Note that million is not a unit, so there is no need to add a space between a number and M. For example, 10M is the right Taichi style.
+Note that million is not a unit, so there is no need to add a space between a number and M. For example, 10M is the right GsTaichi style.
 
 ## Plagiarism
 
@@ -178,8 +178,8 @@ This is a danger!
 
 ### Example 1
 
-- Not recommended: Taichi Zoo uses cookies for security, improvement and analytics purposes.
-- Recommended: Taichi Zoo uses cookies for security, improvement, and analytics purposes.
+- Not recommended: GsTaichi Zoo uses cookies for security, improvement and analytics purposes.
+- Recommended: GsTaichi Zoo uses cookies for security, improvement, and analytics purposes.
 
 **Comments:**
 In a list of three or more items, add a comma before the conjunction。
@@ -199,8 +199,8 @@ Avoid repetitive information in a bullet list.
 
 ### Example 3
 
-- Not recommended: If you run into this situation, Taichi's handy automatic differentiation (autodiff) system comes to the rescue!
-- Recommended: Taichi's automatic differentiation (autodiff) system addresses this situation.
+- Not recommended: If you run into this situation, GsTaichi's handy automatic differentiation (autodiff) system comes to the rescue!
+- Recommended: GsTaichi's automatic differentiation (autodiff) system addresses this situation.
 
 **Comments:**
 
@@ -208,8 +208,8 @@ Avoid repetitive information in a bullet list.
 
 ### Example 4
 
-- Not recommended: ScopedProfileris used to analyze the performance of the Taichi JIT compiler (host).
-- Recommended: ScopedProfiler analyzes the performance of the Taichi JIT compiler (host).
+- Not recommended: ScopedProfileris used to analyze the performance of the GsTaichi JIT compiler (host).
+- Recommended: ScopedProfiler analyzes the performance of the GsTaichi JIT compiler (host).
 
 **Comments:**
 
@@ -241,8 +241,8 @@ Use simple verbs. A noun phrase, for example "make use of", is usually wordier t
 
 ### Example 8
 
-- Not recommended: Sometimes user may want to override the gradients provided by the Taichi autodiff system.
-- Recommended: Sometimes you may want to override the gradients provided by the Taichi autodiff system.
+- Not recommended: Sometimes user may want to override the gradients provided by the GsTaichi autodiff system.
+- Recommended: Sometimes you may want to override the gradients provided by the GsTaichi autodiff system.
 
 **Comments:**
 

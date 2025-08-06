@@ -1,23 +1,23 @@
 #include "gtest/gtest.h"
 
-#include "taichi/program/kernel_profiler.h"
-#include "taichi/runtime/llvm/llvm_runtime_executor.h"
-#include "taichi/runtime/llvm/llvm_aot_module_loader.h"
-#include "taichi/runtime/cpu/kernel_launcher.h"
+#include "gstaichi/program/kernel_profiler.h"
+#include "gstaichi/runtime/llvm/llvm_runtime_executor.h"
+#include "gstaichi/runtime/llvm/llvm_aot_module_loader.h"
+#include "gstaichi/runtime/cpu/kernel_launcher.h"
 
 #ifdef TI_WITH_CUDA
 
-#include "taichi/rhi/cuda/cuda_driver.h"
-#include "taichi/platform/cuda/detect_cuda.h"
-#include "taichi/runtime/cuda/kernel_launcher.h"
+#include "gstaichi/rhi/cuda/cuda_driver.h"
+#include "gstaichi/platform/cuda/detect_cuda.h"
+#include "gstaichi/runtime/cuda/kernel_launcher.h"
 
 #endif
 
 #define TI_RUNTIME_HOST
-#include "taichi/program/context.h"
+#include "gstaichi/program/context.h"
 #undef TI_RUNTIME_HOST
 
-namespace taichi::lang {
+namespace gstaichi::lang {
 
 static void run_field_tests(aot::Module *mod,
                             LlvmRuntimeExecutor *exec,
@@ -101,7 +101,7 @@ TEST(LlvmAotTest, CpuField) {
   exec.materialize_runtime(kNoProfiler, &result_buffer);
 
   LLVM::AotModuleParams aot_params;
-  const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+  const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
   std::stringstream aot_mod_ss;
   aot_mod_ss << folder_dir;
@@ -129,7 +129,7 @@ TEST(LlvmAotTest, CudaField) {
     exec.materialize_runtime(kNoProfiler, &result_buffer);
 
     LLVM::AotModuleParams aot_params;
-    const auto folder_dir = getenv("TAICHI_AOT_FOLDER_PATH");
+    const auto folder_dir = getenv("GSTAICHI_AOT_FOLDER_PATH");
 
     std::stringstream aot_mod_ss;
     aot_mod_ss << folder_dir;
@@ -144,4 +144,4 @@ TEST(LlvmAotTest, CudaField) {
 #endif
 }
 
-}  // namespace taichi::lang
+}  // namespace gstaichi::lang

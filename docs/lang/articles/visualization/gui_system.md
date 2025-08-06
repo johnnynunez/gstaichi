@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # GUI System
 
-Taichi has a built-in GUI system for visualizing simulation data in data containers like Taichi fields or NumPy ndarrays. It also has limited support for drawing primitive geometries.
+GsTaichi has a built-in GUI system for visualizing simulation data in data containers like GsTaichi fields or NumPy ndarrays. It also has limited support for drawing primitive geometries.
 
 ## Create and display a window
 
@@ -47,7 +47,7 @@ Each window is built on a coordinate system: the origin is located in the lower-
 
 ## Display a field or ndarray
 
-To display a Taichi field or a NumPy ndarray, call `gui.set_image()`. The method accepts both types as input.
+To display a GsTaichi field or a NumPy ndarray, call `gui.set_image()`. The method accepts both types as input.
 
 ```python
 gui = ti.GUI('Set Image', (640, 480))
@@ -57,7 +57,7 @@ while gui.running:
     gui.show()
 ```
 
-Because Taichi field is a *global* data container, if the vector field `image` is updated between the `while` loops, the GUI window refreshes to display the latest image.
+Because GsTaichi field is a *global* data container, if the vector field `image` is updated between the `while` loops, the GUI window refreshes to display the latest image.
 
 :::caution IMPORTANT
 
@@ -69,13 +69,13 @@ Ensure that the shape of the input matches the resolution of the GUI window.
 
 In each loop of the `gui.set_image()` method call, the GUI system converts the image data to a displayable format and copies the result to the window buffer. This causes huge overload when the window size is large, making it hard to achieve high FPS (frames per second).
 
-If you only need to call the `set_image()` method without using any drawing command, you can enable `fast_gui` mode for better performance. This mode allows Taichi GUI to write the image data directly to the frame buffer without additional copying, and significantly increases FPS.
+If you only need to call the `set_image()` method without using any drawing command, you can enable `fast_gui` mode for better performance. This mode allows GsTaichi GUI to write the image data directly to the frame buffer without additional copying, and significantly increases FPS.
 
 ```python
 gui = ti.GUI('Fast GUI', res=(400, 400), fast_gui=True)
 ```
 
-For this mode to work, ensure that the data passed into `gui.set_image()` is in a display-compatible format. In other words, If it is a Taichi field, ensure that it is one of the following:
+For this mode to work, ensure that the data passed into `gui.set_image()` is in a display-compatible format. In other words, If it is a GsTaichi field, ensure that it is one of the following:
 
 - a vector field `ti.field(3, dtype, shape)` compatible with RGB format.
 - a vector field `ti.field(4, dtype, shape)`  compatible with RGBA format.
@@ -84,11 +84,11 @@ Note that `dtype` must be `ti.f32`, `ti.f64`, or `ti.u8`.
 
 ## Draw on a window
 
-Taichi's GUI system supports drawing simple geometries, such as lines, circles, triangles, rectangles, arrows, and texts.
+GsTaichi's GUI system supports drawing simple geometries, such as lines, circles, triangles, rectangles, arrows, and texts.
 
 ### Single geometry
 
-In Taichi, drawing basic geometric shapes on the GUI is very intuitive. In most cases, all we need to do is specify information such as the position and size of the geometry and call the corresponding APIs.
+In GsTaichi, drawing basic geometric shapes on the GUI is very intuitive. In most cases, all we need to do is specify information such as the position and size of the geometry and call the corresponding APIs.
 
 #### Line
 
@@ -184,7 +184,7 @@ You can draw a single line of text on a GUI canvas by specifying its position an
 gui = ti.GUI('Text', res=(400, 400))
 position = [0.3, 0.5]
 while gui.running:
-    gui.text(content='Hello Taichi', pos=position, font_size=34, color=0xFFFFFF)
+    gui.text(content='Hello GsTaichi', pos=position, font_size=34, color=0xFFFFFF)
     gui.show()
 ```
 
@@ -192,7 +192,7 @@ while gui.running:
 
 ### Multiple geometries
 
-It's also possible to draw multiple geometries at once by providing a collection of their positions to the GUI. The `pos` parameter of every drawing method accepts Taichi fields or NumPy arrays, *not* Python primitive lists. Each element of the array is a pair of floats ranging from `0.0` to `1.0`, which represent the relative positions of the geometries. For example:
+It's also possible to draw multiple geometries at once by providing a collection of their positions to the GUI. The `pos` parameter of every drawing method accepts GsTaichi fields or NumPy arrays, *not* Python primitive lists. Each element of the array is a pair of floats ranging from `0.0` to `1.0`, which represent the relative positions of the geometries. For example:
 
 - `(0.0, 0.0)`: the lower-left corner of the window.
 - `(1.0, 1.0)`: the upper-right corner of the window.
@@ -211,7 +211,7 @@ while gui.running:
     gui.show()
 ```
 
-![gui-lines](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/gui-lines.png)
+![gui-lines](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/gui-lines.png)
 
 #### Circles
 
@@ -231,7 +231,7 @@ while gui.running:
     gui.show()
 ```
 
-![gui-circles](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/gui-circles.png)
+![gui-circles](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/gui-circles.png)
 
 #### Triangles
 
@@ -248,7 +248,7 @@ while gui.running:
     gui.show()
 ```
 
-![gui-triangles](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/gui-triangles.png)
+![gui-triangles](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/gui-triangles.png)
 
 #### Arrows
 
@@ -270,7 +270,7 @@ Notice that we used `low` and `high` in the call to `np.random.uniform()` to lim
 
 ## Event handling
 
-Taichi's GUI system also provides a set of methods for mouse and keyboard control. Input events are classified into three types:
+GsTaichi's GUI system also provides a set of methods for mouse and keyboard control. Input events are classified into three types:
 
 ```python
 ti.GUI.RELEASE  # key up or mouse button up
@@ -357,10 +357,10 @@ mouse_x, mouse_y = gui.get_cursor_pos()
 
 ## GUI Widgets
 
-Taichi's GUI system also provides widgets, including `slider()`, `label()`, and `button()`, for you to customize your control interface. Take a look at the following code snippet:
+GsTaichi's GUI system also provides widgets, including `slider()`, `label()`, and `button()`, for you to customize your control interface. Take a look at the following code snippet:
 
 ```python
-import taichi as ti
+import gstaichi as ti
 gui = ti.GUI('GUI widgets')
 
 radius = gui.slider('Radius', 1, 50, step=1)

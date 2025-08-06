@@ -8,7 +8,7 @@ sidebar_position: 3
 Prerequisite: please read the [Fields](./field.md), [Fields (advanced)](./layout.md), and [SNodes](../internals/internal.md#data-structure-organization) first.
 :::
 
-![image](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/sparse_grids_3d.jpg)
+![image](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/sparse_grids_3d.jpg)
 Figure: A 3D fluid simulation that uses both particles and grids. Left to right: particles, 1x1x1 voxels, 4x4x4 blocks, 16x16x16 blocks.
 
 ## Motivation
@@ -21,7 +21,7 @@ we will significantly save storage and computing power.
 
 <center>
 
-![BVH](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/bvh.png)
+![BVH](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/bvh.png)
 
 </center>
 
@@ -32,7 +32,7 @@ The key to leveraging spatial sparsity is replacing *dense* grids with *sparse* 
 Sparse data structures are traditionally based on [Quadtrees](https://en.wikipedia.org/wiki/Quadtree) (2D) and
 [Octrees](https://en.wikipedia.org/wiki/Octree) (3D). Given that dereferencing pointers is relatively costly on modern computer architectures, Quadtrees and Octrees are less performance friendly than shallower trees with larger branching factors, such as
 [VDB](https://www.openvdb.org/) and [SPGrid](http://pages.cs.wisc.edu/~sifakis/papers/SPGrid.pdf).
-In Taichi, you can compose data structures similar to VDB and SPGrid with SNodes. The advantages of Taichi spatially sparse data structures include:
+In GsTaichi, you can compose data structures similar to VDB and SPGrid with SNodes. The advantages of GsTaichi spatially sparse data structures include:
 
 - Access with indices, which just like accessing a dense data structure.
 - Automatic parallelization when iterating.
@@ -47,16 +47,16 @@ and the support for Pointer/Bitmasked SNode will be removed in v1.4.0.
 
 
 :::note
-Sparse matrices are usually **not** implemented in Taichi via spatially sparse data structures. See [sparse matrix](../math/sparse_matrix.md) instead.
+Sparse matrices are usually **not** implemented in GsTaichi via spatially sparse data structures. See [sparse matrix](../math/sparse_matrix.md) instead.
 :::
 
-## Spatially sparse data structures in Taichi
+## Spatially sparse data structures in GsTaichi
 
-Spatially sparse data structures in Taichi are composed of `pointer`, `bitmasked`, `dynamic`, and `dense` SNodes. A SNode tree merely composed of `dense` SNodes is **not** a spatially sparse data structure.
+Spatially sparse data structures in GsTaichi are composed of `pointer`, `bitmasked`, `dynamic`, and `dense` SNodes. A SNode tree merely composed of `dense` SNodes is **not** a spatially sparse data structure.
 
 On a spatially sparse data structure, we consider a pixel, a voxel, or a grid node to be *active* if it is allocated and involved in the computation.
 The rest of the grid simply becomes *inactive*.
-In SNode terms, the *activity* of a leaf or intermediate cell is represented as a Boolean value. The activity value of a cell is `True` if and only if the cell is *active*. When writing to an inactive cell, Taichi automatically activates it. Taichi also provides manual manipulation of the activity of a cell: See [Explicitly manipulating and querying sparsity](#explicitly-manipulating-and-querying-sparsity).
+In SNode terms, the *activity* of a leaf or intermediate cell is represented as a Boolean value. The activity value of a cell is `True` if and only if the cell is *active*. When writing to an inactive cell, GsTaichi automatically activates it. GsTaichi also provides manual manipulation of the activity of a cell: See [Explicitly manipulating and querying sparsity](#explicitly-manipulating-and-querying-sparsity).
 
 :::note
 Reading an inactive pixel returns zero.
@@ -99,7 +99,7 @@ def print_active():
 
 <center>
 
-![Pointer](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/pointer.png)
+![Pointer](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/pointer.png)
 
 </center>
 
@@ -109,7 +109,7 @@ In fact, the sparse field is an SNode tree shown in the following figure. You ca
 
 <center>
 
-![Pointer SNode Tree](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/pointer_tree.png)
+![Pointer SNode Tree](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/pointer_tree.png)
 
 </center>
 
@@ -157,7 +157,7 @@ Furthermore, the active blocks are the same as `pointer.py` as shown below. Howe
 
 <center>
 
-![Bitmasked](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/bitmasked.png)
+![Bitmasked](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/bitmasked.png)
 
 </center>
 
@@ -165,19 +165,19 @@ Furthermore, the active blocks are the same as `pointer.py` as shown below. Howe
 The bitmasked SNodes are like dense SNodes with auxiliary activity values.
 <center>
 
-![Bitmasked SNode Tree](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/bitmasked_tree.png)
+![Bitmasked SNode Tree](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/bitmasked_tree.png)
 
 </center>
 
 ### Dynamic SNode
 
-Taichi officially supports dynamic data structure *Dynamic SNode* since version v1.4.0. You can think of a dynamic SNode as a `List` that can only store data of a fixed type. The element types it supports include scalars, vectors/matrices, and structs. It also supports the following three APIs:
+GsTaichi officially supports dynamic data structure *Dynamic SNode* since version v1.4.0. You can think of a dynamic SNode as a `List` that can only store data of a fixed type. The element types it supports include scalars, vectors/matrices, and structs. It also supports the following three APIs:
 
 1. `append`: Dynamically adds an element, equivalent to the `append` method of a Python list.
 2. `deactivate`: Clears all stored elements, equivalent to the `clear` method of a Python list.
 3. `length`: Gets the actual number of elements currently stored, equivalent to the `__len__` method of a Python list.
 
-All three methods must be called inside the Taichi scope.
+All three methods must be called inside the GsTaichi scope.
 
 Unfortunately, Dynamic SNode does not support dynamically deleting elements like `pop` and `remove`. This is because it is difficult to implement these operations with high performance in parallel computing.
 
@@ -234,7 +234,7 @@ def clear_data():
 
 Returning to the explanation of the `chunk_size` parameter: the implementation of Dynamic SNode internally uses linked lists, where multiple elements are densely packed into a node (or "chunk") of the linked list, with each chunk containing `chunk_size` elements. Element allocation and deallocation are performed in units of chunks. The following diagram illustrates how `x` is laid out in memory (with `k = 32`):
 
-![](https://github.com/taichi-dev/public_files/blob/master/taichi/doc/dynamic_snode_1d.png?raw=true)
+![](https://github.com/taichi-dev/public_files/blob/master/gstaichi/doc/dynamic_snode_1d.png?raw=true)
 
 Thus, the actual number of chunks allocated is `ceil(x.length() / chunk_size)`.
 
@@ -248,7 +248,7 @@ S.place(x)
 
 Here, `ti.root.dense(ti.i, 10)` is a Dense SNode that represents a dense array of length 10 along the `ti.i` axis. `S = ti.root.dense(ti.i, 10).dynamic(ti.j, ...)` represents a child node of this Dense SNode, occupying the `ti.j` axis (which is different from the parent node!). The layout of `x` in memory is illustrated in the following diagram:
 
-![](https://github.com/taichi-dev/public_files/blob/master/taichi/doc/dynamic_snode_2d.png?raw=true)
+![](https://github.com/taichi-dev/public_files/blob/master/gstaichi/doc/dynamic_snode_2d.png?raw=true)
 
 As with the one-dimensional case, you can dynamically add elements to the i-th list using `x[i].append()`, get the current length of the i-th list using `x[i].length()`, and clear the ith list using `x[i].deactivate()`.
 
@@ -282,11 +282,11 @@ Here, `x` is a one-dimensional variable-length list that can store values of typ
 ### Sparse struct-fors
 
 Efficiently looping over sparse grid cells that distribute irregularly can be challenging, especially on parallel devices such as GPUs.
-In Taichi, `for` loops natively support spatially sparse data structures and only loop over currently active pixels with automatic efficient parallelization.
+In GsTaichi, `for` loops natively support spatially sparse data structures and only loop over currently active pixels with automatic efficient parallelization.
 
 ### Explicitly manipulating and querying sparsity
 
-Taichi also provides APIs that explicitly manipulate data structure sparsity. You can manually **check** the activity of a SNode, **activate** a SNode, or **deactivate** a SNode. We now illustrate these functions based on the field defined below.
+GsTaichi also provides APIs that explicitly manipulate data structure sparsity. You can manually **check** the activity of a SNode, **activate** a SNode, or **deactivate** a SNode. We now illustrate these functions based on the field defined below.
 
 ```python
 x = ti.field(dtype=ti.i32)
@@ -330,7 +330,7 @@ activity_checking(pixel, 7, 3)  # output: 1
 
 <center>
 
-![Activation](https://raw.githubusercontent.com/taichi-dev/public_files/master/taichi/doc/activation.png)
+![Activation](https://raw.githubusercontent.com/gstaichi-dev/public_files/master/gstaichi/doc/activation.png)
 
 </center>
 
@@ -339,7 +339,7 @@ activity_checking(pixel, 7, 3)  # output: 1
 - Use `snode.deactivate_all()` to deactivate all cells of SNode `snode`. This operation also recursively deactivates all its children.
 - Use `ti.deactivate_all_snodes()` to deactivate all cells of all SNodes with sparsity.
 
-When deactivation happens, the Taichi runtime automatically recycles and zero-fills memory of the deactivated containers.
+When deactivation happens, the GsTaichi runtime automatically recycles and zero-fills memory of the deactivated containers.
 
 :::note
 For performance reasons, `ti.activate(snode, index)` only activates `snode[index]`.
@@ -368,7 +368,7 @@ Regarding line 1, you can also compute the `block1` index given `pixel` index `[
 We now show an example of how to create a sparse grid with our simplified API(`ti.sparse.grid()`), and how to print the usage with `ti.sparse.usage()`.
 
 ```python
-import taichi as ti
+import gstaichi as ti
 # create a 2D sparse grid
 grid = ti.sparse.grid(
     {
@@ -395,8 +395,8 @@ Grid usage:  0.010000
 
 ## Further reading
 
-Please read the SIGGRAPH Asia 2019 [paper](https://yuanming.taichi.graphics/publication/2019-taichi/taichi-lang.pdf) or watch the associated
-[introduction video](https://www.youtube.com/watch?v=wKw8LMF3Djo) with [slides](https://yuanming.taichi.graphics/publication/2019-taichi/taichi-lang-slides.pdf)
+Please read the SIGGRAPH Asia 2019 [paper](https://yuanming.gstaichi.graphics/publication/2019-gstaichi/gstaichi-lang.pdf) or watch the associated
+[introduction video](https://www.youtube.com/watch?v=wKw8LMF3Djo) with [slides](https://yuanming.gstaichi.graphics/publication/2019-gstaichi/gstaichi-lang-slides.pdf)
 for more details on computation of spatially sparse data structures.
 
-[Taichi elements](https://github.com/taichi-dev/taichi_elements) implement a high-performance MLS-MPM solver on Taichi sparse grids.
+[GsTaichi elements](https://github.com/taichi-dev/gstaichi_elements) implement a high-performance MLS-MPM solver on GsTaichi sparse grids.

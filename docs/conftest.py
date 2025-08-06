@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import pytest
 from pytest import ExceptionInfo
 
-import taichi as ti
+import gstaichi as ti
 
 warnings.filterwarnings("error", category=DeprecationWarning)
 
@@ -41,7 +41,7 @@ PRELUDES = {}
 PRELUDES[
     "init"
 ] = """
-import taichi as ti
+import gstaichi as ti
 import numpy as np
 import math
 import random
