@@ -715,7 +715,7 @@ class Kernel:
                 print("pure function:", self.func.__name__)
                 self.fast_checksum = fast_cacher.walk_functions(self.func)
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
-                    # print('fast_checksum', self.fast_checksum)
+                print('fast_checksum', self.fast_checksum)
                     # print(self.func.__name__, 'elapsed', time.time() - start)
                     # print("key", key)
                     # return
@@ -733,6 +733,7 @@ class Kernel:
                     prog.config(),
                     prog.get_device_caps(),
                 )
+                print("self.compiled_kernel_data", self.compiled_kernel_data)
             else:
                 print("not pure", self.func.__name__)
                 # if self.compiled_kernel_data:
@@ -745,8 +746,8 @@ class Kernel:
     #   const DeviceCapabilityConfig &caps);
 
         # print("compiled_kernel_data", compiled_kernel_data)
-        # if self.compiled_kernel_data:
-        #     self.compiled_kernels[key] = self.compiled_kernel_data
+        if self.compiled_kernel_data:
+            self.compiled_kernels[key] = self.compiled_kernel_data
         #     ...
 
         if key in self.materialized_kernels:
