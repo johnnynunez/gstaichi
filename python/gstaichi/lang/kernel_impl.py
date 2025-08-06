@@ -64,14 +64,17 @@ from gstaichi.types import (
 from gstaichi.types.compound_types import CompoundType
 from gstaichi.types.enums import AutodiffMode, Layout
 from gstaichi.types.utils import is_signed
+from gstaichi.lang.fast_caching.fast_cacher import FastCacher
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
+
+
+fast_cacher = FastCacher()
 
 
 class GsTaichiCallable:
     """
     BoundGsTaichiCallable is used to enable wrapping a bindable function with a class.
-
     Design requirements for GsTaichiCallable:
     - wrap/contain a reference to a class Func instance, and allow (the GsTaichiCallable) being passed around
       like normal function pointer
@@ -152,6 +155,7 @@ class GsTaichiCallable:
         self._adjoint: Kernel | None = None
         self.grad: Kernel | None = None
         self._is_staticmethod: bool = False
+        self.is_pure = False
         functools.update_wrapper(self, fn)
 
     def __call__(self, *args, **kwargs):
@@ -695,9 +699,52 @@ class Kernel:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
     def materialize(self, key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
+        global LAST_PRINT
+        start = time.time()
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
+
+        self.compiled_kernel_data = None
+        self.fast_checksum = None
+        if self.gstaichi_callable:
+            if self.gstaichi_callable.is_pure:
+                # print("pure function:", self.func.__name__)
+                self.fast_checksum = fast_cacher.walk_functions(self.func)
+                # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
+                    # print('fast_checksum', self.fast_checksum)
+                    # print(self.func.__name__, 'elapsed', time.time() - start)
+                    # print("key", key)
+                    # return
+
+                prog = impl.get_runtime().prog
+                # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
+                # print("dir(self.func)", dir(self.func), self)
+                # if getattr(self, "enable_fast_cache", False):
+                # print("check fast cache")
+                # print("prog.config()", prog.config())
+                # print("prog.get_device_caps()", prog.get_device_caps())
+                self.compiled_kernel_data = prog.load_fast_cache(
+                    self.fast_checksum,
+                    self.func.__name__,
+                    prog.config(),
+                    prog.get_device_caps(),
+                )
+            else:
+                print("not pure", self.func.__name__)
+                # if self.compiled_kernel_data:
+                #     print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
+        else:
+            print("type(self)", type(self), self)
+    #           const std::string &checksum,
+    #   const std::string &kernel_name,
+    #   const CompileConfig &compile_config,
+    #   const DeviceCapabilityConfig &caps);
+
+        # print("compiled_kernel_data", compiled_kernel_data)
+        # if self.compiled_kernel_data:
+        #     self.compiled_kernels[key] = self.compiled_kernel_data
+        #     ...
 
         if key in self.compiled_kernels:
             return
@@ -780,6 +827,10 @@ class Kernel:
 
         gstaichi_kernel = impl.get_runtime().prog.create_kernel(gstaichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
+        elapsed = time.time() - start
+        this_time = time.time()
+        print(this_time - LAST_PRINT, "compiled", kernel_name, elapsed)
+        LAST_PRINT = this_time
         self.compiled_kernels[key] = gstaichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
@@ -1095,9 +1146,29 @@ class Kernel:
         try:
             prog = impl.get_runtime().prog
             # Compile kernel (& Online Cache & Offline Cache)
-            compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
+            if not self.compiled_kernel_data:
+                print("no compiled kernel data => compiling, or loading from cache")
+                self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
+                if self.fast_checksum:
+                    # print("storing to fast cache", self.fast_checksum)
+                    prog.store_fast_cache(
+                        self.fast_checksum,
+                        self.kernel_cpp,
+                        prog.config(),
+                        prog.get_device_caps(),
+                        self.compiled_kernel_data
+                    )
+            # else:
+                # print("using ckd from warm cache")
+            # prog.dump_cache_data_to_disk()
             # Launch kernel
-            prog.launch_kernel(compiled_kernel_data, launch_ctx)
+            # print("launching...")
+            gstaichi.lang.sync()
+            start_prog_launch_kernel = time.time()
+            prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
+            gstaichi.lang.sync()
+            print("time prog.launch_kernel", time.time() - start_prog_launch_kernel)
+            # print("... launched")
         except Exception as e:
             e = handle_exception_from_cpp(e)
             if impl.get_runtime().print_full_traceback:
@@ -1256,6 +1327,7 @@ def _kernel_impl(_func: Callable, level_of_class_stackframe: int, verbose: bool 
     wrapped._is_classkernel = is_classkernel
     wrapped._primal = primal
     wrapped._adjoint = adjoint
+    primal.gstaichi_callable = wrapped
     return wrapped
 
 

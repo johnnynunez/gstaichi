@@ -71,6 +71,19 @@ class KernelCompilationManager final {
                            int max_bytes,
                            double cleaning_factor) const;
 
+  void store_fast_cache(
+    const std::string &checksum,
+    const Kernel &kernel,
+    const CompileConfig &compile_config,
+    const DeviceCapabilityConfig &caps,
+    CompiledKernelData &ckd);
+
+  const CompiledKernelData *load_fast_cache(
+    const std::string &checksum,
+    const std::string &kernel_name,
+    const CompileConfig &compile_config,
+    const DeviceCapabilityConfig &caps);
+
  private:
   std::string make_filename(const std::string &kernel_key) const;
 
