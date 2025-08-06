@@ -712,7 +712,7 @@ class Kernel:
         self.fast_checksum = None
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
-                # print("pure function:", self.func.__name__)
+                print("pure function:", self.func.__name__)
                 self.fast_checksum = fast_cacher.walk_functions(self.func)
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
                     # print('fast_checksum', self.fast_checksum)
@@ -750,6 +750,7 @@ class Kernel:
         #     ...
 
         if key in self.compiled_kernels:
+            print('py materialize() found key in compiled kernels')
             return
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
@@ -828,12 +829,14 @@ class Kernel:
                 self.runtime._current_kernel = None
                 self.runtime.compiling_callable = None
 
+        print("running prog.create_kernel")
         gstaichi_kernel = impl.get_runtime().prog.create_kernel(gstaichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.compiled_kernels
         elapsed = time.time() - start
         this_time = time.time()
-        print(this_time - LAST_PRINT, "compiled", kernel_name, elapsed)
+        print(this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
         LAST_PRINT = this_time
+        print("storing created kernel in self.compiled_kernels")
         self.compiled_kernels[key] = gstaichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
@@ -1150,7 +1153,7 @@ class Kernel:
             prog = impl.get_runtime().prog
             # Compile kernel (& Online Cache & Offline Cache)
             if not self.compiled_kernel_data:
-                print("no compiled kernel data => compiling, or loading from cache")
+                print("py kernel_impl.py no compiled kernel data => calling prog.compile_kernel")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)
