@@ -591,6 +591,9 @@ def _get_global_vars(_func: Callable) -> dict[str, Any]:
     return global_vars
 
 
+LAST_PRINT = time.time()
+
+
 class Kernel:
     counter = 0
 

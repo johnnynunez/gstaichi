@@ -97,7 +97,8 @@ class KernelCompilationManager final {
                               const Kernel &kernel_def) const;
 
   const CompiledKernelData *try_load_cached_kernel(
-      const Kernel &kernel_def,
+      // Kernel &kernel_def,
+      const std::string &kernel_name,
       const std::string &kernel_key,
       Arch arch,
       CacheData::CacheMode cache_mode);
@@ -113,7 +114,9 @@ class KernelCompilationManager final {
 
   static CacheData::CacheMode get_cache_mode(
       const CompileConfig &compile_config,
-      const Kernel &kernel_def);
+      // const Kernel &kernel_def
+      bool kernel_ir_is_ast
+  );
 
   Config config_;
   CachingKernels caching_kernels_;
