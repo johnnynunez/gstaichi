@@ -129,7 +129,7 @@ jobs:
       artifact_name: manylinux_wheel_cp310
   publish_pypi:
     uses: ./.github/workflows/publish_pypi.yml
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release'
     needs: test_wheel
     permissions:
       id-token: write

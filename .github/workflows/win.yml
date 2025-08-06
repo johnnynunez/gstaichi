@@ -81,7 +81,7 @@ jobs:
           aws s3 sync dist/ s3://genesis-ai-compiler/ci/gstaichi/${GITHUB_SHA:0:7}/win-${{ matrix.PYTHON_CP_VERSION }}/
   publish_pypi:
     uses: ./.github/workflows/publish_pypi.yml
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release'
     needs: win_build
     permissions:
       id-token: write
