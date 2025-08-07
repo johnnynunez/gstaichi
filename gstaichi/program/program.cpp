@@ -149,6 +149,16 @@ Function *Program::create_function(const FunctionKey &func_key) {
   return functions_.back().get();
 }
 
+Kernel &Program::create_kernel(const std::function<void(Kernel *)> &body,
+                const std::string &name,
+                AutodiffMode autodiff_mode) {
+  // Expr::set_allow_store(true);
+  auto func = std::make_unique<Kernel>(*this, body, name, autodiff_mode);
+  // Expr::set_allow_store(false);
+  kernels.emplace_back(std::move(func));
+  return *kernels.back();
+}
+
 const CompiledKernelData &Program::compile_kernel(
     const CompileConfig &compile_config,
     const DeviceCapabilityConfig &caps,
@@ -245,7 +255,7 @@ int Program::get_snode_tree_size() {
 Kernel &Program::get_snode_reader(SNode *snode) {
   TI_ASSERT(snode->type == SNodeType::place);
   auto kernel_name = fmt::format("snode_reader_{}", snode->id);
-  auto &ker = kernel([snode, this](Kernel *kernel) {
+  auto &ker = create_kernel([snode, this](Kernel *kernel) {
     ExprGroup indices;
     for (int i = 0; i < snode->num_active_indices; i++) {
       auto argload_expr = Expr::make<ArgLoadExpression>(std::vector<int>{i},
@@ -271,7 +281,7 @@ Kernel &Program::get_snode_reader(SNode *snode) {
 Kernel &Program::get_snode_writer(SNode *snode) {
   TI_ASSERT(snode->type == SNodeType::place);
   auto kernel_name = fmt::format("snode_writer_{}", snode->id);
-  auto &ker = kernel([snode, this](Kernel *kernel) {
+  auto &ker = create_kernel([snode, this](Kernel *kernel) {
     ExprGroup indices;
     for (int i = 0; i < snode->num_active_indices; i++) {
       auto argload_expr = Expr::make<ArgLoadExpression>(std::vector<int>{i},

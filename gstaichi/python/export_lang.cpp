@@ -409,7 +409,7 @@ void export_lang(py::module &m) {
           [](Program *program, const std::function<void(Kernel *)> &body,
              const std::string &name, AutodiffMode autodiff_mode) -> Kernel * {
             py::gil_scoped_release release;
-            return &program->kernel(body, name, autodiff_mode);
+            return &program->create_kernel(body, name, autodiff_mode);
           },
           py::return_value_policy::reference)
       .def("create_function", &Program::create_function,
