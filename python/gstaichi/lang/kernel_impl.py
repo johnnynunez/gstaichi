@@ -840,7 +840,7 @@ class Kernel:
         assert key not in self.materialized_kernels
         elapsed = time.time() - start
         this_time = time.time()
-        print(this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
+        print("time since last print", this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
         LAST_PRINT = this_time
         print("storing created kernel in self.compiled_kernels")
         self.materialized_kernels[key] = gstaichi_kernel
