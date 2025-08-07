@@ -822,7 +822,11 @@ class Kernel:
                     )
                 struct_locals = extract_struct_locals_from_context(ctx)
                 tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
+                ctx.only_parse_function_def = self.compiled_kernel_data is not None
+                start = time.time()
                 transform_tree(tree, ctx)
+                elapsed = time.time() - start
+                print("transform tree time", elapsed)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                         raise GsTaichiSyntaxError("Kernel has a return type but does not have a return statement")
