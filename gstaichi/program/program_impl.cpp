@@ -24,7 +24,7 @@ KernelCompilationManager &ProgramImpl::get_kernel_compilation_manager() {
     return *kernel_com_mgr_;
   }
   KernelCompilationManager::Config cfg;
-  cfg.offline_cache_path = config->offline_cache_file_path;
+  cfg.offline_cache_path = join_path(config->offline_cache_file_path, "ll");
   cfg.kernel_compiler = make_kernel_compiler();
   kernel_com_mgr_ = std::make_unique<KernelCompilationManager>(std::move(cfg));
   return *kernel_com_mgr_;
