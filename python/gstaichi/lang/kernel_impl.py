@@ -746,8 +746,8 @@ class Kernel:
     #   const DeviceCapabilityConfig &caps);
 
         # print("compiled_kernel_data", compiled_kernel_data)
-        if self.compiled_kernel_data:
-            self.compiled_kernels[key] = self.compiled_kernel_data
+        # if self.compiled_kernel_data:
+        #     self.materialized_kernels[key] = self.compiled_kernel_data
         #     ...
 
         if key in self.materialized_kernels:
