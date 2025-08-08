@@ -843,7 +843,7 @@ class Kernel:
         this_time = time.time()
         print("time since last print", this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
         LAST_PRINT = this_time
-        print("storing created kernel in self.compiled_kernels")
+        print("storing created kernel in self.materialized_kernels")
         self.materialized_kernels[key] = gstaichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
