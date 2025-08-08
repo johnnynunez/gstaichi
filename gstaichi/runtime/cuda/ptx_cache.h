@@ -39,7 +39,7 @@ public:
   
   bool load_ptx(const llvm::Module *module, int max_reg, std::string &ptx);  
   void save_ptx(const llvm::Module *module, int max_reg, const std::string &ptx);
-  void clean_cache() { file_cache_.clean_cache(); }
+  // void clean_cache() { file_cache_.clean_cache(); }
 
 private:
   offline_cache::FileCache<PtxCacheData> file_cache_;

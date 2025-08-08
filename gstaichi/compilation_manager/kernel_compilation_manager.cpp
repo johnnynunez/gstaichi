@@ -9,6 +9,8 @@ namespace gstaichi::lang {
 
 namespace offline_cache {
 
+constexpr char kTiCacheFilenameExt[] = "tic";
+
 template <>
 struct CacheCleanerUtils<CacheData> {
   using MetadataType = CacheData;

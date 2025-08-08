@@ -18,17 +18,17 @@ void disable_offline_cache_if_needed(CompileConfig *config) {
   }
 }
 
-std::string get_cache_path_by_arch(const std::string &base_path, Arch arch) {
-  std::string subdir;
-  if (arch_uses_llvm(arch)) {
-    subdir = kLlvmCachSubPath;
-  } else if (arch_uses_spirv(arch)) {
-    subdir = kSpirvCacheSubPath;
-  } else {
-    return base_path;
-  }
-  return gstaichi::join_path(base_path, subdir);
-}
+// std::string get_cache_path_by_arch(const std::string &base_path, Arch arch) {
+//   std::string subdir;
+//   if (arch_uses_llvm(arch)) {
+//     subdir = kLlvmCachSubPath;
+//   } else if (arch_uses_spirv(arch)) {
+//     subdir = kSpirvCacheSubPath;
+//   } else {
+//     return base_path;
+//   }
+//   return gstaichi::join_path(base_path, subdir);
+// }
 
 std::string mangle_name(const std::string &primal_name,
                         const std::string &key) {
@@ -83,51 +83,51 @@ bool try_demangle_name(const std::string &mangled_name,
   return true;
 }
 
-std::size_t clean_offline_cache_files(const std::string &path) {
-  std::vector<const char *> sub_dirs = {kLlvmCachSubPath, kSpirvCacheSubPath,
-                                        kMetalCacheSubPath};
+// std::size_t clean_offline_cache_files(const std::string &path) {
+//   std::vector<const char *> sub_dirs = {kLlvmCachSubPath, kSpirvCacheSubPath,
+//                                         kMetalCacheSubPath};
 
-  auto is_cache_filename = [](const std::string &name) {
-    const auto ext = gstaichi::filename_extension(name);
-    return ext == kLlvmCacheFilenameBCExt || ext == kLlvmCacheFilenameLLExt ||
-           ext == kSpirvCacheFilenameExt || ext == kMetalCacheFilenameExt ||
-           ext == kTiCacheFilenameExt || ext == "lock" || ext == "tcb";
-  };
+//   auto is_cache_filename = [](const std::string &name) {
+//     const auto ext = gstaichi::filename_extension(name);
+//     return ext == kLlvmCacheFilenameBCExt || ext == kLlvmCacheFilenameLLExt ||
+//            ext == kSpirvCacheFilenameExt || ext == kMetalCacheFilenameExt ||
+//            ext == kTiCacheFilenameExt || ext == "lock" || ext == "tcb";
+//   };
 
-  std::size_t count = 0;
+//   std::size_t count = 0;
 
-  // Temp implementation. We will refactor the offline cache
-  gstaichi::traverse_directory(
-      path, [&count, &sub_dirs, &is_cache_filename, &path](
-                const std::string &name, bool is_dir) {
-        if (is_dir) {  // ~/.cache/gstaichi/ticache/llvm ...
-          for (auto subdir : sub_dirs) {
-            auto subpath = gstaichi::join_path(path, subdir);
+//   // Temp implementation. We will refactor the offline cache
+//   gstaichi::traverse_directory(
+//       path, [&count, &sub_dirs, &is_cache_filename, &path](
+//                 const std::string &name, bool is_dir) {
+//         if (is_dir) {  // ~/.cache/gstaichi/ticache/llvm ...
+//           for (auto subdir : sub_dirs) {
+//             auto subpath = gstaichi::join_path(path, subdir);
 
-            if (gstaichi::path_exists(subpath)) {
-              gstaichi::traverse_directory(
-                  subpath, [&count, &is_cache_filename, &subpath](
-                               const std::string &name, bool is_dir) {
-                    if (is_cache_filename(name) && !is_dir) {
-                      const auto fpath = gstaichi::join_path(subpath, name);
-                      TI_TRACE("Removing {}", fpath);
-                      bool ok = gstaichi::remove(fpath);
-                      count += ok ? 1 : 0;
-                      TI_WARN_IF(!ok, "Remove {} failed", fpath);
-                    }
-                  });
-            }
-          }
-        } else if (is_cache_filename(name)) {
-          const auto fpath = gstaichi::join_path(path, name);
-          TI_TRACE("Removing {}", fpath);
-          bool ok = gstaichi::remove(fpath);
-          count += ok ? 1 : 0;
-          TI_WARN_IF(!ok, "Remove {} failed", fpath);
-        }
-      });
+//             if (gstaichi::path_exists(subpath)) {
+//               gstaichi::traverse_directory(
+//                   subpath, [&count, &is_cache_filename, &subpath](
+//                                const std::string &name, bool is_dir) {
+//                     if (is_cache_filename(name) && !is_dir) {
+//                       const auto fpath = gstaichi::join_path(subpath, name);
+//                       TI_TRACE("Removing {}", fpath);
+//                       bool ok = gstaichi::remove(fpath);
+//                       count += ok ? 1 : 0;
+//                       TI_WARN_IF(!ok, "Remove {} failed", fpath);
+//                     }
+//                   });
+//             }
+//           }
+//         } else if (is_cache_filename(name)) {
+//           const auto fpath = gstaichi::join_path(path, name);
+//           TI_TRACE("Removing {}", fpath);
+//           bool ok = gstaichi::remove(fpath);
+//           count += ok ? 1 : 0;
+//           TI_WARN_IF(!ok, "Remove {} failed", fpath);
+//         }
+//       });
 
-  return count;
-}
+//   return count;
+// }
 
 }  // namespace gstaichi::lang::offline_cache

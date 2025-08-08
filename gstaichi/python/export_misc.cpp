@@ -147,8 +147,8 @@ void export_misc(py::module &m) {
   m.def("with_vulkan", []() { return false; });
 #endif
 
-  m.def("clean_offline_cache_files",
-        lang::offline_cache::clean_offline_cache_files);
+  // m.def("clean_offline_cache_files",
+  //       lang::offline_cache::clean_offline_cache_files);
 
   py::class_<HackedSignalRegister>(m, "HackedSignalRegister").def(py::init<>());
 }

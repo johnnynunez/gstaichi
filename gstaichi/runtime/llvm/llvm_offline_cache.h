@@ -184,10 +184,10 @@ class LlvmOfflineCacheFileWriter {
     mangled_ = true;
   }
 
-  static void clean_cache(const std::string &path,
-                          CleanCachePolicy policy,
-                          int max_bytes,
-                          double cleaning_factor);
+  // static void clean_cache(const std::string &path,
+  //                         CleanCachePolicy policy,
+  //                         int max_bytes,
+  //                         double cleaning_factor);
 
  private:
   void merge_with(LlvmOfflineCache &&data);
