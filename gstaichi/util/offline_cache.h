@@ -18,15 +18,6 @@
 namespace gstaichi::lang {
 namespace offline_cache {
 
-constexpr char kLlvmCacheFilenameLLExt[] = "ll";
-constexpr char kLlvmCacheFilenameBCExt[] = "bc";
-constexpr char kSpirvCacheFilenameExt[] = "spv";
-constexpr char kMetalCacheFilenameExt[] = "metal";
-constexpr char kTiCacheFilenameExt[] = "tic";
-constexpr char kLlvmCachSubPath[] = "llvm";
-constexpr char kSpirvCacheSubPath[] = "gfx";
-constexpr char kMetalCacheSubPath[] = "metal";
-
 using Version = std::uint16_t[3];  // {MAJOR, MINOR, PATCH}
 
 enum CleanCacheFlags {
@@ -121,30 +112,40 @@ struct CacheCleanerUtils {
   // To save metadata as file
   static bool save_metadata(const CacheCleanerConfig &config,
                             const MetadataType &data) {
-    TI_NOT_IMPLEMENTED;
+    write_to_binary_file(
+        data, gstaichi::join_path(config.path, config.metadata_filename));
+    return true;
   }
 
   static bool save_debugging_metadata(const CacheCleanerConfig &config,
                                       const MetadataType &data) {
-    TI_NOT_IMPLEMENTED;
+    TextSerializer ts;
+    ts.serialize_to_json("cache", data);
+    ts.write_to_file(
+        gstaichi::join_path(config.path, config.debugging_metadata_filename));
+    return true;
   }
 
   // To get cache files name
   static std::vector<std::string> get_cache_files(
       const CacheCleanerConfig &config,
       const KernelMetaData &kernel_meta) {
-    TI_NOT_IMPLEMENTED;
+    std::vector<std::string> result;
+    for (const auto &f :
+         get_possible_llvm_cache_filename_by_key(kernel_meta.kernel_key)) {
+      result.push_back(f);
+    }
+    return result;
   }
 
   // To remove other files except cache files and offline cache metadta files
   static void remove_other_files(const CacheCleanerConfig &config) {
-    TI_NOT_IMPLEMENTED;
   }
 
   // To check if a file is cache file
   static bool is_valid_cache_file(const CacheCleanerConfig &config,
                                   const std::string &name) {
-    TI_NOT_IMPLEMENTED;
+    return true;
   }
 };
 
@@ -294,15 +295,10 @@ class CacheCleaner {
   }
 };
 
-void disable_offline_cache_if_needed(CompileConfig *config);
-std::string get_cache_path_by_arch(const std::string &base_path, Arch arch);
 std::string mangle_name(const std::string &primal_name, const std::string &key);
 bool try_demangle_name(const std::string &mangled_name,
                        std::string &primal_name,
                        std::string &key);
-
-// utils to manage the offline cache files
-std::size_t clean_offline_cache_files(const std::string &path);
 
 }  // namespace offline_cache
 }  // namespace gstaichi::lang

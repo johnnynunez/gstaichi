@@ -22,6 +22,9 @@
 namespace gstaichi::lang {
 namespace {
 
+constexpr char kLlvmCacheFilenameLLExt[] = "ll";
+constexpr char kLlvmCacheFilenameBCExt[] = "bc";
+
 using Format = LlvmOfflineCache::Format;
 constexpr char kMetadataFilename[] = "metadata";
 constexpr char kMetadataFileLockName[] = "metadata.lock";
@@ -38,8 +41,8 @@ static std::string get_llvm_cache_metadata_json_file_path(
 static std::vector<std::string> get_possible_llvm_cache_filename_by_key(
     const std::string &key) {
   return {
-      key + "." + offline_cache::kLlvmCacheFilenameLLExt,
-      key + "." + offline_cache::kLlvmCacheFilenameBCExt,
+      key + "." + kLlvmCacheFilenameLLExt,
+      key + "." + kLlvmCacheFilenameBCExt,
   };
 }
 
@@ -219,13 +222,13 @@ std::unique_ptr<llvm::Module> LlvmOfflineCacheFileReader::load_module(
     LlvmModuleBitcodeLoader loader;
     return loader
         .set_bitcode_path(path_prefix + "." +
-                          offline_cache::kLlvmCacheFilenameBCExt)
+                          kLlvmCacheFilenameBCExt)
         .set_buffer_id(key)
         .set_inline_funcs(false)
         .load(&llvm_ctx);
   } else if (format_ & Format::LL) {
     const std::string filename =
-        path_prefix + "." + offline_cache::kLlvmCacheFilenameLLExt;
+        path_prefix + "." + kLlvmCacheFilenameLLExt;
     llvm::SMDiagnostic err;
     auto ret = llvm::parseAssemblyFile(filename, err, llvm_ctx);
     if (!ret) {  // File not found or Parse failed
@@ -267,7 +270,7 @@ void LlvmOfflineCacheFileWriter::dump(const std::string &path,
       TI_ASSERT(mod != nullptr);
       if (format & Format::LL) {
         std::string filename =
-            filename_prefix + "." + offline_cache::kLlvmCacheFilenameLLExt;
+            filename_prefix + "." + kLlvmCacheFilenameLLExt;
         if (!merge_with_old || try_lock_with_file(filename)) {
           size += write_llvm_module(filename, [mod](llvm::raw_os_ostream &os) {
             mod->print(os, /*AAW=*/nullptr);
@@ -278,7 +281,7 @@ void LlvmOfflineCacheFileWriter::dump(const std::string &path,
       }
       if (format & Format::BC) {
         std::string filename =
-            filename_prefix + "." + offline_cache::kLlvmCacheFilenameBCExt;
+            filename_prefix + "." + kLlvmCacheFilenameBCExt;
         if (!merge_with_old || try_lock_with_file(filename)) {
           size += write_llvm_module(filename, [mod](llvm::raw_os_ostream &os) {
             llvm::WriteBitcodeToFile(*mod, os);
