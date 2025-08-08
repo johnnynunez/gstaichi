@@ -714,7 +714,7 @@ class Kernel:
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
                 print("pure function:", self.func.__name__)
-                self.fast_checksum = fast_cacher.walk_functions(self.func)
+                self.fast_checksum = fast_cacher.walk_functions(self.func) + impl.current_cfg().arch.name
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
                 print('fast_checksum', self.fast_checksum)
                     # print(self.func.__name__, 'elapsed', time.time() - start)
