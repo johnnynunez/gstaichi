@@ -74,24 +74,30 @@ JITSessionCUDA::JITSessionCUDA(GsTaichiLLVMContext *tlctx,
 
 JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,
                                       int max_reg) {
-  const char *dump_ir_env = std::getenv(DUMP_IR_ENV.data());
-  if (dump_ir_env != nullptr && std::string(dump_ir_env) == "1") {
-    std::filesystem::create_directories(IR_DUMP_DIR);
-    std::string dumpName = moduleToDumpName(M.get());
-    std::filesystem::path filename =
-        IR_DUMP_DIR / (dumpName + "_before_ptx.ll");
-    std::error_code EC;
-    llvm::raw_fd_ostream dest_file(filename.string(), EC);
-    if (!EC) {
-      M->print(dest_file, nullptr);
-    } else {
-      std::cout << "problem dumping file " << filename.string() << ": "
-                << EC.message() << std::endl;
-      TI_ERROR("Failed to dump LLVM IR to file: {}", filename.string());
+  std::string ptx;
+  bool loaded_from_cache = ptx_cache_->load_ptx(M.get(), max_reg, ptx);
+  
+  if (!loaded_from_cache) {
+    const char *dump_ir_env = std::getenv(DUMP_IR_ENV.data());
+    if (dump_ir_env != nullptr && std::string(dump_ir_env) == "1") {
+      std::filesystem::create_directories(IR_DUMP_DIR);
+      std::string dumpName = moduleToDumpName(M.get());
+      std::filesystem::path filename =
+          IR_DUMP_DIR / (dumpName + "_before_ptx.ll");
+      std::error_code EC;
+      llvm::raw_fd_ostream dest_file(filename.string(), EC);
+      if (!EC) {
+        M->print(dest_file, nullptr);
+      } else {
+        std::cout << "problem dumping file " << filename.string() << ": "
+                  << EC.message() << std::endl;
+        TI_ERROR("Failed to dump LLVM IR to file: {}", filename.string());
+      }
     }
+    ptx = compile_module_to_ptx(M);
+    ptx_cache_->save_ptx(M.get(), max_reg, ptx);
   }
 
-  auto ptx = compile_module_to_ptx(M);
   if (this->config_.print_kernel_asm) {
     static FileSequenceWriter writer("gstaichi_kernel_nvptx_{:04d}.ptx",
                                      "module NVPTX");
