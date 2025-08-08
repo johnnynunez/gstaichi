@@ -7,7 +7,6 @@
 #include "gstaichi/program/program.h"
 #include "gstaichi/codegen/codegen.h"
 #include "gstaichi/codegen/llvm/struct_llvm.h"
-#include "gstaichi/runtime/llvm/llvm_offline_cache.h"
 #include "gstaichi/runtime/llvm/kernel_launcher.h"
 #include "gstaichi/runtime/cpu/kernel_launcher.h"
 #include "gstaichi/analysis/offline_cache_util.h"

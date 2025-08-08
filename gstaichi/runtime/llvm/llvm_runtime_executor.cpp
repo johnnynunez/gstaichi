@@ -1,7 +1,6 @@
 #include "gstaichi/runtime/llvm/llvm_runtime_executor.h"
 
 #include "gstaichi/rhi/common/host_memory_pool.h"
-#include "gstaichi/runtime/llvm/llvm_offline_cache.h"
 #include "gstaichi/rhi/cpu/cpu_device.h"
 #include "gstaichi/rhi/cuda/cuda_device.h"
 #include "gstaichi/platform/cuda/detect_cuda.h"
