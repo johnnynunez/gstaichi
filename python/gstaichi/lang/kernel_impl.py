@@ -623,6 +623,7 @@ class Kernel:
         self.kernel_cpp = None
         self.materialized_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
         self.has_print = False
+        self.gstaichi_callable: GsTaichiCallable | None = None
 
     def ast_builder(self) -> ASTBuilder:
         assert self.kernel_cpp is not None
