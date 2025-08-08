@@ -107,7 +107,7 @@ struct CacheCleanerConfig {
 
 template <typename MetadataType>
 struct CacheCleanerUtils {
-  using KernelMetaData = typename MetadataType::KernelMetadata;
+  using MetaData = typename MetadataType::Metadata;
 
   // To save metadata as file
   static bool save_metadata(const CacheCleanerConfig &config,
@@ -129,7 +129,7 @@ struct CacheCleanerUtils {
   // To get cache files name
   static std::vector<std::string> get_cache_files(
       const CacheCleanerConfig &config,
-      const KernelMetaData &kernel_meta) {
+      const MetaData &kernel_meta) {
     std::vector<std::string> result;
     for (const auto &f :
          get_possible_llvm_cache_filename_by_key(kernel_meta.kernel_key)) {
@@ -152,7 +152,7 @@ struct CacheCleanerUtils {
 template <typename MetadataType>
 class CacheCleaner {
   using Utils = CacheCleanerUtils<MetadataType>;
-  using KernelMetadata = typename MetadataType::KernelMetadata;
+  using KernelMetadata = typename MetadataType::Metadata;
 
  public:
   static void run(const CacheCleanerConfig &config) {
@@ -225,7 +225,7 @@ class CacheCleaner {
 
       if (cache_data.size < config.max_size ||
           static_cast<std::size_t>(config.cleaning_factor *
-                                   cache_data.kernels.size()) == 0) {
+                                   cache_data.wrappedDataByKey.size()) == 0) {
         return;
       }
 
@@ -249,9 +249,9 @@ class CacheCleaner {
 
       if (cmp) {
         PriQueue q(cmp);
-        std::size_t cnt = config.cleaning_factor * cache_data.kernels.size();
+        std::size_t cnt = config.cleaning_factor * cache_data.wrappedDataByKey.size();
         TI_ASSERT(cnt != 0);
-        for (const auto &e : cache_data.kernels) {
+        for (const auto &e : cache_data.wrappedDataByKey) {
           if (q.size() == cnt && cmp(&e, q.top())) {
             q.pop();
           }
@@ -266,11 +266,11 @@ class CacheCleaner {
             files_to_rm.push_back(f);
           }
           cache_data.size -= e->second.size;
-          cache_data.kernels.erase(e->first);
+          cache_data.wrappedDataByKey.erase(e->first);
           q.pop();
         }
 
-        if (cache_data.kernels.empty()) {  // Remove
+        if (cache_data.wrappedDataByKey.empty()) {  // Remove
           ok_rm_meta = gstaichi::remove(metadata_file);
           gstaichi::remove(debugging_metadata_file);
           Utils::remove_other_files(config);
@@ -283,7 +283,7 @@ class CacheCleaner {
 
     // 2. Remove cache files
     if (ok_rm_meta) {
-      if (!cache_data.kernels.empty()) {
+      if (!cache_data.wrappedDataByKey.empty()) {
         // For debugging (Not safe: without locking)
         Utils::save_debugging_metadata(config, cache_data);
       }

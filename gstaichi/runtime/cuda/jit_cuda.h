@@ -65,6 +65,7 @@ class JITSessionCUDA : public JITSession {
 
  private:
   std::string compile_module_to_ptx(std::unique_ptr<llvm::Module> &module);
+  PtxCache ptx_cache_;
 };
 
 #endif

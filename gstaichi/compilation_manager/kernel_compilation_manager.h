@@ -18,7 +18,7 @@ struct CacheData {
   };
   using Version = std::uint16_t[3];
 
-  struct KernelData {
+  struct WrappedData {
     std::string kernel_key;
     std::size_t size{0};          // byte
     std::time_t created_at{0};    // sec
@@ -32,14 +32,14 @@ struct CacheData {
     TI_IO_DEF(kernel_key, size, created_at, last_used_at);
   };
 
-  using KernelMetadata = KernelData;  // Required by CacheCleaner
+  using Metadata = WrappedData;  // necessary for CacheCleaner
 
   Version version{};
   std::size_t size{0};
-  std::unordered_map<std::string, KernelData> kernels;
+  std::unordered_map<std::string, WrappedData> wrappedDataByKey;
 
   // NOTE: The "version" must be the first field to be serialized
-  TI_IO_DEF(version, size, kernels);
+  TI_IO_DEF(version, size, wrappedDataByKey);
 };
 
 class KernelCompilationManager final {
@@ -48,7 +48,7 @@ class KernelCompilationManager final {
   static constexpr char kCacheFilenameFormat[] = "{}.tic";
   static constexpr char kMetadataLockName[] = "ticache.lock";
 
-  using KernelCacheData = CacheData::KernelData;
+  using KernelCacheData = CacheData::WrappedData;
   using CachingKernels = std::unordered_map<std::string, KernelCacheData>;
 
   struct Config {

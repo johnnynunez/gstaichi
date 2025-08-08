@@ -70,6 +70,7 @@ JITSessionCUDA::JITSessionCUDA(GsTaichiLLVMContext *tlctx,
                                const CompileConfig &config,
                                llvm::DataLayout data_layout)
     : JITSession(tlctx, config), data_layout(data_layout) {
+  std::cout << "JITSessionCUDA::JITSessionCUDA" << std::endl;
 }
 
 JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,
