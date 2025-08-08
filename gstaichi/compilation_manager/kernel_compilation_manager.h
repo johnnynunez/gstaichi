@@ -122,6 +122,7 @@ class KernelCompilationManager final {
   CachingKernels caching_kernels_;
   CacheData cached_data_;
   std::vector<KernelCacheData *> updated_data_;
+  const std::string cache_dir_;
 };
 
 }  // namespace gstaichi::lang

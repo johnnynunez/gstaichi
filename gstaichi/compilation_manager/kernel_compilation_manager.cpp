@@ -54,11 +54,14 @@ struct CacheCleanerUtils<CacheData> {
 }  // namespace offline_cache
 
 KernelCompilationManager::KernelCompilationManager(Config config)
-    : config_(std::move(config)) {
+    : config_(std::move(config)),
+    cache_dir_(join_path(config_.offline_cache_path, "kernel_compilation_manager"))
+  {
+  // this->cache_dir_ = join_path(config_.offline_cache_path, "kernel_compilation_manager");
   TI_DEBUG("Create KernelCompilationManager with offline_cache_file_path = {}",
-           config_.offline_cache_path);
-  auto filepath = join_path(config_.offline_cache_path, kMetadataFilename);
-  auto lock_path = join_path(config_.offline_cache_path, kMetadataLockName);
+           this->cache_dir_);
+  auto filepath = join_path(this->cache_dir_, kMetadataFilename);
+  auto lock_path = join_path(this->cache_dir_, kMetadataLockName);
   if (path_exists(filepath)) {
     if (lock_with_file(lock_path)) {
       auto _ = make_unlocker(lock_path);
@@ -66,7 +69,7 @@ KernelCompilationManager::KernelCompilationManager(Config config)
     } else {
       TI_WARN(
           "Lock {} failed. Please run 'ti cache clean -p {}' and try again.",
-          lock_path, config_.offline_cache_path);
+          lock_path, this->cache_dir_);
     }
   }
 }
@@ -91,13 +94,13 @@ void KernelCompilationManager::dump() {
 
   TI_DEBUG("Dumping {} cached kernels to disk", caching_kernels_.size());
 
-  gstaichi::create_directories(config_.offline_cache_path);
-  auto filepath = join_path(config_.offline_cache_path, kMetadataFilename);
-  auto lock_path = join_path(config_.offline_cache_path, kMetadataLockName);
+  gstaichi::create_directories(cache_dir_);
+  auto filepath = join_path(cache_dir_, kMetadataFilename);
+  auto lock_path = join_path(cache_dir_, kMetadataLockName);
 
   if (!lock_with_file(lock_path)) {
     TI_WARN("Lock {} failed. Please run 'ti cache clean -p {}' and try again.",
-            lock_path, config_.offline_cache_path);
+            lock_path, cache_dir_);
     caching_kernels_.clear();  // Ignore the caching kernels
     return;
   }
@@ -155,7 +158,7 @@ void KernelCompilationManager::clean_offline_cache(
     double cleaning_factor) const {
   using CacheCleaner = offline_cache::CacheCleaner<CacheData>;
   offline_cache::CacheCleanerConfig config;
-  config.path = config_.offline_cache_path;
+  config.path = cache_dir_;
   config.policy = policy;
   config.cleaning_factor = cleaning_factor;
   config.max_size = max_bytes;
@@ -167,7 +170,7 @@ void KernelCompilationManager::clean_offline_cache(
 
 std::string KernelCompilationManager::make_filename(
     const std::string &kernel_key) const {
-  return join_path(config_.offline_cache_path,
+  return join_path(cache_dir_,
                    fmt::format(kCacheFilenameFormat, kernel_key));
 }
 
