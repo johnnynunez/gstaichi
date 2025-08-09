@@ -199,7 +199,7 @@ std::optional<std::string> PtxCache::try_load_cached(
                  cache_key);
         if(k.ptx.has_value()) {
           std::cout << "found ptx in cache key " << cache_key << std::endl;
-          std::cout << "returning " << k.ptx.value() << std::endl;
+          // std::cout << "returning " << k.ptx.value() << std::endl;
           return k.ptx;
         }
         // If the PTX is not in memory, try to load it from disk
