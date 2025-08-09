@@ -26,6 +26,7 @@
 #include "gstaichi/program/program.h"
 #include "gstaichi/system/timer.h"
 #include "gstaichi/util/file_sequence_writer.h"
+#include "gstaichi/runtime/cuda/ptx_cache.h"
 
 #define TI_RUNTIME_HOST
 #include "gstaichi/program/context.h"
@@ -65,7 +66,7 @@ class JITSessionCUDA : public JITSession {
 
  private:
   std::string compile_module_to_ptx(std::unique_ptr<llvm::Module> &module);
-  PtxCache ptx_cache_;
+  PtxCacheAllData ptx_cache_;
 };
 
 #endif
