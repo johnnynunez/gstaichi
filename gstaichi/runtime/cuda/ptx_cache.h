@@ -30,7 +30,7 @@ struct PtxMetadata {
 
 struct WrappedPtx {
   struct PtxMetadata metadata;
-  std::string ptx;
+  std::optional<std::string> ptx;
 
   TI_IO_DEF(metadata);
 };
@@ -62,24 +62,16 @@ class PtxCache final {
   explicit PtxCache(const Config init_params, const CompileConfig & compile_config);
 
   void dump();
-  void clean_offline_cache(offline_cache::CleanCachePolicy policy,
-                           int max_bytes,
-                           double cleaning_factor) const;
-  void store_ptx(
-    const std::string &cache_key,
-    const std::string &ptx
-  );
-  std::optional<std::string> load_ptx(
-      const std::string &cache_key
-  );
+  void clean_offline_cache(offline_cache::CleanCachePolicy policy, int max_bytes, double cleaning_factor) const;
+  void store_ptx(const std::string &cache_key, const std::string &ptx);
+  std::optional<std::string> load_ptx(const std::string &cache_key);
   std::string make_cache_key(const std::string &llvm_ir) const;
 
  private:
   std::string make_filename(const std::string &kernel_key) const;
   static CacheMode get_cache_mode(const CompileConfig &compile_config);
-  std::optional<std::string> try_load_cached(
-    const std::string &cache_key,
-    CacheMode cache_mode) const;
+  std::optional<std::string> try_load_cached(const std::string &cache_key, CacheMode cache_mode);
+  std::string load_data_from_disk(const std::string &cache_key);
 
   const Config config_;
   const CompileConfig &compile_config_;
