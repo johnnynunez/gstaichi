@@ -41,4 +41,10 @@ void ProgramImpl::register_needs_finalizing(NeedsFinalizing *needs_finalizing) {
   need_finalizing_.push_back(needs_finalizing);
 }
 
+void ProgramImpl::run_need_finalizing() {
+  for(auto it=need_finalizing_.begin(); it != need_finalizing_.end(); it++) {
+    (*it)->finalize();
+  }
+}
+
 }  // namespace gstaichi::lang

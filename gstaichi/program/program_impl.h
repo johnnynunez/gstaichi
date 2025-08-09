@@ -12,6 +12,8 @@
 
 namespace gstaichi::lang {
 
+// typedef void (*p_fn)();
+
 // Represents an image resource reference for a compute/render Op
 struct ComputeOpImageRef {
   DeviceAllocation image;
@@ -161,24 +163,16 @@ class ProgramImpl {
   }
 
   KernelCompilationManager &get_kernel_compilation_manager();
-
-  void run_need_finalizing() {
-    for(auto it=need_finalizing_.begin(); it != need_finalizing_.end(); it++) {
-      (*it)->finalize();
-    }
-  }
-
+  void register_needs_finalizing(NeedsFinalizing *needs_finalizing);
+  void run_need_finalizing();
   KernelLauncher &get_kernel_launcher();
 
   virtual DeviceCapabilityConfig get_device_caps() {
     return {};
   }
 
-  void register_needs_finalizing(NeedsFinalizing *needs_finalizing);
-
  protected:
   virtual std::unique_ptr<KernelCompiler> make_kernel_compiler() = 0;
-
   virtual std::unique_ptr<KernelLauncher> make_kernel_launcher() {
     TI_NOT_IMPLEMENTED;
   }
