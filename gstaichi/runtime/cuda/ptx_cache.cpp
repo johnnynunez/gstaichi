@@ -181,8 +181,6 @@ std::optional<std::string> PtxCache::try_load_cached(
     const auto &kernels = wrapped_by_key_;
     auto iter = kernels.find(cache_key);
     if (iter != kernels.end()) {
-      std::cout << "found in memory cache "
-                << " key " << std::endl;
       return iter->second.ptx;
     }
   }
@@ -194,8 +192,6 @@ std::optional<std::string> PtxCache::try_load_cached(
       auto &k = iter->second;
       TI_DEBUG("Found in cache (key='{}')", cache_key);
       if (k.ptx.has_value()) {
-        std::cout << "found ptx in cache key " << cache_key << std::endl;
-        // std::cout << "returning " << k.ptx.value() << std::endl;
         return k.ptx;
       }
       // If the PTX is not in memory, try to load it from disk
