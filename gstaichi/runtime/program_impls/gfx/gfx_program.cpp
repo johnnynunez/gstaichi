@@ -59,7 +59,7 @@ std::unique_ptr<KernelCompiler> GfxProgramImpl::make_kernel_compiler() {
 std::unique_ptr<KernelLauncher> GfxProgramImpl::make_kernel_launcher() {
   gfx::KernelLauncher::Config cfg;
   cfg.gfx_runtime_ = runtime_.get();
-  return std::make_unique<gfx::KernelLauncher>(std::move(cfg));
+  return std::make_unique<gfx::KernelLauncher>(std::move(cfg), this);
 }
 
 DeviceCapabilityConfig GfxProgramImpl::get_device_caps() {

@@ -105,14 +105,14 @@ std::unique_ptr<KernelLauncher> LlvmProgramImpl::make_kernel_launcher() {
   cfg.executor = runtime_exec_.get();
 
   if (arch_is_cpu(config->arch)) {
-    return std::make_unique<cpu::KernelLauncher>(std::move(cfg));
+    return std::make_unique<cpu::KernelLauncher>(std::move(cfg), this);
   } else if (config->arch == Arch::cuda) {
 #if defined(TI_WITH_CUDA)
-    return std::make_unique<cuda::KernelLauncher>(std::move(cfg));
+    return std::make_unique<cuda::KernelLauncher>(std::move(cfg), this);
 #endif
   } else if (config->arch == Arch::amdgpu) {
 #if defined(TI_WITH_AMDGPU)
-    return std::make_unique<amdgpu::KernelLauncher>(std::move(cfg));
+    return std::make_unique<amdgpu::KernelLauncher>(std::move(cfg), this);
 #endif
   }
 

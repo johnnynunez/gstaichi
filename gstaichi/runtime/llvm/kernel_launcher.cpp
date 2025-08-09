@@ -1,9 +1,13 @@
+#include "gstaichi/program/program_impl.h"
 #include "gstaichi/runtime/llvm/kernel_launcher.h"
 
 namespace gstaichi::lang {
+
 namespace LLVM {
 
-KernelLauncher::KernelLauncher(Config config) : config_(std::move(config)) {
+KernelLauncher::KernelLauncher(Config config, const ::gstaichi::lang::ProgramImpl *program_impl)
+    : gstaichi::lang::KernelLauncher(program_impl), config_(std::move(config))
+       {
 }
 
 void KernelLauncher::launch_kernel(

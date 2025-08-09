@@ -16,7 +16,9 @@ class KernelLauncher : public LLVM::KernelLauncher {
   };
 
  public:
-  using Base::Base;
+  // using Base::Base;
+
+  KernelLauncher(Config config, const ProgramImpl *program_impl);
 
   void launch_llvm_kernel(Handle handle, LaunchContextBuilder &ctx) override;
   Handle register_llvm_kernel(

@@ -1,10 +1,15 @@
+#include "gstaichi/program/program_impl.h"
 #include "gstaichi/runtime/gfx/kernel_launcher.h"
 #include "gstaichi/codegen/spirv/compiled_kernel_data.h"
 
 namespace gstaichi::lang {
+
+using LangProgramImpl = ProgramImpl;
+
 namespace gfx {
 
-KernelLauncher::KernelLauncher(Config config) : config_(std::move(config)) {
+KernelLauncher::KernelLauncher(Config config, const LangProgramImpl *program_impl)
+    : gstaichi::lang::KernelLauncher(program_impl), config_(std::move(config))  {
 }
 
 void KernelLauncher::launch_kernel(

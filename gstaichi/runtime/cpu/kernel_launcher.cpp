@@ -1,3 +1,4 @@
+#include "gstaichi/program/program_impl.h"
 #include "gstaichi/runtime/cpu/kernel_launcher.h"
 #include "gstaichi/rhi/arch.h"
 

@@ -12,6 +12,10 @@ bool KernelLauncher::on_cuda_device(void *ptr) {
   return ret_code == CUDA_SUCCESS && attr_val == CU_MEMORYTYPE_DEVICE;
 }
 
+KernelLauncher::KernelLauncher(Config config, const ProgramImpl *program_impl)
+    : LLVM::KernelLauncher(config, program_impl) {
+}
+
 void KernelLauncher::launch_llvm_kernel(Handle handle,
                                         LaunchContextBuilder &ctx) {
   TI_ASSERT(handle.get_launch_id() < contexts_.size());
