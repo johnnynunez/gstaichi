@@ -36,7 +36,9 @@ class CpuDevice;
 
 class LlvmRuntimeExecutor {
  public:
-  LlvmRuntimeExecutor(CompileConfig &config, KernelProfilerBase *profiler, gstaichi::lang::ProgramImpl *program_impl);
+  LlvmRuntimeExecutor(CompileConfig &config,
+                      KernelProfilerBase *profiler,
+                      gstaichi::lang::ProgramImpl *program_impl);
   virtual ~LlvmRuntimeExecutor();
   /**
    * Initializes the runtime system for LLVM based backends.

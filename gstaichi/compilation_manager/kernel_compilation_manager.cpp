@@ -55,8 +55,8 @@ struct CacheCleanerUtils<CacheData> {
 
 KernelCompilationManager::KernelCompilationManager(Config config)
     : config_(std::move(config)),
-    cache_dir_(join_path(config_.offline_cache_path, "kernel_compilation_manager"))
-  {
+      cache_dir_(
+          join_path(config_.offline_cache_path, "kernel_compilation_manager")) {
   TI_DEBUG("Create KernelCompilationManager with offline_cache_file_path = {}",
            this->cache_dir_);
   auto filepath = join_path(this->cache_dir_, kMetadataFilename);
@@ -122,7 +122,8 @@ void KernelCompilationManager::dump() {
   // Add new data
   for (auto &[kernel_key, kernel] : caching_kernels_) {
     if (kernel.metadata.cache_mode == CacheData::MemAndDiskCache) {
-      auto [iter, ok] = wrappedDataByKey.insert({kernel_key, std::move(kernel)});
+      auto [iter, ok] =
+          wrappedDataByKey.insert({kernel_key, std::move(kernel)});
       TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
@@ -169,8 +170,7 @@ void KernelCompilationManager::clean_offline_cache(
 
 std::string KernelCompilationManager::make_filename(
     const std::string &kernel_key) const {
-  return join_path(cache_dir_,
-                   fmt::format(kCacheFilenameFormat, kernel_key));
+  return join_path(cache_dir_, fmt::format(kCacheFilenameFormat, kernel_key));
 }
 
 std::unique_ptr<CompiledKernelData> KernelCompilationManager::compile_kernel(
@@ -223,12 +223,12 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
     if (iter != wrappedDataByKey.end()) {
       auto &k = iter->second;
       if (k.compiled_kernel_data) {
-        TI_DEBUG("Create kernel '{}' from cache (key='{}')",
-                 kernel_name, kernel_key);
+        TI_DEBUG("Create kernel '{}' from cache (key='{}')", kernel_name,
+                 kernel_key);
         return k.compiled_kernel_data.get();
       } else if (auto loaded = load_ckd(kernel_key, arch)) {
-        TI_DEBUG("Create kernel '{}' from cache (key='{}')",
-                 kernel_name, kernel_key);
+        TI_DEBUG("Create kernel '{}' from cache (key='{}')", kernel_name,
+                 kernel_key);
         TI_ASSERT(loaded->arch() == arch);
         k.metadata.last_used_at = std::time(nullptr);
         k.compiled_kernel_data = std::move(loaded);
@@ -258,7 +258,8 @@ const CompiledKernelData &KernelCompilationManager::compile_and_cache_kernel(
     TI_INFO("Compiling kernel '{}'", kernel_def.get_name());
   }
   k.compiled_kernel_data = compile_kernel(compile_config, caps, kernel_def);
-  k.metadata.size = 0;  // Populate `size` within the KernelCompilationManager::dump()
+  k.metadata.size =
+      0;  // Populate `size` within the KernelCompilationManager::dump()
   k.metadata.cache_mode = cache_mode;
   const auto &kernel_data = (caching_kernels_[kernel_key] = std::move(k));
   return *kernel_data.compiled_kernel_data;

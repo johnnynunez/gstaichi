@@ -62,20 +62,22 @@ class JITSessionCUDA : public JITSession {
   JITSessionCUDA(GsTaichiLLVMContext *tlctx,
                  const CompileConfig &config,
                  llvm::DataLayout data_layout,
-                ProgramImpl *program_impl);
+                 ProgramImpl *program_impl);
   JITModule *add_module(std::unique_ptr<llvm::Module> M, int max_reg) override;
   llvm::DataLayout get_data_layout() override;
 
  private:
   class Finalizer : public ProgramImpl::NeedsFinalizing {
-    public:
-    Finalizer(PtxCache *ptx_cache) : ptx_cache_(ptx_cache) {}
+   public:
+    Finalizer(PtxCache *ptx_cache) : ptx_cache_(ptx_cache) {
+    }
     void finalize() {
       ptx_cache_->dump();
     }
     virtual ~Finalizer() = default;
-    private:
-    PtxCache*ptx_cache_;
+
+   private:
+    PtxCache *ptx_cache_;
   };
 
   std::string compile_module_to_ptx(std::unique_ptr<llvm::Module> &module);
@@ -90,7 +92,6 @@ std::unique_ptr<JITSession> create_llvm_jit_session_cuda(
     GsTaichiLLVMContext *tlctx,
     const CompileConfig &config,
     Arch arch,
-    ProgramImpl *program_impl
-);
+    ProgramImpl *program_impl);
 
 }  // namespace gstaichi::lang

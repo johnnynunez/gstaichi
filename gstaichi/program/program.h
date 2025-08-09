@@ -113,11 +113,9 @@ class TI_DLL_EXPORT Program {
 
   int get_snode_tree_size();
 
-
-
   Kernel &create_kernel(const std::function<void(Kernel *)> &body,
-                 const std::string &name = "",
-                 AutodiffMode autodiff_mode = AutodiffMode::kNone);
+                        const std::string &name = "",
+                        AutodiffMode autodiff_mode = AutodiffMode::kNone);
 
   Function *create_function(const FunctionKey &func_key);
 

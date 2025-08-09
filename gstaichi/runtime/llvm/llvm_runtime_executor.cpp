@@ -162,7 +162,8 @@ LlvmRuntimeExecutor::LlvmRuntimeExecutor(CompileConfig &config,
   }
   llvm_context_ = std::make_unique<GsTaichiLLVMContext>(
       config_, arch_is_cpu(config.arch) ? host_arch() : config.arch);
-  jit_session_ = JITSession::create(llvm_context_.get(), config, config.arch, program_impl_);
+  jit_session_ = JITSession::create(llvm_context_.get(), config, config.arch,
+                                    program_impl_);
   init_runtime_jit_module(llvm_context_->clone_runtime_module());
 }
 

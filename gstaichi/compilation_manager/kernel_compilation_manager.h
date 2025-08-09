@@ -102,8 +102,7 @@ class KernelCompilationManager final {
 
   static CacheData::CacheMode get_cache_mode(
       const CompileConfig &compile_config,
-      bool kernel_ir_is_ast
-  );
+      bool kernel_ir_is_ast);
 
   Config config_;
   CachingKernels caching_kernels_;
