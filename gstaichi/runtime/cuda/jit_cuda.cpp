@@ -69,13 +69,16 @@ bool JITModuleCUDA::direct_dispatch() const {
 JITSessionCUDA::JITSessionCUDA(GsTaichiLLVMContext *tlctx,
                                const CompileConfig &config,
                                llvm::DataLayout data_layout,
-                               const ProgramImpl *program_impl)
+                               ProgramImpl *program_impl)
     : JITSession(tlctx, config), data_layout(data_layout), program_impl_(program_impl) {
   std::cout << "JITSessionCUDA::JITSessionCUDA" << std::endl;
 
   PtxCache::Config ptx_cache_config;
   ptx_cache_config.offline_cache_path = config.offline_cache_file_path;
   ptx_cache_ = std::make_unique<PtxCache>(ptx_cache_config, config);
+
+  finalizer_ = std::make_unique<Finalizer>(ptx_cache_);
+  program_impl_->register_needs_finalizing(finalizer_);
 }
 
 JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,

@@ -32,6 +32,11 @@ class ProgramImpl {
  public:
   explicit ProgramImpl(CompileConfig &config);
 
+  class NeedsFinalizing {
+    public:
+    virtual void finalize() = 0;
+  };
+
   /**
    * Allocate runtime buffer, e.g result_buffer or backend specific runtime
    * buffer, e.g. preallocated_device_buffer on CUDA.
@@ -157,11 +162,19 @@ class ProgramImpl {
 
   KernelCompilationManager &get_kernel_compilation_manager();
 
+  void run_need_finalizing() {
+    for(auto it=need_finalizing_.begin(); it != need_finalizing_.end(); it++) {
+      (*it)->finalize();
+    }
+  }
+
   KernelLauncher &get_kernel_launcher();
 
   virtual DeviceCapabilityConfig get_device_caps() {
     return {};
   }
+
+  void register_needs_finalizing(NeedsFinalizing *needs_finalizing);
 
  protected:
   virtual std::unique_ptr<KernelCompiler> make_kernel_compiler() = 0;
@@ -173,6 +186,7 @@ class ProgramImpl {
  private:
   std::unique_ptr<KernelCompilationManager> kernel_com_mgr_;
   std::unique_ptr<KernelLauncher> kernel_launcher_;
+  std::vector<NeedsFinalizing *> need_finalizing_;
 };
 
 }  // namespace gstaichi::lang
