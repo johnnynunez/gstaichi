@@ -59,30 +59,30 @@ class PtxCache final {
     std::string offline_cache_path;
   };
 
-  explicit PtxCache(Config init_params, CompileConfig & compile_config);
+  explicit PtxCache(const Config init_params, const CompileConfig & compile_config);
 
   void dump();
   void clean_offline_cache(offline_cache::CleanCachePolicy policy,
                            int max_bytes,
                            double cleaning_factor) const;
   void store_ptx(
-    const std::string &llvm_ir,
+    const std::string &cache_key,
     const std::string &ptx
   );
   std::optional<std::string> load_ptx(
-      const std::string &llvm_ir
+      const std::string &cache_key
   );
+  std::string make_cache_key(const std::string &llvm_ir) const;
 
  private:
-  std::string make_cache_key(const std::string &llvm_ir) const;
   std::string make_filename(const std::string &kernel_key) const;
   static CacheMode get_cache_mode(const CompileConfig &compile_config);
   std::optional<std::string> try_load_cached(
     const std::string &cache_key,
     CacheMode cache_mode) const;
 
-  Config config_;
-  CompileConfig &compile_config_;
+  const Config config_;
+  const CompileConfig &compile_config_;
   // using WrappedData = WrappedPtx;
 
   std::unordered_map<std::string, WrappedPtx> wrapped_by_key_;  // caching_kernels_ in kernel_compilation_manager

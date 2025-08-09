@@ -71,6 +71,10 @@ JITSessionCUDA::JITSessionCUDA(GsTaichiLLVMContext *tlctx,
                                llvm::DataLayout data_layout)
     : JITSession(tlctx, config), data_layout(data_layout) {
   std::cout << "JITSessionCUDA::JITSessionCUDA" << std::endl;
+
+  PtxCache::Config ptx_cache_config;
+  ptx_cache_config.offline_cache_path = config.offline_cache_file_path;
+  ptx_cache_ = std::make_unique<PtxCache>(ptx_cache_config, config);
 }
 
 JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,
@@ -213,6 +217,17 @@ std::string JITSessionCUDA::compile_module_to_ptx(
     static FileSequenceWriter writer("gstaichi_kernel_cuda_llvm_ir_{:04d}.ll",
                                      "unoptimized LLVM IR (CUDA)");
     writer.write(module.get());
+  }
+
+  std::string llvm_ir_str;
+  llvm::raw_string_ostream llvm_ir_stream(llvm_ir_str);
+  module->print(llvm_ir_stream, nullptr);
+  llvm_ir_stream.flush();
+  std::string ptx_cache_key = ptx_cache_->make_cache_key(llvm_ir_str);
+  std::optional<std::string> maybe_ptx = ptx_cache_->load_ptx(ptx_cache_key);
+  if (maybe_ptx.has_value()) {
+    TI_TRACE("Loaded PTX from cache for module {}", module->getName().str());
+    return maybe_ptx.value();
   }
 
   for (auto &f : module->globals())
@@ -361,6 +376,8 @@ std::string JITSessionCUDA::compile_module_to_ptx(
 
   // Null-terminate the ptx source
   buffer.push_back(0);
+  ptx_cache_->store_ptx(
+      ptx_cache_key, buffer);
   return buffer;
 }
 

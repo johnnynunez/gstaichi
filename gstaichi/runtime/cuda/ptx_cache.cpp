@@ -58,7 +58,7 @@ struct CacheCleanerUtils<PtxCacheAllData> {
 
 }  // namespace offline_cache
 
-PtxCache::PtxCache(Config config, CompileConfig & compile_config)
+PtxCache::PtxCache(const Config config, const CompileConfig & compile_config)
     : config_(std::move(config)),
     compile_config_(compile_config),
     cache_dir_(join_path(config_.offline_cache_path, "ptx_cache"))
