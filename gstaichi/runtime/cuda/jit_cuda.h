@@ -27,6 +27,7 @@
 #include "gstaichi/system/timer.h"
 #include "gstaichi/util/file_sequence_writer.h"
 #include "gstaichi/runtime/cuda/ptx_cache.h"
+#include "gstaichi/program/program_impl.h"
 
 #define TI_RUNTIME_HOST
 #include "gstaichi/program/context.h"
@@ -66,12 +67,13 @@ class JITSessionCUDA : public JITSession {
   llvm::DataLayout get_data_layout() override;
 
  private:
-  class Finalizer {
+  class Finalizer : public ProgramImpl::NeedsFinalizing {
     public:
     Finalizer(PtxCache *ptx_cache) : ptx_cache_(ptx_cache) {}
     void finalize() {
       ptx_cache_->dump();
     }
+    virtual ~Finalizer() = default;
     private:
     PtxCache*ptx_cache_;
   };
@@ -88,7 +90,7 @@ std::unique_ptr<JITSession> create_llvm_jit_session_cuda(
     GsTaichiLLVMContext *tlctx,
     const CompileConfig &config,
     Arch arch,
-    const ProgramImpl *program_impl
+    ProgramImpl *program_impl
 );
 
 }  // namespace gstaichi::lang

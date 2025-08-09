@@ -6,6 +6,7 @@
 #include "gstaichi/platform/cuda/detect_cuda.h"
 #include "gstaichi/rhi/cuda/cuda_driver.h"
 #include "gstaichi/rhi/llvm/device_memory_pool.h"
+#include "gstaichi/program/program_impl.h"
 
 #if defined(TI_WITH_CUDA)
 #include "gstaichi/rhi/cuda/cuda_context.h"
@@ -34,7 +35,7 @@ void *host_allocate_aligned(HostMemoryPool *memory_pool,
 
 LlvmRuntimeExecutor::LlvmRuntimeExecutor(CompileConfig &config,
                                          KernelProfilerBase *profiler,
-                                        const ProgramImpl *program_impl)
+                                         ProgramImpl *program_impl)
     : config_(config), program_impl_(program_impl) {
   if (config.arch == Arch::cuda) {
 #if defined(TI_WITH_CUDA)
@@ -160,7 +161,7 @@ LlvmRuntimeExecutor::LlvmRuntimeExecutor(CompileConfig &config,
   }
   llvm_context_ = std::make_unique<GsTaichiLLVMContext>(
       config_, arch_is_cpu(config.arch) ? host_arch() : config.arch);
-  jit_session_ = JITSession::create(llvm_context_.get(), config, config.arch);
+  jit_session_ = JITSession::create(llvm_context_.get(), config, config.arch, program_impl_);
   init_runtime_jit_module(llvm_context_->clone_runtime_module());
 }
 

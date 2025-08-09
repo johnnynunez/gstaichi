@@ -77,8 +77,8 @@ JITSessionCUDA::JITSessionCUDA(GsTaichiLLVMContext *tlctx,
   ptx_cache_config.offline_cache_path = config.offline_cache_file_path;
   ptx_cache_ = std::make_unique<PtxCache>(ptx_cache_config, config);
 
-  finalizer_ = std::make_unique<Finalizer>(ptx_cache_);
-  program_impl_->register_needs_finalizing(finalizer_);
+  finalizer_ = std::make_unique<Finalizer>(ptx_cache_.get());
+  program_impl_->register_needs_finalizing(finalizer_.get());
 }
 
 JITModule *JITSessionCUDA::add_module(std::unique_ptr<llvm::Module> M,
@@ -389,7 +389,7 @@ std::unique_ptr<JITSession> create_llvm_jit_session_cuda(
     GsTaichiLLVMContext *tlctx,
     const CompileConfig &config,
     Arch arch,
-    const ProgramImpl *program_impl
+    ProgramImpl *program_impl
 ) {
   TI_ASSERT(arch == Arch::cuda);
   // https://docs.nvidia.com/cuda/nvvm-ir-spec/index.html#data-layout
