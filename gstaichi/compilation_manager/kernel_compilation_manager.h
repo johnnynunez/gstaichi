@@ -18,7 +18,7 @@ struct CacheData {
   };
   using Version = std::uint16_t[3];
 
-  struct WrappedData {
+  struct Metadata {
     std::string kernel_key;
     std::size_t size{0};          // byte
     std::time_t created_at{0};    // sec
@@ -26,13 +26,17 @@ struct CacheData {
 
     // Dump the kernel to disk if `cache_mode` == `MemAndDiskCache`
     CacheMode cache_mode{MemCache};
-
-    std::unique_ptr<lang::CompiledKernelData> compiled_kernel_data;
-
     TI_IO_DEF(kernel_key, size, created_at, last_used_at);
   };
 
-  using Metadata = WrappedData;  // necessary for CacheCleaner
+  struct WrappedData {
+    Metadata metadata;
+    std::unique_ptr<lang::CompiledKernelData> compiled_kernel_data;
+
+    TI_IO_DEF(metadata);
+  };
+
+  // using Metadata = WrappedData;  // necessary for CacheCleaner
 
   Version version{};
   std::size_t size{0};

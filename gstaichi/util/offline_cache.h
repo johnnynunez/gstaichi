@@ -152,7 +152,7 @@ struct CacheCleanerUtils {
 template <typename MetadataType>
 class CacheCleaner {
   using Utils = CacheCleanerUtils<MetadataType>;
-  using KernelMetadata = typename MetadataType::Metadata;
+  using WrappedData = typename MetadataType::WrappedData;
 
  public:
   static void run(const CacheCleanerConfig &config) {
@@ -230,7 +230,7 @@ class CacheCleaner {
       }
 
       // LRU or FIFO
-      using KerData = std::pair<const std::string, KernelMetadata>;
+      using KerData = std::pair<const std::string, WrappedData>;
       using Comparator = std::function<bool(const KerData *, const KerData *)>;
       using PriQueue =
           std::priority_queue<const KerData *, std::vector<const KerData *>,
@@ -239,11 +239,11 @@ class CacheCleaner {
       Comparator cmp{nullptr};
       if (policy & CleanOldUsed) {  // LRU
         cmp = [](const KerData *a, const KerData *b) -> bool {
-          return a->second.last_used_at < b->second.last_used_at;
+          return a->second.metadata.last_used_at < b->second.metadata.last_used_at;
         };
       } else if (policy & CleanOldCreated) {  // FIFO
         cmp = [](const KerData *a, const KerData *b) -> bool {
-          return a->second.created_at < b->second.created_at;
+          return a->second.metadata.created_at < b->second.metadata.created_at;
         };
       }
 
@@ -265,7 +265,7 @@ class CacheCleaner {
           for (const auto &f : Utils::get_cache_files(config, e->second)) {
             files_to_rm.push_back(f);
           }
-          cache_data.size -= e->second.size;
+          cache_data.size -= e->second.metadata.size;
           cache_data.wrappedDataByKey.erase(e->first);
           q.pop();
         }

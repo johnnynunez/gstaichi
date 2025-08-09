@@ -11,32 +11,37 @@
 
 namespace gstaichi::lang {
 
+enum CacheMode {
+  MemCache,
+  MemAndDiskCache
+};
+
+struct PtxMetadata {
+  std::string cache_key;
+  std::size_t size{0};          // byte
+  std::time_t created_at{0};    // sec
+  std::time_t last_used_at{0};  // sec
+
+  CacheMode cache_mode{MemCache};
+
+  // NOTE: The "version" must be the first field to be serialized
+  TI_IO_DEF(cache_key, size, created_at, last_used_at);
+};
+
+struct WrappedPtx {
+  struct PtxMetadata metadata;
+  std::string ptx;
+
+  TI_IO_DEF(metadata);
+};
+
 struct PtxCacheAllData {
-  enum CacheMode {
-    MemCache,        // Cache the kernel in memory
-    MemAndDiskCache  // Cache the kernel in memory and disk
-  };
   using Version = std::uint16_t[3];
-
-  struct WrappedData {
-    std::string cache_key;
-    std::size_t size{0};          // byte
-    std::time_t created_at{0};    // sec
-    std::time_t last_used_at{0};  // sec
-
-    // Dump the kernel to disk if `cache_mode` == `MemAndDiskCache`
-    CacheMode cache_mode{MemCache};
-
-    const std::string *ptx;
-
-    TI_IO_DEF(cache_key, size, created_at, last_used_at);
-  };
-
-  // using KernelMetadata = Metadata;  // Required by CacheCleaner
-
   Version version{};
   std::size_t size{0};
-  std::unordered_map<std::string, WrappedData> wrappedDataByKey;
+  std::unordered_map<std::string, WrappedPtx> wrappedDataByKey;
+
+  using WrappedData = WrappedPtx;
 
   // NOTE: The "version" must be the first field to be serialized
   TI_IO_DEF(version, size, wrappedDataByKey);
@@ -48,47 +53,41 @@ class PtxCache final {
   static constexpr char kCacheFilenameFormat[] = "{}.ptx";
   static constexpr char kMetadataLockName[] = "ptxcache.lock";
 
-  // using CacheData = PtxCacheData::Data;
-  using WrappedByKey = std::unordered_map<std::string, PtxCacheAllData::WrappedData>;
+  // using WrappedByKey = std::unordered_map<std::string, WrappedPtx>;
 
   struct Config {
     std::string offline_cache_path;
   };
 
-  explicit PtxCache(Config init_params);
+  explicit PtxCache(Config init_params, CompileConfig & compile_config);
 
-  // Dump the cached data in memory to disk
   void dump();
-
   void clean_offline_cache(offline_cache::CleanCachePolicy policy,
                            int max_bytes,
                            double cleaning_factor) const;
-
-  std::string make_cache_key(
-    const CompileConfig &compile_config,
-    const std::string &llvm_ir) const;
-
   void store_ptx(
-    const std::string &checksum,
+    const std::string &llvm_ir,
     const std::string &ptx
   );
-
-  const std::string load_ptx(
-      const std::string &llvm_ir,
-      const std::string &ptx,
-      const CompileConfig &compile_config);
-
- private:
-  std::string make_filename(const std::string &kernel_key) const;
-  static PtxCacheAllData::CacheMode get_cache_mode(
-      const CompileConfig &compile_config
+  std::optional<std::string> load_ptx(
+      const std::string &llvm_ir
   );
 
+ private:
+  std::string make_cache_key(const std::string &llvm_ir) const;
+  std::string make_filename(const std::string &kernel_key) const;
+  static CacheMode get_cache_mode(const CompileConfig &compile_config);
+  std::optional<std::string> try_load_cached(
+    const std::string &cache_key,
+    CacheMode cache_mode) const;
+
   Config config_;
-  using WrappedData = PtxCacheAllData::WrappedData;
-  std::unordered_map<std::string, WrappedData> wrapped_by_key_;  // caching_kernels_ in kernel_compilation_manager
+  CompileConfig &compile_config_;
+  // using WrappedData = WrappedPtx;
+
+  std::unordered_map<std::string, WrappedPtx> wrapped_by_key_;  // caching_kernels_ in kernel_compilation_manager
   PtxCacheAllData cached_all_data_;  // cached_data_ in kernel_compilation_manager
-  std::vector<WrappedData *> updated_data_;
+  std::vector<WrappedPtx *> updated_data_;
   const std::string cache_dir_;
 
   // kernel_compilation_manager:

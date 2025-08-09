@@ -32,9 +32,9 @@ struct CacheCleanerUtils<CacheData> {
   // To get cache files name
   static std::vector<std::string> get_cache_files(
       const CacheCleanerConfig &config,
-      const WrappedData &kernel_meta) {
+      const WrappedData &wrapped_data) {
     auto fn = fmt::format(KernelCompilationManager::kCacheFilenameFormat,
-                          kernel_meta.kernel_key);
+                          wrapped_data.metadata.kernel_key);
     return {fn};
   }
 
@@ -115,16 +115,16 @@ void KernelCompilationManager::dump() {
   offline_cache::load_metadata_with_checking(data, filepath);
   // Update the cached data
   for (const auto *e : updated_data_) {
-    auto iter = wrappedDataByKey.find(e->kernel_key);
+    auto iter = wrappedDataByKey.find(e->metadata.kernel_key);
     if (iter != wrappedDataByKey.end()) {
-      iter->second.last_used_at = e->last_used_at;
+      iter->second.metadata.last_used_at = e->metadata.last_used_at;
     }
   }
   // Add new data
   for (auto &[kernel_key, kernel] : caching_kernels_) {
-    if (kernel.cache_mode == CacheData::MemAndDiskCache) {
+    if (kernel.metadata.cache_mode == CacheData::MemAndDiskCache) {
       auto [iter, ok] = wrappedDataByKey.insert({kernel_key, std::move(kernel)});
-      TI_ASSERT(!ok || iter->second.size == 0);
+      TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
   // Clear caching_kernels_
@@ -132,17 +132,17 @@ void KernelCompilationManager::dump() {
   // Dump cached CompiledKernelData to disk
   for (auto &[_, k] : wrappedDataByKey) {
     if (k.compiled_kernel_data) {
-      auto cache_filename = make_filename(k.kernel_key);
+      auto cache_filename = make_filename(k.metadata.kernel_key);
       std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
       TI_ASSERT(fs.is_open());
       auto err = k.compiled_kernel_data->dump(fs);
       if (err == CompiledKernelData::Err::kNoError) {
         TI_ASSERT(!!fs);
-        k.size = fs.tellp();
-        data.size += k.size;
+        k.metadata.size = fs.tellp();
+        data.size += k.metadata.size;
       } else {
         TI_DEBUG("Dump cached CompiledKernelData(kernel_key={}) failed: {}",
-                 k.kernel_key, CompiledKernelData::get_err_msg(err));
+                 k.metadata.kernel_key, CompiledKernelData::get_err_msg(err));
       }
     }
   }
@@ -235,7 +235,7 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
         TI_DEBUG("Create kernel '{}' from cache (key='{}')",
                  kernel_name, kernel_key);
         TI_ASSERT(loaded->arch() == arch);
-        k.last_used_at = std::time(nullptr);
+        k.metadata.last_used_at = std::time(nullptr);
         k.compiled_kernel_data = std::move(loaded);
         updated_data_.push_back(&k);
         std::cout << "found ir kernel in cache maybe not sure " << kernel_name
@@ -258,8 +258,8 @@ const CompiledKernelData &KernelCompilationManager::compile_and_cache_kernel(
               kernel_key);
   TI_ASSERT(caching_kernels_.find(kernel_key) == caching_kernels_.end());
   KernelCacheData k;
-  k.kernel_key = kernel_key;
-  k.created_at = k.last_used_at = std::time(nullptr);
+  k.metadata.kernel_key = kernel_key;
+  k.metadata.created_at = k.metadata.last_used_at = std::time(nullptr);
 
   std::cout << "cpp kernel_compilation_manager: compilng kernel '" << kernel_def.get_name()
             << "' (key='" << kernel_key << "')" << std::endl;
@@ -269,8 +269,8 @@ const CompiledKernelData &KernelCompilationManager::compile_and_cache_kernel(
     TI_INFO("Compiling kernel '{}'", kernel_def.get_name());
   }
   k.compiled_kernel_data = compile_kernel(compile_config, caps, kernel_def);
-  k.size = 0;  // Populate `size` within the KernelCompilationManager::dump()
-  k.cache_mode = cache_mode;
+  k.metadata.size = 0;  // Populate `size` within the KernelCompilationManager::dump()
+  k.metadata.cache_mode = cache_mode;
   const auto &kernel_data = (caching_kernels_[kernel_key] = std::move(k));
   return *kernel_data.compiled_kernel_data;
 }
@@ -293,11 +293,11 @@ void KernelCompilationManager::store_fast_cache(
   KernelCacheData k;
   // caching_kernels_[checksum] = std::move(k);
   std::cout << "store fast cache kernel key " << checksum << " cache mode " << cache_mode << std::endl;
-  k.kernel_key = checksum;
-  k.created_at = k.last_used_at = std::time(nullptr);
+  k.metadata.kernel_key = checksum;
+  k.metadata.created_at = k.metadata.last_used_at = std::time(nullptr);
   k.compiled_kernel_data = ckd.clone();
-  k.size = 0;
-  k.cache_mode = cache_mode;
+  k.metadata.size = 0;
+  k.metadata.cache_mode = cache_mode;
   caching_kernels_[checksum] = std::move(k);
   // dump();
 }

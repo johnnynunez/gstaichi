@@ -19,7 +19,7 @@ constexpr char kPtxCacheFilenameExt[] = "ptx";
 template <>
 struct CacheCleanerUtils<PtxCacheAllData> {
   using MetadataType = PtxCacheAllData;
-  using KernelMetaData = typename MetadataType::WrappedData;
+  // using KernelMetaData = typename MetadataType::WrappedData;
 
   // To save metadata as file
   static bool save_metadata(const CacheCleanerConfig &config,
@@ -37,9 +37,9 @@ struct CacheCleanerUtils<PtxCacheAllData> {
   // To get cache files name
   static std::vector<std::string> get_cache_files(
       const CacheCleanerConfig &config,
-      const KernelMetaData &kernel_meta) {
+      const WrappedPtx &wrappedPtx) {
     auto fn = fmt::format(PtxCache::kCacheFilenameFormat,
-                          kernel_meta.kernel_key);
+                          wrappedPtx.metadata.cache_key);
     return {fn};
   }
 
@@ -58,11 +58,11 @@ struct CacheCleanerUtils<PtxCacheAllData> {
 
 }  // namespace offline_cache
 
-PtxCache::PtxCache(Config config)
+PtxCache::PtxCache(Config config, CompileConfig & compile_config)
     : config_(std::move(config)),
+    compile_config_(compile_config),
     cache_dir_(join_path(config_.offline_cache_path, "ptx_cache"))
   {
-  // this->cache_dir_ = join_path(config_.offline_cache_path, "kernel_compilation_manager");
   TI_DEBUG("Create ptxcache with offline_cache_file_path = {}",
            this->cache_dir_);
   auto filepath = join_path(this->cache_dir_, kMetadataFilename);
@@ -107,37 +107,28 @@ void PtxCache::dump() {
   offline_cache::load_metadata_with_checking(data, filepath);
   // Update the cached data
   for (const auto *e : updated_data_) {
-    auto iter = wrappedDataByKey.find(e->cache_key);
+    auto iter = wrappedDataByKey.find(e->metadata.cache_key);
     if (iter != wrappedDataByKey.end()) {
-      iter->second.last_used_at = e->last_used_at;
+      iter->second.metadata.last_used_at = e->metadata.last_used_at;
     }
   }
   // Add new data
   for (auto &[kernel_key, wrapped] : wrapped_by_key_) {
-    if (wrapped.cache_mode == PtxCacheAllData::MemAndDiskCache) {
+    if (wrapped.metadata.cache_mode == CacheMode::MemAndDiskCache) {
       auto [iter, ok] = wrappedDataByKey.insert({kernel_key, std::move(wrapped)});
-      TI_ASSERT(!ok || iter->second.size == 0);
+      TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
-  // Clear caching_kernels_
   wrapped_by_key_.clear();
   // Dump cached CompiledKernelData to disk
   for (auto &[_, k] : wrappedDataByKey) {
-    if (k.ptx) {
-      auto cache_filename = make_filename(k.cache_key);
+      auto cache_filename = make_filename(k.metadata.cache_key);
       std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
       TI_ASSERT(fs.is_open());
-      fs << *(k.ptx);
-      // auto err = k.ptx->dump(fs);
-      // if (err == CompiledKernelData::Err::kNoError) {
+      fs << k.ptx;
         TI_ASSERT(!!fs);
-        k.size = fs.tellp();
-        data.size += k.size;
-      // } else {
-      //   TI_DEBUG("Dump cached CompiledKernelData(kernel_key={}) failed: {}",
-      //            k.kernel_key, CompiledKernelData::get_err_msg(err));
-      // }
-    }
+        k.metadata.size = fs.tellp();
+        data.size += k.metadata.size;
   }
   // Dump offline cache metadata
   if (!wrappedDataByKey.empty()) {
@@ -168,10 +159,9 @@ std::string PtxCache::make_filename(
 }
 
 std::string PtxCache::make_cache_key(
-    const CompileConfig &compile_config,
     const std::string &llvm_ir) const {
   picosha2::hash256_one_by_one hasher;
-  std::string fast_math_str = compile_config.fast_math ? "1" : "0";
+  std::string fast_math_str = compile_config_.fast_math ? "1" : "0";
   hasher.process(fast_math_str.begin(), fast_math_str.end());
   hasher.process(llvm_ir.begin(), llvm_ir.end());
   hasher.finish();
@@ -181,133 +171,59 @@ std::string PtxCache::make_cache_key(
   return res;
 }
 
-const CompiledKernelData *PtxCache::try_load_cached(
+std::optional<std::string> PtxCache::try_load_cached(
     const std::string &cache_key,
-    CacheData::CacheMode cache_mode) {
-  {  // Find in memory-cache (caching_kernels_)
+    CacheMode cache_mode) const {
+  {
+    // Find in memory-cache
     const auto &kernels = wrapped_by_key_;
     auto iter = kernels.find(cache_key);
     if (iter != kernels.end()) {
         std::cout << "found in memory cache "
                   << " key " << std::endl;
-      return iter->second.compiled_kernel_data.get();
+      return iter->second.ptx;
     }
   }
-  // Find in disk-cache (cached_data_)
-  if (cache_mode == CacheData::MemAndDiskCache) {
-    auto &kernels = cached_data_.kernels;
-    auto iter = kernels.find(kernel_key);
-    if (iter != kernels.end()) {
+  // Find in disk-cache
+  if (cache_mode == CacheMode::MemAndDiskCache) {
+    auto &wrappedDataByKey = cached_all_data_.wrappedDataByKey;
+    auto iter = wrappedDataByKey.find(cache_key);
+    if (iter != wrappedDataByKey.end()) {
       auto &k = iter->second;
-      if (k.compiled_kernel_data) {
-        TI_DEBUG("Create kernel '{}' from cache (key='{}')",
-                 kernel_name, kernel_key);
-        std::cout << "found ir kernel in cache as ckd " << kernel_name
-                  << " key " << std::endl;
-        return k.compiled_kernel_data.get();
-      } else if (auto loaded = load_ckd(kernel_key, arch)) {
-        TI_DEBUG("Create kernel '{}' from cache (key='{}')",
-                 kernel_name, kernel_key);
-        TI_ASSERT(loaded->arch() == arch);
-        k.last_used_at = std::time(nullptr);
-        k.compiled_kernel_data = std::move(loaded);
-        updated_data_.push_back(&k);
-        std::cout << "found ir kernel in cache maybe not sure " << kernel_name
-                  << " key " << std::endl;
-        return k.compiled_kernel_data.get();
-      }
+        TI_DEBUG("Found in cache (key='{}')",
+                 cache_key);
+        std::cout << "found ptx in cache key " << cache_key << std::endl;
+        return k.ptx;
     }
   }
-  return nullptr;
-}
-
-const CompiledKernelData &PtxCache::compile_and_cache_kernel(
-    const std::string &kernel_key,
-    const CompileConfig &compile_config,
-    const DeviceCapabilityConfig &caps,
-    const Kernel &kernel_def) {
-  auto cache_mode = get_cache_mode(compile_config, kernel_def.ir_is_ast());
-  TI_DEBUG_IF(cache_mode == CacheData::MemAndDiskCache,
-              "Cache kernel '{}' (key='{}')", kernel_def.get_name(),
-              kernel_key);
-  TI_ASSERT(caching_kernels_.find(kernel_key) == caching_kernels_.end());
-  KernelCacheData k;
-  k.kernel_key = kernel_key;
-  k.created_at = k.last_used_at = std::time(nullptr);
-
-  std::cout << "cpp kernel_compilation_manager: compilng kernel '" << kernel_def.get_name()
-            << "' (key='" << kernel_key << "')" << std::endl;
-  if (get_environ_config("TI_SHOW_COMPILING")) {
-    std::cout << "Compiling kernel '" << kernel_def.get_name()
-              << "' (key='" << kernel_key << "')" << std::endl;
-    TI_INFO("Compiling kernel '{}'", kernel_def.get_name());
-  }
-  k.compiled_kernel_data = compile_kernel(compile_config, caps, kernel_def);
-  k.size = 0;  // Populate `size` within the PtxCache::dump()
-  k.cache_mode = cache_mode;
-  const auto &kernel_data = (caching_kernels_[kernel_key] = std::move(k));
-  return *kernel_data.compiled_kernel_data;
+  return std::nullopt;
 }
 
 void PtxCache::store_ptx(
-    const std::string &checksum,
+    const std::string &llvm_ir,
     const std::string &ptx
 ) {
-  TI_DEBUG("Store PTX for kernel '{}' (key='{}')", checksum, ptx);
-  // std::cout << "store_ptx checksum " << checksum << " ptx " << ptx << std::endl;
-  // TI_ASSERT(caching_kernels_.find(checksum) == caching_kernels_.end());
-  KernelCacheData k;
-  k.kernel_key = checksum;
-  k.created_at = k.last_used_at = std::time(nullptr);
-  // k.compiled_kernel_data = std::make_unique<CompiledKernelData>(ptx);
-  // TODO
-  k.size = 0;  // Populate `size` within the PtxCache::dump()
-  k.cache_mode = CacheData::MemAndDiskCache;
-  wrapped_by_key_[checksum] = std::move(k);
+  std::string cache_key = make_cache_key(llvm_ir);
+  TI_DEBUG("Store PTX for cache_key {}", cache_key);
+  WrappedPtx k;
+  k.metadata.cache_key = cache_key;
+  k.metadata.created_at = k.metadata.last_used_at = std::time(nullptr);
+  k.metadata.size = 0;  // Populate `size` within the PtxCache::dump()
+  k.metadata.cache_mode = CacheMode::MemAndDiskCache;
+  wrapped_by_key_[cache_key] = std::move(k);
 }
 
-const CompiledKernelData *PtxCache::load_ptx(
-      const std::string &llvm_ir,
-      cosnt std::string &ptx,
-      const CompileConfig &compile_config) {
-  // auto iter = caching_kernels_.find(checksum);
-  // return nullptr;
-  auto cache_mode = get_cache_mode(compile_config);
-  auto res = try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
-                                cache_mode);
-  // std::cout << "try_load_cached_kernel " << kernel_name << " checksum" << checksum << " arch " << arch_name(compile_config.arch)
-  //   << " cache mode " << cache_mode << " res " << res << std::endl;
-  return res;
-  // try_load_cached_kernel(kernel_name, checksum, compile_config.arch,
-  //                               get_cache_mode(compile_config, true));
+std::optional<std::string> PtxCache::load_ptx(
+      const std::string &llvm_ir
+  ) {
+  auto cache_mode = get_cache_mode(compile_config_);
+  std::string cache_key = make_cache_key(llvm_ir);
+  return try_load_cached(cache_key, cache_mode);
 }
 
-const std::string PtxCache::load_ckd(
-    const std::string &kernel_key,
-    Arch arch) {
-  const auto filename = make_filename(kernel_key);
-  if (std::ifstream ifs(filename, std::ios::in | std::ios::binary);
-      ifs.is_open()) {
-    CompiledKernelData::Err err;
-    auto ckd = CompiledKernelData::load(ifs, &err);
-    if (err != CompiledKernelData::Err::kNoError) {
-      TI_DEBUG("Load cache file {} failed: {}", filename,
-               CompiledKernelData::get_err_msg(err));
-      return nullptr;
-    }
-    if (auto err = ckd->check(); err != CompiledKernelData::Err::kNoError) {
-      TI_DEBUG("Check CompiledKernelData loaded from {} failed: {}", filename,
-               CompiledKernelData::get_err_msg(err));
-      return nullptr;
-    }
-    return ckd;
-  }
-  return nullptr;
-}
-
-PtxCacheAllData::CacheMode PtxCache::get_cache_mode(
+CacheMode PtxCache::get_cache_mode(
     const CompileConfig &compile_config) {
-  return PtxCacheAllData::MemAndDiskCache;
+  return CacheMode::MemAndDiskCache;
 }
 
 }  // namespace gstaichi::lang
