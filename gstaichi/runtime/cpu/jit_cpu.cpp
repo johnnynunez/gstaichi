@@ -185,6 +185,7 @@ class JITSessionCPU : public JITSession {
   }
 
   void *lookup_in_module(JITDylib *lib, const std::string Name) {
+    std::cout << "jit_cpu.cpp lookup_in_module lib " << lib << " name " << Name << std::endl;
     std::lock_guard<std::mutex> _(mut_);
 #ifdef __APPLE__
     auto symbol = es_.lookup({lib}, mangle_(Name));

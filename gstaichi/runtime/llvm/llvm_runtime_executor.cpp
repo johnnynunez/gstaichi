@@ -33,8 +33,9 @@ void *host_allocate_aligned(HostMemoryPool *memory_pool,
 }  // namespace
 
 LlvmRuntimeExecutor::LlvmRuntimeExecutor(CompileConfig &config,
-                                         KernelProfilerBase *profiler)
-    : config_(config) {
+                                         KernelProfilerBase *profiler,
+                                        const ProgramImpl *program_impl)
+    : config_(config), program_impl_(program_impl) {
   if (config.arch == Arch::cuda) {
 #if defined(TI_WITH_CUDA)
     if (!is_cuda_api_available()) {

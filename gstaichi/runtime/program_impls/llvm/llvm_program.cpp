@@ -30,7 +30,7 @@ LlvmProgramImpl::LlvmProgramImpl(CompileConfig &config_,
     : ProgramImpl(config_),
       compilation_workers("compile",
                           config_.print_ir ? 1 : config_.num_compile_threads) {
-  runtime_exec_ = std::make_unique<LlvmRuntimeExecutor>(config_, profiler);
+  runtime_exec_ = std::make_unique<LlvmRuntimeExecutor>(config_, profiler, this);
   cache_data_ = std::make_unique<LlvmOfflineCache>();
 }
 
