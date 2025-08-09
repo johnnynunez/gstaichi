@@ -60,13 +60,15 @@ class JITSessionCUDA : public JITSession {
 
   JITSessionCUDA(GsTaichiLLVMContext *tlctx,
                  const CompileConfig &config,
-                 llvm::DataLayout data_layout);
+                 llvm::DataLayout data_layout,
+                 const ProgramImpl *program_impl);
   JITModule *add_module(std::unique_ptr<llvm::Module> M, int max_reg) override;
   llvm::DataLayout get_data_layout() override;
 
  private:
   std::string compile_module_to_ptx(std::unique_ptr<llvm::Module> &module);
   std::unique_ptr<PtxCache> ptx_cache_;
+  const ProgramImpl *program_impl_;
 };
 
 #endif
@@ -74,6 +76,8 @@ class JITSessionCUDA : public JITSession {
 std::unique_ptr<JITSession> create_llvm_jit_session_cuda(
     GsTaichiLLVMContext *tlctx,
     const CompileConfig &config,
-    Arch arch);
+    Arch arch,
+    const ProgramImpl *program_impl
+);
 
 }  // namespace gstaichi::lang
