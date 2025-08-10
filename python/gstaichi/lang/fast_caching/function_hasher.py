@@ -14,8 +14,11 @@ if TYPE_CHECKING:
 indent_re = re.compile(r"^ +")
 
 
+g_total_hash_kernel_time = 0
+
+
 def pure(fn: "GsTaichiCallable") -> "GsTaichiCallable":
-    print('fn', fn, type(fn), "marking pure")
+    # print('fn', fn, type(fn), "marking pure")
     fn.is_pure = True
     return fn
 
@@ -171,5 +174,14 @@ class FunctionHasher:
         return hash
 
 def hash_kernel(kernel_fn) -> str:
+    global g_total_hash_kernel_time
     fast_cacher = FunctionHasher()
-    return fast_cacher.hash_function(kernel_fn)
+    start = time.time()
+    res = fast_cacher.hash_function(kernel_fn)
+    g_total_hash_kernel_time += time.time() - start
+    return res
+
+
+def dump_stats() -> None:
+    print("functio_hasher dump stats")
+    print("g_total_hash_kernel_time", g_total_hash_kernel_time)

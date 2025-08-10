@@ -1,10 +1,17 @@
 import hashlib
+import time
 from typing import Any, Sequence
 from gstaichi.types.compound_types import vector, matrix
 import numpy as np
 from gstaichi.lang._ndarray import ScalarNdarray
 from gstaichi.lang.matrix import VectorNdarray, MatrixNdarray, MatrixField
 from gstaichi.lang.field import ScalarField
+
+
+g_num_calls = 0
+g_num_args = 0
+g_hashing_time = 0
+g_repr_time = 0
 
 
 def to_representative_str(arg: Any) -> str | None:
@@ -14,31 +21,44 @@ def to_representative_str(arg: Any) -> str | None:
     with different (allowed) types
     """
     arg_type = type(arg)
+    if isinstance(arg, ScalarNdarray):
+        return f"[ndarray-{arg.dtype}-{len(arg.shape)}]"
+    if isinstance(arg, VectorNdarray):
+        return f"[ndarray-vec-{arg.n}-{arg.dtype}-{len(arg.shape)}]"
+    if isinstance(arg, ScalarField):
+        return f"[field-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
+    if isinstance(arg, MatrixNdarray):
+        return f"[ndarray-vec-{arg.m}-{arg.n}-{arg.dtype}-{len(arg.shape)}]"
+    if isinstance(arg, MatrixField):
+        return f"[field-{arg.m}-{arg.n}-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
     if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64]:
         return str(arg_type)
-    if arg_type == ScalarNdarray:
-        assert isinstance(arg, ScalarNdarray)
-        return f"[ndarray-{arg.dtype}-{len(arg.shape)}]"
-    if arg_type == VectorNdarray:
-        assert isinstance(arg, VectorNdarray)
-        return f"[ndarray-vec-{arg.n}-{arg.dtype}-{len(arg.shape)}]"
-    if arg_type == MatrixNdarray:
-        assert isinstance(arg, MatrixNdarray)
-        return f"[ndarray-vec-{arg.m}-{arg.n}-{arg.dtype}-{len(arg.shape)}]"
-    if arg_type == ScalarField:
-        assert isinstance(arg, ScalarField)
-        return f"[field-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
-    if arg_type == MatrixField:
-        assert isinstance(arg, MatrixField)
-        return f"[field-{arg.m}-{arg.n}-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
+    print("arg not recognized", type(arg))
     return None
+    # return "#"
 
 
 def hash_args(args: Sequence[Any]) -> str | None:
+    global g_num_calls, g_num_args, g_hashing_time, g_repr_time
+    g_num_calls += 1
+    g_num_args += len(args)
     hash_l = []
     for arg in args:
+        start = time.time()
         _hash = to_representative_str(arg)
+        g_repr_time += time.time() - start
         if not _hash:
             return None
         hash_l.append(_hash)
-    return hashlib.sha256("_".join(hash_l).encode('utf-8')).hexdigest()
+    start = time.time()
+    res = hashlib.sha256("_".join(hash_l).encode('utf-8')).hexdigest()
+    g_hashing_time += time.time() - start
+    return res
+
+
+def dump_stats() -> None:
+    print("args hasher dump stats")
+    print("total calls", g_num_calls)
+    print("total args", g_num_args)
+    print("hashing time", g_hashing_time)
+    print("arg representation time", g_repr_time)

@@ -18,7 +18,7 @@ from gstaichi.lang.snode import *
 from gstaichi.lang.source_builder import *
 from gstaichi.lang.struct import *
 from gstaichi.types.enums import DeviceCapability, Format, Layout
-from gstaichi.lang.fast_caching.function_hacher import pure
+from gstaichi.lang.fast_caching.function_hasher import pure
 
 __all__ = [
     s
