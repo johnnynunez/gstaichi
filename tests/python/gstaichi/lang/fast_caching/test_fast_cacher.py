@@ -160,3 +160,16 @@ def test_fast_cacher_child_child_func() -> None:
 
     assert h(call_child_child1_base.entry) == h(call_child_child1_same.entry)
     assert h(call_child_child1_base.entry) != h(call_child_child1_diff.entry)
+
+
+@test_utils.test()
+@pytest.mark.xfail(reason="Not implemented yet")
+def test_fast_cacher_child_child_static_func() -> None:
+    h = fast_cacher.hash_kernel
+
+    import sys
+    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
+    import call_child_child_static_base, call_child_child_static_same, call_child_child_static_diff
+
+    assert h(call_child_child_static_base.entry) == h(call_child_child_static_same.entry)
+    assert h(call_child_child_static_base.entry) != h(call_child_child_static_diff.entry)
