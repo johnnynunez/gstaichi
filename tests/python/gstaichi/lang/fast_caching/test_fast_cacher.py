@@ -145,19 +145,18 @@ def test_fast_cacher_child_func() -> None:
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
     import call_child1_base, call_child1_same, call_child1_diff
-    # print(call_child1_base.entry)
-    print(h(call_child1_base.entry))
-    # print(call_child1_base.entry)
-    print(h(call_child1_base.entry))
-    # print(call_child1_base.entry)
-    print(h(call_child1_same.entry))
-    print(h(call_child1_same.entry))
-    print(h(call_child1_diff.entry))
-    print(h(call_child1_diff.entry))
-
-    print(h(call_child1_base.entry))
-    print(h(call_child1_same.entry))
-    print(h(call_child1_diff.entry))
 
     assert h(call_child1_base.entry) == h(call_child1_same.entry)
     assert h(call_child1_base.entry) != h(call_child1_diff.entry)
+
+
+@test_utils.test()
+def test_fast_cacher_child_child_func() -> None:
+    h = fast_cacher.hash_kernel
+
+    import sys
+    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
+    import call_child_child1_base, call_child_child1_same, call_child_child1_diff
+
+    assert h(call_child_child1_base.entry) == h(call_child_child1_same.entry)
+    assert h(call_child_child1_base.entry) != h(call_child_child1_diff.entry)
