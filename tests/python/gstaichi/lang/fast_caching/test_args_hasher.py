@@ -21,14 +21,16 @@ def test_args_hasher_numeric() -> None:
 
 
 @test_utils.test()
-@pytest.mark.parametrize(
-    "arg",
-    [ti.math.vec3(0, 0, 0), ti.math.mat3([0] * 9)]
-)
-def test_args_hasher_unsupported(arg: Any) -> None:
-    # for now, we don't support, so hash should be None
-    hash = args_hasher.hash_args([arg])
-    assert hash is None
+def test_args_hasher_unsupported() -> None:
+    for arg in [
+        ti.math.vec3(0, 0, 0),
+        ti.math.mat3([0] * 9),
+        ti.ndarray(ti.types.vector(3, ti.i32), (3,)),
+        ti.field(ti.types.vector(3, ti.i32), (3,))
+    ]:
+        # for now, we don't support, so hash should be None
+        hash = args_hasher.hash_args([arg])
+        assert hash is None
 
 
 @test_utils.test()

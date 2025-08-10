@@ -24,6 +24,7 @@ def to_representative_str(arg: Any) -> str | None:
     if arg_type == ScalarField:
         assert isinstance(arg, ScalarField)
         return f"[field-{arg.dtype}-{len(arg.shape)}]"
+    return None
 
 
 def hash_args(args: list[Any]) -> str | None:
