@@ -78,6 +78,24 @@ def test_fast_cacher_reject_template() -> None:
 
 
 @test_utils.test()
+@pytest.mark.xfail(reason="Not implemented yet")
+def test_fast_cacher_reject_missing_ndarray_typing() -> None:
+    """
+    NDarray should state clearly the element type and number of dimensions
+    """
+    class one:
+        @staticmethod
+        def foo(a: int, b: ti.types.NDArray) -> int:
+            return a + b[0]
+
+    fc = fast_cacher.FastCacher()
+
+    h = fc._hash_function
+
+    assert h(one.foo) is None
+
+
+@test_utils.test()
 def test_fast_ndarray_ndim_mismatch() -> None:
     """
     NDarray ndim and type should match, otherwise has should be different
