@@ -39,15 +39,13 @@ def test_fast_cacher_simple() -> None:
         def foo(a: int, b: float):
             return a + b
 
-    fc = fast_cacher.FastCacher()
-    print(fc._hash_function(one.foo))
-    print(fc._hash_function(two.foo))
-    print(fc._hash_function(one.foo))
-    print(fc._hash_function(two.foo))
-    print(fc._hash_function(one.foo2))
-    print(fc._hash_function(two.foo2))
-
-    h = fc._hash_function
+    h = fast_cacher.hash_kernel
+    print(h(one.foo))
+    print(h(two.foo))
+    print(h(one.foo))
+    print(h(two.foo))
+    print(h(one.foo2))
+    print(h(two.foo2))
 
     assert h(one.foo) == h(two.foo)
     assert h(one.foo2) == h(two.foo2)
@@ -70,9 +68,7 @@ def test_fast_cacher_reject_template() -> None:
         def foo(a: int, b: ti.Template) -> int:
             return a + b[0]
 
-    fc = fast_cacher.FastCacher()
-
-    h = fc._hash_function
+    h = fast_cacher.hash_kernel
 
     assert h(one.foo) is None
 
@@ -88,9 +84,7 @@ def test_fast_cacher_reject_missing_ndarray_typing() -> None:
         def foo(a: int, b: ti.types.NDArray) -> int:
             return a + b[0]
 
-    fc = fast_cacher.FastCacher()
-
-    h = fc._hash_function
+    h = fast_cacher.hash_kernel
 
     assert h(one.foo) is None
 
@@ -122,8 +116,7 @@ def test_fast_cacher_ndarray_ndim_mismatch() -> None:
         def foo(a: int, b: ti.types.NDArray[ti.f32, 1]) -> int:
             return a + b[0]
 
-    fc = fast_cacher.FastCacher()
-    h = fc._hash_function
+    h = fast_cacher.hash_kernel
 
     assert h(one.foo) == h(should_match.foo)
     assert h(one.foo) != h(diff_ndim.foo)
@@ -132,8 +125,7 @@ def test_fast_cacher_ndarray_ndim_mismatch() -> None:
 
 @test_utils.test()
 def test_fast_cacher_using_test_files() -> None:
-    fc = fast_cacher.FastCacher()
-    h = fc._hash_function
+    h = fast_cacher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -148,7 +140,6 @@ def test_fast_cacher_using_test_files() -> None:
 
 @test_utils.test()
 def test_fast_cacher_child_func() -> None:
-    # fc = fast_cacher.FastCacher()
     h = fast_cacher.hash_kernel
 
     import sys
