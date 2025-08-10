@@ -22,7 +22,7 @@ def to_representative_str(arg: Any) -> str | None:
         return f"[ndarray-{arg.dtype}-{len(arg.shape)}]"
     if arg_type == ScalarField:
         assert isinstance(arg, ScalarField)
-        return f"[field-{arg.snode._id}-{arg.dtype}-{len(arg.shape)}]"
+        return f"[field-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
     return None
 
 
