@@ -64,12 +64,12 @@ from gstaichi.types import (
 from gstaichi.types.compound_types import CompoundType
 from gstaichi.types.enums import AutodiffMode, Layout
 from gstaichi.types.utils import is_signed
-from gstaichi.lang.fast_caching.fast_cacher import FastCacher
+from gstaichi.lang.fast_caching import fast_cacher
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
-fast_cacher = FastCacher()
+# fast_cacher = FastCacher()
 
 
 class GsTaichiCallable:
@@ -714,7 +714,7 @@ class Kernel:
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
                 print("pure function:", self.func.__name__)
-                self.fast_checksum = fast_cacher.walk_functions(self.func) + impl.current_cfg().arch.name
+                self.fast_checksum = fast_cacher.hash_kernel(self.func) + impl.current_cfg().arch.name
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
                 print('fast_checksum', self.fast_checksum)
                     # print(self.func.__name__, 'elapsed', time.time() - start)
