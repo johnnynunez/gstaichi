@@ -2,7 +2,7 @@ import gstaichi as ti
 import pytest
 from tests import test_utils
 
-from gstaichi.lang.fast_caching import fast_cacher
+from gstaichi.lang.fast_caching import function_hacher
 
 
 @test_utils.test()
@@ -39,7 +39,7 @@ def test_fast_cacher_simple() -> None:
         def foo(a: int, b: float):
             return a + b
 
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
     print(h(one.foo))
     print(h(two.foo))
     print(h(one.foo))
@@ -68,7 +68,7 @@ def test_fast_cacher_reject_template() -> None:
         def foo(a: int, b: ti.Template) -> int:
             return a + b[0]
 
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     assert h(one.foo) is None
 
@@ -84,7 +84,7 @@ def test_fast_cacher_reject_missing_ndarray_typing() -> None:
         def foo(a: int, b: ti.types.NDArray) -> int:
             return a + b[0]
 
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     assert h(one.foo) is None
 
@@ -116,7 +116,7 @@ def test_fast_cacher_ndarray_ndim_mismatch() -> None:
         def foo(a: int, b: ti.types.NDArray[ti.f32, 1]) -> int:
             return a + b[0]
 
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     assert h(one.foo) == h(should_match.foo)
     assert h(one.foo) != h(diff_ndim.foo)
@@ -125,7 +125,7 @@ def test_fast_cacher_ndarray_ndim_mismatch() -> None:
 
 @test_utils.test()
 def test_fast_cacher_using_test_files() -> None:
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -140,7 +140,7 @@ def test_fast_cacher_using_test_files() -> None:
 
 @test_utils.test()
 def test_fast_cacher_child_func() -> None:
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -152,7 +152,7 @@ def test_fast_cacher_child_func() -> None:
 
 @test_utils.test()
 def test_fast_cacher_child_child_func() -> None:
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -165,7 +165,7 @@ def test_fast_cacher_child_child_func() -> None:
 @test_utils.test()
 @pytest.mark.xfail(reason="Not implemented yet")
 def test_fast_cacher_child_child_static_func() -> None:
-    h = fast_cacher.hash_kernel
+    h = function_hacher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")

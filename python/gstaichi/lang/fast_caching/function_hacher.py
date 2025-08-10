@@ -6,6 +6,7 @@ import re
 import time
 from typing import cast, TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from gstaichi.lang.kernel_impl import GsTaichiCallable
 
@@ -19,7 +20,7 @@ def pure(fn: "GsTaichiCallable") -> "GsTaichiCallable":
     return fn
 
 
-class FastCacher:
+class FunctionHasher:
     def __init__(self) -> None:
         self.seen_full_paths = set()
         self.checksummed_paths = set()
@@ -43,7 +44,7 @@ class FastCacher:
     def _flatten_name(att: ast.Attribute):
         child = att.value
         if isinstance(child, ast.Attribute):
-            child_name = FastCacher._flatten_name(child)
+            child_name = FunctionHasher._flatten_name(child)
         elif isinstance(child, ast.Name):
             child_name = child.id
         elif isinstance(child, ast.Call):
@@ -69,9 +70,9 @@ class FastCacher:
         start = time.time()
         # print("walk_function", FastCacher.unwrap(fn))
         source = inspect.getsource(fn)
-        source = FastCacher._unindent(source)
+        source = FunctionHasher._unindent(source)
         # print(source)
-        unwrap = FastCacher._unwrap
+        unwrap = FunctionHasher._unwrap
 
         parsed = ast.parse(source)
         # print('parsed', parsed)
@@ -119,7 +120,7 @@ class FastCacher:
             elif isinstance(call.func, ast.Attribute):
                 # print("is ast.Attribute")
                 func = cast(ast.Attribute, call.func)
-                flat_name = FastCacher._flatten_name(func)
+                flat_name = FunctionHasher._flatten_name(func)
                 if flat_name in self.seen_full_paths:
                     continue
                 self.seen_full_paths.add(flat_name)
@@ -170,5 +171,5 @@ class FastCacher:
         return hash
 
 def hash_kernel(kernel_fn) -> str:
-    fast_cacher = FastCacher()
+    fast_cacher = FunctionHasher()
     return fast_cacher.hash_function(kernel_fn)
