@@ -59,20 +59,38 @@ def test_args_hasher_ndarray() -> None:
                     assert hash in seen
 
 
+def _ti_init_same_arch() -> None:
+    ti.init(arch=getattr(ti, ti.cfg.arch.name))
+
+
 @test_utils.test()
 def test_args_hasher_field() -> None:
+    """
+    This is trickier than the others, since we need to take into account snode id, and we need to reinitialize
+    taichi each attempt 🤔
+    """
     seen = set()
     for dtype in [ti.i32, ti.i64, ti.f32, ti.f64]:
         for ndim in [0, 1, 2]:
-            arg = ti.field(dtype, [1] * ndim)
-            for it in [0, 1]:
-                hash = args_hasher.hash_args([arg])
-                assert hash is not None
-                if it == 0:
+            for _it in range(3):
+                if _it == 0:
+                    _ti_init_same_arch()
+                    arg = ti.field(dtype, [1] * ndim)
+                    hash = args_hasher.hash_args([arg])
+                    assert hash is not None
                     assert hash not in seen
                     seen.add(hash)
-                else:
+                elif _it == 1:
+                    _ti_init_same_arch()
+                    arg = ti.field(dtype, [1] * ndim)
+                    hash = args_hasher.hash_args([arg])
+                    assert hash is not None
                     assert hash in seen
+                else:
+                    arg = ti.field(dtype, [1] * ndim)
+                    hash = args_hasher.hash_args([arg])
+                    assert hash not in seen
+                    seen.add(hash)
 
 
 @test_utils.test()
