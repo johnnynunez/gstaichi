@@ -34,6 +34,16 @@ def test_args_hasher_unsupported() -> None:
 
 
 @test_utils.test()
+def test_args_hasher_unsupported_data_oriented() -> None:
+    @ti.data_oriented
+    class Foo:
+        ...
+
+    foo = Foo()
+    assert args_hasher.hash_args([foo]) is None
+
+
+@test_utils.test()
 def test_args_hasher_ndarray() -> None:
     seen = set()
     for dtype in [ti.i32, ti.i64, ti.f32, ti.f64]:
