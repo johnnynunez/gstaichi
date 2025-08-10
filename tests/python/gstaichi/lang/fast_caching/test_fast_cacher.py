@@ -96,7 +96,7 @@ def test_fast_cacher_reject_missing_ndarray_typing() -> None:
 
 
 @test_utils.test()
-def test_fast_ndarray_ndim_mismatch() -> None:
+def test_fast_cacher_ndarray_ndim_mismatch() -> None:
     """
     NDarray ndim and type should match, otherwise has should be different
 
@@ -123,9 +123,50 @@ def test_fast_ndarray_ndim_mismatch() -> None:
             return a + b[0]
 
     fc = fast_cacher.FastCacher()
-
     h = fc._hash_function
 
     assert h(one.foo) == h(should_match.foo)
     assert h(one.foo) != h(diff_ndim.foo)
     assert h(one.foo) != h(diff_type.foo)
+
+
+@test_utils.test()
+def test_fast_cacher_using_test_files() -> None:
+    fc = fast_cacher.FastCacher()
+    h = fc._hash_function
+
+    import sys
+    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
+    import basic1_base, basic1_same, basic1_diff
+    print(h(basic1_base.entry))
+    print(h(basic1_same.entry))
+    print(h(basic1_diff.entry))
+
+    assert h(basic1_base.entry) == h(basic1_same.entry)
+    assert h(basic1_base.entry) != h(basic1_diff.entry)
+
+
+@test_utils.test()
+def test_fast_cacher_child_func() -> None:
+    # fc = fast_cacher.FastCacher()
+    h = fast_cacher.hash_kernel
+
+    import sys
+    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
+    import call_child1_base, call_child1_same, call_child1_diff
+    # print(call_child1_base.entry)
+    print(h(call_child1_base.entry))
+    # print(call_child1_base.entry)
+    print(h(call_child1_base.entry))
+    # print(call_child1_base.entry)
+    print(h(call_child1_same.entry))
+    print(h(call_child1_same.entry))
+    print(h(call_child1_diff.entry))
+    print(h(call_child1_diff.entry))
+
+    print(h(call_child1_base.entry))
+    print(h(call_child1_same.entry))
+    print(h(call_child1_diff.entry))
+
+    assert h(call_child1_base.entry) == h(call_child1_same.entry)
+    assert h(call_child1_base.entry) != h(call_child1_diff.entry)

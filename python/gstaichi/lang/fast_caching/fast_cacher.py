@@ -65,7 +65,7 @@ class FastCacher:
             fn = fn.fn
         return fn
 
-    def _hash_function(self, fn) -> str:
+    def hash_function(self, fn) -> str:
         start = time.time()
         # print("walk_function", FastCacher.unwrap(fn))
         source = inspect.getsource(fn)
@@ -160,7 +160,7 @@ class FastCacher:
             # print(flat_name, getattr(func_obj, "fn", func_obj))
             self.seen_full_paths.add(flat_name)
             self.checksummed_paths.add(flat_name)
-            function_checksum_l.append(self._hash_function(func_obj))
+            function_checksum_l.append(self.hash_function(func_obj))
         checksum_concat = "".join(function_checksum_l)
         hash = hashlib.sha256(checksum_concat.encode('utf-8')).hexdigest()
         elapsed = time.time() - start
@@ -169,5 +169,6 @@ class FastCacher:
         #     print(flat_name)
         return hash
 
-    def hash_kernel(self, kernel_fn) -> str:
-        return self._hash_function(kernel_fn)
+def hash_kernel(kernel_fn) -> str:
+    fast_cacher = FastCacher()
+    return fast_cacher.hash_function(kernel_fn)
