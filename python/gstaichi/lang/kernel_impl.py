@@ -713,11 +713,11 @@ class Kernel:
         self.fast_checksum = None
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
-                print("pure function:", self.func.__name__)
+                # print("pure function:", self.func.__name__)
                 self.fast_checksum = src_hasher.hash_source(self.func, args)
                 # self.fast_checksum = function_hacher.hash_kernel(self.func) + impl.current_cfg().arch.name
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
-                print('fast_checksum', self.fast_checksum)
+                # print('fast_checksum', self.fast_checksum)
                     # print(self.func.__name__, 'elapsed', time.time() - start)
                     # print("key", key)
                     # return
@@ -735,13 +735,15 @@ class Kernel:
                     prog.config(),
                     prog.get_device_caps(),
                 )
-                print("self.compiled_kernel_data", self.compiled_kernel_data)
+                # print("self.compiled_kernel_data", self.compiled_kernel_data)
             else:
-                print("not pure", self.func.__name__)
+                pass
+                # print("not pure", self.func.__name__)
                 # if self.compiled_kernel_data:
                 #     print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
         else:
-            print("type(self)", type(self), self)
+            pass
+            # print("type(self)", type(self), self)
     #           const std::string &checksum,
     #   const std::string &kernel_name,
     #   const CompileConfig &compile_config,
@@ -753,11 +755,11 @@ class Kernel:
         #     ...
 
         if key in self.materialized_kernels:
-            print('py materialize() found key in materialized kernels')
+            # print('py materialize() found key in materialized kernels')
             return
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
-        print("materializing kernel", kernel_name)
+        # print("materializing kernel", kernel_name)
         _logging.trace(f"Materializing kernel {kernel_name} in {self.autodiff_mode}...")
 
         tree, ctx = _get_tree_and_ctx(
@@ -828,7 +830,7 @@ class Kernel:
                 start = time.time()
                 transform_tree(tree, ctx)
                 elapsed = time.time() - start
-                print("transform tree time", elapsed)
+                # print("transform tree time", elapsed)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                         raise GsTaichiSyntaxError("Kernel has a return type but does not have a return statement")
@@ -837,14 +839,14 @@ class Kernel:
                 self.runtime._current_kernel = None
                 self.runtime.compiling_callable = None
 
-        print("running prog.create_kernel")
+        # print("running prog.create_kernel")
         gstaichi_kernel = impl.get_runtime().prog.create_kernel(gstaichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.materialized_kernels
         elapsed = time.time() - start
         this_time = time.time()
-        print("time since last print", this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
+        # print("time since last print", this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
         LAST_PRINT = this_time
-        print("storing created kernel in self.materialized_kernels")
+        # print("storing created kernel in self.materialized_kernels")
         self.materialized_kernels[key] = gstaichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
@@ -1161,7 +1163,7 @@ class Kernel:
             prog = impl.get_runtime().prog
             # Compile kernel (& Online Cache & Offline Cache)
             if not self.compiled_kernel_data:
-                print("py kernel_impl.py no compiled kernel data => calling prog.compile_kernel")
+                # print("py kernel_impl.py no compiled kernel data => calling prog.compile_kernel")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)
@@ -1181,7 +1183,7 @@ class Kernel:
             start_prog_launch_kernel = time.time()
             prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
             gstaichi.lang.sync()
-            print("time prog.launch_kernel", time.time() - start_prog_launch_kernel)
+            # print("time prog.launch_kernel", time.time() - start_prog_launch_kernel)
             # print("... launched")
         except Exception as e:
             e = handle_exception_from_cpp(e)

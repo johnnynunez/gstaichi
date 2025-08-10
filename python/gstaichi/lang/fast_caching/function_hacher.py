@@ -142,8 +142,8 @@ class FunctionHasher:
                 # print("hasattr dict", hasattr(mod, "__dict__"))
                 if not hasattr(mod, "__dict__") or module_name not in mod.__dict__:
                     print("skipping", module_name)
-                    with open("/tmp/skipped.txt", "a") as f:
-                        f.write(module_name + "." + func_name + "\n")
+                    # with open("/tmp/skipped.txt", "a") as f:
+                    #     f.write(module_name + "." + func_name + "\n")
                     continue
                 mod = mod.__dict__[module_name]
                 func_obj = getattr(mod, func_name, None)

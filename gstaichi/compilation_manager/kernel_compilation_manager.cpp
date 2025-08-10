@@ -212,8 +212,8 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
     const auto &kernels = caching_kernels_;
     auto iter = kernels.find(kernel_key);
     if (iter != kernels.end()) {
-        std::cout << "found ir kernel in memory cache " << kernel_name
-                  << " key " << std::endl;
+        // std::cout << "found ir kernel in memory cache " << kernel_name
+        //           << " key " << std::endl;
       TI_DEBUG("Create kernel '{}' from in-memory cache (key='{}')",
                kernel_name, kernel_key);
       return iter->second.compiled_kernel_data.get();
@@ -228,8 +228,8 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
       if (k.compiled_kernel_data) {
         TI_DEBUG("Create kernel '{}' from cache (key='{}')",
                  kernel_name, kernel_key);
-        std::cout << "found ir kernel in cache as ckd " << kernel_name
-                  << " key " << std::endl;
+        // std::cout << "found ir kernel in cache as ckd " << kernel_name
+                  // << " key " << std::endl;
         return k.compiled_kernel_data.get();
       } else if (auto loaded = load_ckd(kernel_key, arch)) {
         TI_DEBUG("Create kernel '{}' from cache (key='{}')",
@@ -238,8 +238,8 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
         k.metadata.last_used_at = std::time(nullptr);
         k.compiled_kernel_data = std::move(loaded);
         updated_data_.push_back(&k);
-        std::cout << "found ir kernel in cache maybe not sure " << kernel_name
-                  << " key " << std::endl;
+        // std::cout << "found ir kernel in cache maybe not sure " << kernel_name
+        //           << " key " << std::endl;
         return k.compiled_kernel_data.get();
       }
     }
