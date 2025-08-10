@@ -81,6 +81,8 @@ def test_fast_cacher_reject_template() -> None:
 def test_fast_ndarray_ndim_mismatch() -> None:
     """
     NDarray ndim and type should match, otherwise has should be different
+
+    Seems this is supported naturally, since the source code is different.
     """
     class one:
         @staticmethod
