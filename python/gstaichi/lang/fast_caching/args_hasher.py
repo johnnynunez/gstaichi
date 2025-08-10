@@ -1,11 +1,12 @@
+import enum
 import hashlib
 import time
 from typing import Any, Sequence
-from gstaichi.types.compound_types import vector, matrix
 import numpy as np
 from gstaichi.lang._ndarray import ScalarNdarray
 from gstaichi.lang.matrix import VectorNdarray, MatrixNdarray, MatrixField
 from gstaichi.lang.field import ScalarField
+from gstaichi.lang.util import is_data_oriented
 import torch
 
 
@@ -37,8 +38,19 @@ def to_representative_str(arg: Any) -> str | None:
         return f"[np-{arg.dtype}-{arg.ndim}]"
     if isinstance(arg, MatrixField):
         return f"[fm-{arg.m}-{arg.n}-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
-    if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64]:
+    if is_data_oriented(arg):
+        child_repr_l = []
+        for k, v in arg.__dict__.items():
+            _child_repr = to_representative_str(v)
+            if _child_repr is None:
+                print("not representable child", k, type(v))
+                return None
+            child_repr_l.append(f"{k}: {_child_repr}")
+        return ", ".join(child_repr_l)
+    if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64, bool, np.bool]:
         return str(arg_type)
+    if isinstance(arg, enum.Enum):
+        return f"enum-{arg.name}-{arg.value}"
     print("arg not recognized", type(arg))
     return None
     # return "#"
