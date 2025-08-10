@@ -3,6 +3,7 @@ from typing import Any, Sequence
 from gstaichi.types.compound_types import vector, matrix
 import numpy as np
 from gstaichi.lang._ndarray import ScalarNdarray
+from gstaichi.lang.matrix import VectorNdarray
 from gstaichi.lang.field import ScalarField
 
 
@@ -20,6 +21,9 @@ def to_representative_str(arg: Any) -> str | None:
     if arg_type == ScalarNdarray:
         assert isinstance(arg, ScalarNdarray)
         return f"[ndarray-{arg.dtype}-{len(arg.shape)}]"
+    if arg_type == VectorNdarray:
+        assert isinstance(arg, VectorNdarray)
+        return f"[ndarray-vec-{arg.n}-{arg.dtype}-{len(arg.shape)}]"
     if arg_type == ScalarField:
         assert isinstance(arg, ScalarField)
         return f"[field-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
