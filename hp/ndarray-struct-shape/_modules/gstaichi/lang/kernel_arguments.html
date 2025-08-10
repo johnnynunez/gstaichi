@@ -316,6 +316,10 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">gstaichi.lang</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">core</span> <span class="k">as</span> <span class="n">_ti_core</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._lib.core.gstaichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BoundaryMode</span><span class="p">,</span>
+    <span class="n">DataTypeCxx</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">impl</span><span class="p">,</span> <span class="n">ops</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang._texture</span><span class="w"> </span><span class="kn">import</span> <span class="n">RWTextureAccessor</span><span class="p">,</span> <span class="n">TextureSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.any_array</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyArray</span>
@@ -334,18 +338,18 @@
 <span class="sd">    Metadata about an argument to a function</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_annotation</span><span class="p">,</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_default</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">empty</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">empty</span><span class="p">):</span>
 <div class="viewcode-block" id="ArgMetadata.annotation">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/kernel_arguments/index.html#gstaichi.lang.kernel_arguments.ArgMetadata.annotation">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">_annotation</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span></div>
 
 <div class="viewcode-block" id="ArgMetadata.name">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/kernel_arguments/index.html#gstaichi.lang.kernel_arguments.ArgMetadata.name">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">_name</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="ArgMetadata.default">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/kernel_arguments/index.html#gstaichi.lang.kernel_arguments.ArgMetadata.default">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">_default</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -507,7 +511,9 @@
 
 <div class="viewcode-block" id="decl_ndarray_arg">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/kernel_arguments/index.html#gstaichi.lang.kernel_arguments.decl_ndarray_arg">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">decl_ndarray_arg</span><span class="p">(</span><span class="n">element_type</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">needs_grad</span><span class="p">,</span> <span class="n">boundary</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decl_ndarray_arg</span><span class="p">(</span>
+    <span class="n">element_type</span><span class="p">:</span> <span class="n">DataTypeCxx</span><span class="p">,</span> <span class="n">ndim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">needs_grad</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">boundary</span><span class="p">:</span> <span class="n">BoundaryMode</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnyArray</span><span class="p">:</span>
     <span class="n">arg_id</span> <span class="o">=</span> <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">insert_ndarray_param</span><span class="p">(</span><span class="n">element_type</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">needs_grad</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">AnyArray</span><span class="p">(</span><span class="n">_ti_core</span><span class="o">.</span><span class="n">make_external_tensor_expr</span><span class="p">(</span><span class="n">element_type</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">arg_id</span><span class="p">,</span> <span class="n">needs_grad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">boundary</span><span class="p">))</span></div>
 

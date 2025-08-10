@@ -316,6 +316,10 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._lib.core.gstaichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BoundaryMode</span><span class="p">,</span>
+    <span class="n">DataTypeCxx</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">_ndarray</span><span class="p">,</span>
     <span class="n">any_array</span><span class="p">,</span>
@@ -386,14 +390,19 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">):</span>
             <span class="k">assert</span> <span class="n">this_arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">raw_element_type</span><span class="p">:</span> <span class="n">DataTypeCxx</span>
+            <span class="n">ndim</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">needs_grad</span><span class="p">:</span> <span class="nb">bool</span>
+            <span class="n">boundary</span><span class="p">:</span> <span class="n">BoundaryMode</span>
+            <span class="n">raw_element_type</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">needs_grad</span><span class="p">,</span> <span class="n">boundary</span> <span class="o">=</span> <span class="n">this_arg_features</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
                 <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_ndarray_arg</span><span class="p">,</span>
                 <span class="p">(</span>
-                    <span class="n">to_gstaichi_type</span><span class="p">(</span><span class="n">this_arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                    <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">to_gstaichi_type</span><span class="p">(</span><span class="n">raw_element_type</span><span class="p">),</span>
+                    <span class="n">ndim</span><span class="p">,</span>
                     <span class="n">full_name</span><span class="p">,</span>
-                    <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-                    <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                    <span class="n">needs_grad</span><span class="p">,</span>
+                    <span class="n">boundary</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">texture_type</span><span class="o">.</span><span class="n">TextureType</span><span class="p">):</span>
@@ -405,33 +414,6 @@
                 <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_rw_texture_arg</span><span class="p">,</span>
                 <span class="p">(</span><span class="n">this_arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">full_name</span><span class="p">),</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">annotation</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            So, what needs to happen now is ...</span>
-<span class="sd">            - we&#39;ll need to expand out the nested struct too</span>
-<span class="sd">            - eg if we have:</span>
-<span class="sd">            @ti.kernel</span>
-<span class="sd">            def f1(some_struct: SomeStruct):</span>
-<span class="sd">                ...</span>
-
-<span class="sd">            and SomeStruct is:</span>
-<span class="sd">            @dataclasses.dataclass</span>
-<span class="sd">            class SomeStruct:</span>
-<span class="sd">                a: ti.types.NDArray[ti.32, 1]</span>
-<span class="sd">                child: ChildStruct</span>
-
-<span class="sd">            and ChildStruct is:</span>
-<span class="sd">            @datatclasses.dataclass</span>
-<span class="sd">            class ChildStruct:</span>
-<span class="sd">                b: ti.types.NDArray[ti.32, 1]</span>
-
-<span class="sd">            ... so we&#39;ll expand the paramters to:</span>
-<span class="sd">            - __ti_some_struct_a: ti.types.NDArray[ti.32, 1]</span>
-<span class="sd">            - __ti_some_struct__ti_child__ti_b: ti.types.NDArray[ti.32, 1]</span>
-<span class="sd">            (or sometihng smilar ish)</span>
-
-<span class="sd">            So... we&#39;ll loop over the fields, and send those each to</span>
-<span class="sd">            &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">MatrixType</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_matrix_arg</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">arg_depth</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">StructType</span><span class="p">):</span>
@@ -526,7 +508,7 @@
 
         <span class="n">invoke_later_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">create_variable_later</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">args</span><span class="p">)):</span>
             <span class="n">arg_meta</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_kernel_arg</span><span class="p">(</span>
                 <span class="n">ctx</span><span class="p">,</span>
@@ -590,13 +572,7 @@
         <span class="c1"># Ndarray arguments are passed by reference.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argument_type</span><span class="p">,</span> <span class="p">(</span><span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">)):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
-                <span class="n">data</span><span class="p">,</span>
-                <span class="p">(</span>
-                    <span class="n">_ndarray</span><span class="o">.</span><span class="n">ScalarNdarray</span><span class="p">,</span>
-                    <span class="n">matrix</span><span class="o">.</span><span class="n">VectorNdarray</span><span class="p">,</span>
-                    <span class="n">matrix</span><span class="o">.</span><span class="n">MatrixNdarray</span><span class="p">,</span>
-                    <span class="n">any_array</span><span class="o">.</span><span class="n">AnyArray</span><span class="p">,</span>
-                <span class="p">),</span>
+                <span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">_ndarray</span><span class="o">.</span><span class="n">ScalarNdarray</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">VectorNdarray</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">MatrixNdarray</span><span class="p">,</span> <span class="n">any_array</span><span class="o">.</span><span class="n">AnyArray</span><span class="p">)</span>
             <span class="p">):</span>
                 <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is not recognized.&quot;</span><span class="p">)</span>
             <span class="n">argument_type</span><span class="o">.</span><span class="n">check_matched</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get_type</span><span class="p">(),</span> <span class="n">argument_name</span><span class="p">)</span>
@@ -648,23 +624,16 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_transform_as_func</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">FunctionDef</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="k">for</span> <span class="n">data_i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span><span class="p">):</span>
-            <span class="n">argument</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">data_i</span><span class="p">]</span>
-            <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_func_arg</span><span class="p">(</span>
-                <span class="n">ctx</span><span class="p">,</span>
-                <span class="n">argument</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">argument</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span>
-                <span class="n">data</span><span class="p">,</span>
-            <span class="p">)</span>
-
-        <span class="c1"># deal with dataclasses</span>
-
         <span class="c1"># pylint: disable=import-outside-toplevel</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.kernel_impl</span><span class="w"> </span><span class="kn">import</span> <span class="n">Func</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">Func</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">data_i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span><span class="p">):</span>
+            <span class="n">argument</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">data_i</span><span class="p">]</span>
+            <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_func_arg</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">argument</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">argument</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># deal with dataclasses</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">orig_arguments</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">annotation</span><span class="p">):</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
