@@ -708,13 +708,18 @@ class Kernel:
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
-
         self.compiled_kernel_data = None
         self.fast_checksum = None
+
+        if key in self.materialized_kernels:
+            # print('py materialize() found key in materialized kernels')
+            return
+
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
                 # print("pure function:", self.func.__name__)
-                self.fast_checksum = src_hasher.hash_source(self.func, args) + impl.current_cfg().arch.name
+                self.fast_checksum = src_hasher.hash_source(self.func, args)
+                # impl.current_cfg().arch.name
                 # self.fast_checksum = function_hacher.hash_kernel(self.func) + impl.current_cfg().arch.name
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
                 # print('fast_checksum', self.fast_checksum)
@@ -729,12 +734,15 @@ class Kernel:
                 # print("check fast cache")
                 # print("prog.config()", prog.config())
                 # print("prog.get_device_caps()", prog.get_device_caps())
-                self.compiled_kernel_data = prog.load_fast_cache(
-                    self.fast_checksum,
-                    self.func.__name__,
-                    prog.config(),
-                    prog.get_device_caps(),
-                )
+                if self.fast_checksum:
+                    self.compiled_kernel_data = prog.load_fast_cache(
+                        self.fast_checksum,
+                        self.func.__name__,
+                        prog.config(),
+                        prog.get_device_caps(),
+                    )
+                else:
+                    print('checksum None for', self.func.__name__)
                 # print("self.compiled_kernel_data", self.compiled_kernel_data)
             else:
                 pass
@@ -753,10 +761,6 @@ class Kernel:
         # if self.compiled_kernel_data:
         #     self.materialized_kernels[key] = self.compiled_kernel_data
         #     ...
-
-        if key in self.materialized_kernels:
-            # print('py materialize() found key in materialized kernels')
-            return
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         # print("materializing kernel", kernel_name)
