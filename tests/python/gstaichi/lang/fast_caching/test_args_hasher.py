@@ -76,6 +76,24 @@ def test_args_hasher_ndarray_vector() -> None:
                         assert hash in seen
 
 
+@test_utils.test()
+def test_args_hasher_ndarray_matrix() -> None:
+    seen = set()
+    for dtype in [ti.i32, ti.i64, ti.f32, ti.f64]:
+        for m in [2, 3]:
+            for n in [2, 3]:
+                for ndim in [0, 1, 2]:
+                    arg = ti.Matrix.ndarray(m, n, dtype, [1] * ndim)
+                    for it in [0, 1]:
+                        hash = args_hasher.hash_args([arg])
+                        assert hash is not None
+                        if it == 0:
+                            assert hash not in seen
+                            seen.add(hash)
+                        else:
+                            assert hash in seen
+
+
 def _ti_init_same_arch() -> None:
     ti.init(arch=getattr(ti, ti.cfg.arch.name))
 
