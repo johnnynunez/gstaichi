@@ -25,7 +25,7 @@ class FastCacher:
         self.checksummed_paths = set()
 
     @staticmethod
-    def unindent(source):
+    def _unindent(source):
         match_res = indent_re.match(source)
         # print('match_res', match_res)
         if not match_res:
@@ -40,10 +40,10 @@ class FastCacher:
         return "\n".join(new_source_l)
 
     @staticmethod
-    def flatten_name(att: ast.Attribute):
+    def _flatten_name(att: ast.Attribute):
         child = att.value
         if isinstance(child, ast.Attribute):
-            child_name = FastCacher.flatten_name(child)
+            child_name = FastCacher._flatten_name(child)
         elif isinstance(child, ast.Name):
             child_name = child.id
         elif isinstance(child, ast.Call):
@@ -58,20 +58,20 @@ class FastCacher:
         return child_name + "." + self_name
 
     @staticmethod
-    def unwrap(fn):
+    def _unwrap(fn):
         # print("fn", fn, "type(fn)", type(fn))
         from gstaichi.lang.kernel_impl import GsTaichiCallable
         if isinstance(fn, GsTaichiCallable):
             fn = fn.fn
         return fn
 
-    def walk_functions(self, fn) -> str:
+    def _hash_function(self, fn) -> str:
         start = time.time()
         # print("walk_function", FastCacher.unwrap(fn))
         source = inspect.getsource(fn)
-        source = FastCacher.unindent(source)
+        source = FastCacher._unindent(source)
         # print(source)
-        unwrap = FastCacher.unwrap
+        unwrap = FastCacher._unwrap
 
         parsed = ast.parse(source)
         # print('parsed', parsed)
@@ -119,7 +119,7 @@ class FastCacher:
             elif isinstance(call.func, ast.Attribute):
                 # print("is ast.Attribute")
                 func = cast(ast.Attribute, call.func)
-                flat_name = FastCacher.flatten_name(func)
+                flat_name = FastCacher._flatten_name(func)
                 if flat_name in self.seen_full_paths:
                     continue
                 self.seen_full_paths.add(flat_name)
@@ -160,7 +160,7 @@ class FastCacher:
             # print(flat_name, getattr(func_obj, "fn", func_obj))
             self.seen_full_paths.add(flat_name)
             self.checksummed_paths.add(flat_name)
-            function_checksum_l.append(self.walk_functions(func_obj))
+            function_checksum_l.append(self._hash_function(func_obj))
         checksum_concat = "".join(function_checksum_l)
         hash = hashlib.sha256(checksum_concat.encode('utf-8')).hexdigest()
         elapsed = time.time() - start
@@ -168,3 +168,6 @@ class FastCacher:
         # for flat_name in self.checksummed_paths:
         #     print(flat_name)
         return hash
+
+    def hash_kernel(self, kernel_fn) -> str:
+        return self._hash_function(kernel_fn)
