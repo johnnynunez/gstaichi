@@ -1,6 +1,5 @@
 import hashlib
-from typing import Any
-from gstaichi.types.primitive_types import all_types, i32
+from typing import Any, Sequence
 from gstaichi.types.compound_types import vector, matrix
 import numpy as np
 from gstaichi.lang._ndarray import ScalarNdarray
@@ -27,7 +26,7 @@ def to_representative_str(arg: Any) -> str | None:
     return None
 
 
-def hash_args(args: list[Any]) -> str | None:
+def hash_args(args: Sequence[Any]) -> str | None:
     hash_l = []
     for arg in args:
         _hash = to_representative_str(arg)
