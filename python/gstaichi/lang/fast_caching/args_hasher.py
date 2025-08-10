@@ -16,8 +16,6 @@ def to_representative_str(arg: Any) -> str | None:
     arg_type = type(arg)
     if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64]:
         return str(arg_type)
-    if arg_type in [vector, matrix]:
-        return None
     if arg_type == ScalarNdarray:
         assert isinstance(arg, ScalarNdarray)
         return f"[ndarray-{arg.dtype}-{len(arg.shape)}]"
