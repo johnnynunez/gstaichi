@@ -6,7 +6,7 @@ from gstaichi.lang.fast_caching import function_hasher
 
 
 @test_utils.test()
-def test_fast_cacher_simple() -> None:
+def test_function_hasher_simple() -> None:
     class one:
         @staticmethod
         def foo(a: int, b: int):
@@ -58,7 +58,7 @@ def test_fast_cacher_simple() -> None:
 
 
 @test_utils.test()
-def test_fast_cacher_using_test_files() -> None:
+def test_function_hasher_using_test_files() -> None:
     h = function_hasher.hash_kernel
 
     import sys
@@ -73,7 +73,7 @@ def test_fast_cacher_using_test_files() -> None:
 
 
 @test_utils.test()
-def test_fast_cacher_child_func() -> None:
+def test_function_hasher_child_func() -> None:
     h = function_hasher.hash_kernel
 
     import sys
@@ -85,7 +85,7 @@ def test_fast_cacher_child_func() -> None:
 
 
 @test_utils.test()
-def test_fast_cacher_child_child_func() -> None:
+def test_function_hasher_child_child_func() -> None:
     h = function_hasher.hash_kernel
 
     import sys
@@ -98,7 +98,7 @@ def test_fast_cacher_child_child_func() -> None:
 
 @test_utils.test()
 @pytest.mark.xfail(reason="Not implemented yet")
-def test_fast_cacher_child_child_static_func() -> None:
+def test_function_hasher_child_child_static_func() -> None:
     h = function_hasher.hash_kernel
 
     import sys
