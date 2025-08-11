@@ -67,6 +67,14 @@ def test_function_hasher_simple() -> None:
     ]
 )
 def test_function_hasher_filesets(set_name: str) -> None:
+    """
+    we use 'same' vs 'base' to check that the hashes do actually match: we arent just returning a random
+    hash, or file-path based hash, or similar
+    we use 'diff' vs 'base' to check that we can detect the relevant difference
+
+    files often have commented text such as `# same` or `# base` in. This is to check we aren't just comparing
+    the contents of the entire files, but only the functions in question.
+    """
     h = function_hasher.hash_kernel
     import sys
     test_files_path = "tests/python/gstaichi/lang/fast_caching/test_files"
