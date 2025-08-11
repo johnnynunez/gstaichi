@@ -1,5 +1,5 @@
 # import gstaichi as ti
-# import pytest
+import pytest
 import importlib
 from tests import test_utils
 
@@ -59,18 +59,26 @@ def test_function_hasher_simple() -> None:
 
 
 @test_utils.test()
-def test_function_hasher_filesets() -> None:
-    h = function_hasher.hash_kernel
-    import sys
-    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
-
-    for set in [
+@pytest.mark.parametrize(
+    "set_name", [
         'call_child_child_static', 'call_static_pair', 'call_child_child1', 'call_child1', 'basic1',
         'static_ndrange', 'static_range',
-    ]:
-        base = importlib.import_module(f"{set}_base")
-        same = importlib.import_module(f"{set}_same")
-        diff = importlib.import_module(f"{set}_diff")
+        pytest.param('call_fn_pointer', marks=pytest.mark.xfail),
+    ]
+)
+def test_function_hasher_filesets(set_name: str) -> None:
+    h = function_hasher.hash_kernel
+    import sys
+    test_files_path = "tests/python/gstaichi/lang/fast_caching/test_files"
+    if test_files_path not in sys.path:
+        sys.path.append(test_files_path)
+    print(sys.path)
 
-        assert h(base.entry) == h(same.entry)
-        assert h(base.entry) != h(diff.entry)
+    base = importlib.import_module(f"{set_name}_base")
+    same = importlib.import_module(f"{set_name}_same")
+    diff = importlib.import_module(f"{set_name}_diff")
+
+    assert h(base.entry) == h(same.entry)
+    assert h(base.entry) != h(diff.entry)
+
+    sys.path.remove(test_files_path)
