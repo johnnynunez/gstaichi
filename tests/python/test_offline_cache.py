@@ -1,6 +1,7 @@
 import atexit
 import functools
 import math
+import os
 import shutil
 import threading
 from os import listdir, rmdir, stat
@@ -31,8 +32,11 @@ def cache_files_size(path):
     files = listdir(path)
     result = 0
     for file in files:
-        if is_offline_cache_file(file):
-            result += stat(join(path, file)).st_size
+        filepath = os.path.join(path, file)
+        if os.path.isdir(filepath):
+            result += cache_files_size(filepath)
+        if is_offline_cache_file(filepath):
+            result += stat(filepath).st_size
     return result
 
 
@@ -56,9 +60,18 @@ def current_thread_ext_options():
     }
 
 
-def cache_files_cnt():
+def cache_files_cnt(folder: str | None = None) -> int:
+    if folder is None:
+        folder = tmp_offline_cache_file_path()
     try:
-        return len(listdir(tmp_offline_cache_file_path()))
+        count = 0
+        for file in os.listdir(folder):
+            filepath = os.path.join(folder, file)
+            if os.path.isdir(filepath):
+                count += cache_files_cnt(filepath)
+            else:
+                count += 1
+        return count
     except FileNotFoundError:
         return 0
 
