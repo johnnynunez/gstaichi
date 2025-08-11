@@ -1,5 +1,6 @@
-import gstaichi as ti
-import pytest
+# import gstaichi as ti
+# import pytest
+import importlib
 from tests import test_utils
 
 from gstaichi.lang.fast_caching import function_hasher
@@ -58,51 +59,17 @@ def test_function_hasher_simple() -> None:
 
 
 @test_utils.test()
-def test_function_hasher_using_test_files() -> None:
+def test_function_hasher_filesets() -> None:
     h = function_hasher.hash_kernel
-
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
-    import basic1_base, basic1_same, basic1_diff
-    print(h(basic1_base.entry))
-    print(h(basic1_same.entry))
-    print(h(basic1_diff.entry))
 
-    assert h(basic1_base.entry) == h(basic1_same.entry)
-    assert h(basic1_base.entry) != h(basic1_diff.entry)
+    for set in [
+        'call_child_child_static', 'call_static_pair', 'call_child_child1', 'call_child1', 'basic1'
+    ]:
+        base = importlib.import_module(f"{set}_base")
+        same = importlib.import_module(f"{set}_same")
+        diff = importlib.import_module(f"{set}_diff")
 
-
-@test_utils.test()
-def test_function_hasher_child_func() -> None:
-    h = function_hasher.hash_kernel
-
-    import sys
-    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
-    import call_child1_base, call_child1_same, call_child1_diff
-
-    assert h(call_child1_base.entry) == h(call_child1_same.entry)
-    assert h(call_child1_base.entry) != h(call_child1_diff.entry)
-
-
-@test_utils.test()
-def test_function_hasher_child_child_func() -> None:
-    h = function_hasher.hash_kernel
-
-    import sys
-    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
-    import call_child_child1_base, call_child_child1_same, call_child_child1_diff
-
-    assert h(call_child_child1_base.entry) == h(call_child_child1_same.entry)
-    assert h(call_child_child1_base.entry) != h(call_child_child1_diff.entry)
-
-
-@test_utils.test()
-def test_function_hasher_child_child_static_func() -> None:
-    h = function_hasher.hash_kernel
-
-    import sys
-    sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
-    import call_child_child_static_base, call_child_child_static_same, call_child_child_static_diff
-
-    assert h(call_child_child_static_base.entry) == h(call_child_child_static_same.entry)
-    assert h(call_child_child_static_base.entry) != h(call_child_child_static_diff.entry)
+        assert h(base.entry) == h(same.entry)
+        assert h(base.entry) != h(diff.entry)

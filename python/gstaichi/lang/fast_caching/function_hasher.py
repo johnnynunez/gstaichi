@@ -117,7 +117,7 @@ class FunctionHasher:
             call = call_queue.pop()
             # print('call', ast.dump(call, indent=2))
             if isinstance(call.func, ast.Name):
-                print("call func is ast.Name", call.func.id)
+                # print("call func is ast.Name", call.func.id)
                 func_name = call.func.id
                 if func_name in ["range"]:
                     continue
@@ -147,7 +147,7 @@ class FunctionHasher:
             elif isinstance(call.func, ast.Attribute):
                 func = cast(ast.Attribute, call.func)
                 flat_name = FunctionHasher._flatten_name(func)
-                print("call func is ast.Attribute", flat_name)
+                # print("call func is ast.Attribute", flat_name)
                 if flat_name in self.seen_full_paths:
                     continue
                 self.seen_full_paths.add(flat_name)
