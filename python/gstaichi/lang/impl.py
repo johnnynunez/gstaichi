@@ -364,7 +364,7 @@ class PyGsTaichi:
     def current_kernel(self) -> Kernel:
         if self._current_kernel is None:
             raise GsTaichiRuntimeError(
-                "_pr_current_kernelog attribute not initialized. Maybe you forgot to call `ti.init()` first?"
+                "_current_kernel attribute not initialized. Maybe you forgot to call `ti.init()` first?"
             )
         return self._current_kernel
 

@@ -17,12 +17,6 @@ indent_re = re.compile(r"^ +")
 g_total_hash_kernel_time = 0
 
 
-def pure(fn: "GsTaichiCallable") -> "GsTaichiCallable":
-    # print('fn', fn, type(fn), "marking pure")
-    fn.is_pure = True
-    return fn
-
-
 class FunctionHasher:
     def __init__(self) -> None:
         self.seen_full_paths = set()

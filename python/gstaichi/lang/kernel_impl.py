@@ -65,6 +65,8 @@ from gstaichi.types.compound_types import CompoundType
 from gstaichi.types.enums import AutodiffMode, Layout
 from gstaichi.types.utils import is_signed
 from gstaichi.lang.fast_caching import src_hasher
+from gstaichi.lang.fast_caching.fast_caching_types import FunctionSourceInfo
+from gstaichi.lang.fast_caching.function_hasher import hash_functions
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
@@ -253,11 +255,14 @@ def _get_tree_and_ctx(
     excluded_parameters=(),
     is_kernel: bool = True,
     arg_features=None,
-    ast_builder: ASTBuilder | None = None,
+    ast_builder: "ASTBuilder | None" = None,
     is_real_function: bool = False,
+    current_kernel: "Kernel | None" = None,
 ) -> tuple[ast.Module, ASTTransformerContext]:
+    # print("_get_tree_and_ctx", self.func.__name__)
     file = getsourcefile(self.func)
     src, start_lineno = getsourcelines(self.func)
+    end_lineno = start_lineno + len(src) - 1
     src = [textwrap.fill(line, tabsize=4, width=9999) for line in src]
     tree = ast.parse(textwrap.dedent("\n".join(src)))
 
@@ -279,6 +284,29 @@ def _get_tree_and_ctx(
                     flat_name = f"__ti_{param_name}_{member_field.name}"
                     global_vars[flat_name] = child_value
 
+    function_source_info = FunctionSourceInfo(
+            function_name=self.func.__name__,
+            filepath=file,
+            start_lineno=start_lineno,
+            end_lineno=end_lineno,
+        )
+    # print(function_source_info)
+    if current_kernel is not None:  # Kernel
+        current_kernel.kernel_function_info = function_source_info
+    if current_kernel is None:
+        current_kernel = impl.get_runtime()._current_kernel
+    # print('current_kernel', current_kernel)
+    # print('get_runtime', impl.get_runtime())
+    # print('_current_kernel', impl.get_runtime()._current_kernel)
+    # if current_kernel is not None:
+    #     print(current_kernel.func.__name__)
+    # print('get_runtime', impl.get_runtime())
+    assert current_kernel is not None
+    # print("appending to visited functions", len(current_kernel.visited_functions))
+    current_kernel.visited_functions.add(function_source_info)
+    # print("    new len", len(current_kernel.visited_functions))
+
+    # print("_get_tree_and_ctx", self.func, "is kernel", is_kernel)
     return tree, ASTTransformerContext(
         excluded_parameters=excluded_parameters,
         is_kernel=is_kernel,
@@ -288,6 +316,7 @@ def _get_tree_and_ctx(
         argument_data=args,
         src=src,
         start_lineno=start_lineno,
+        end_lineno=end_lineno,
         file=file,
         ast_builder=ast_builder,
         is_real_function=is_real_function,
@@ -414,6 +443,7 @@ class Func:
 
     def __call__(self, *args, **kwargs) -> Any:
         args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
+        # print("Func.__call___", self.func.__name__)
 
         if not impl.inside_kernel():
             if not self.pyfunc:
@@ -624,6 +654,8 @@ class Kernel:
         self.materialized_kernels: dict[CompiledKernelKeyType, KernelCxx] = {}
         self.has_print = False
         self.gstaichi_callable: GsTaichiCallable | None = None
+        self.visited_functions: set[FunctionSourceInfo] = set()
+        self.kernel_function_info: FunctionSourceInfo | None = None
 
     def ast_builder(self) -> ASTBuilder:
         assert self.kernel_cpp is not None
@@ -771,6 +803,7 @@ class Kernel:
             args=args,
             excluded_parameters=self.template_slot_locations,
             arg_features=arg_features,
+            current_kernel=self,
         )
 
         if self.autodiff_mode != AutodiffMode.NONE:
@@ -1169,6 +1202,18 @@ class Kernel:
             if not self.compiled_kernel_data:
                 # print("py kernel_impl.py no compiled kernel data => calling prog.compile_kernel")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
+                print("===================================")
+                # for v in self.visited_functions:
+                #     print(v)
+                assert self.kernel_function_info is not None
+                kernel_hash = hash_functions([self.kernel_function_info])
+                tree_hash = hash_functions(self.visited_functions)
+                print('kernel_hash', kernel_hash)
+                # print('tree_hash', tree_hash)
+                for i, h in tree_hash:
+                    print(i, h)
+                print("===================================")
+                # asdfasdf
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)
                     prog.store_fast_cache(
@@ -1235,6 +1280,7 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
+        # print("Kernel.__call__", self.func.__name__)
         args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel

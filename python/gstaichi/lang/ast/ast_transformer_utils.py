@@ -4,6 +4,7 @@ import ast
 import builtins
 import traceback
 from enum import Enum
+import dataclasses
 from textwrap import TextWrapper
 from typing import TYPE_CHECKING, Any, List
 
@@ -155,17 +156,18 @@ class ReturnStatus(Enum):
 class ASTTransformerContext:
     def __init__(
         self,
-        excluded_parameters=(),
-        is_kernel: bool = True,
-        func: "Func | Kernel | None" = None,
-        arg_features=None,
-        global_vars: dict[str, Any] | None = None,
-        argument_data=None,
-        file: str | None = None,
-        src: list[str] | None = None,
-        start_lineno: int | None = None,
-        ast_builder: ASTBuilder | None = None,
-        is_real_function: bool = False,
+        excluded_parameters,
+        end_lineno: int,
+        is_kernel: bool,
+        func: "Func | Kernel",
+        arg_features,
+        global_vars: dict[str, Any],
+        argument_data,
+        file: str,
+        src: list[str],
+        start_lineno: int,
+        ast_builder: ASTBuilder | None,
+        is_real_function: bool,
     ):
         self.func = func
         self.local_scopes: list[dict[str, Any]] = []
@@ -176,7 +178,7 @@ class ASTTransformerContext:
         self.returns = None
         self.global_vars = global_vars
         self.argument_data = argument_data
-        self.return_data = None
+        self.return_data: tuple[Any, ...] | Any | None = None
         self.file = file
         self.src = src
         self.indent = 0
@@ -186,6 +188,8 @@ class ASTTransformerContext:
             else:
                 break
         self.lineno_offset = start_lineno - 1
+        self.start_lineno = start_lineno
+        self.end_lineno = end_lineno
         self.raised = False
         self.non_static_control_flow_status = NonStaticControlFlowStatus()
         self.static_scope_status = StaticScopeStatus()
