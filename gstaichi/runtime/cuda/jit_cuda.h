@@ -69,9 +69,9 @@ class JITSessionCUDA : public JITSession {
  private:
   class Finalizer : public ProgramImpl::NeedsFinalizing {
    public:
-    Finalizer(PtxCache *ptx_cache) : ptx_cache_(ptx_cache) {
+    explicit Finalizer(PtxCache *ptx_cache) : ptx_cache_(ptx_cache) {
     }
-    void finalize() {
+    void finalize() override {
       ptx_cache_->dump();
     }
     virtual ~Finalizer() = default;
