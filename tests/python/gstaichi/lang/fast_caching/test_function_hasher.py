@@ -97,7 +97,6 @@ def test_function_hasher_child_child_func() -> None:
 
 
 @test_utils.test()
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_function_hasher_child_child_static_func() -> None:
     h = function_hasher.hash_kernel
 

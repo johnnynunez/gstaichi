@@ -69,11 +69,33 @@ class FunctionHasher:
             fn = fn.fn
         return fn
 
+    @staticmethod
+    def remove_ti_static(source: str) -> str:
+        return source.replace('ti.static', '')
+    
+    # @staticmethod
+    # def check_ti_static_args(args: list[ast.AST]) -> None:
+    #     for arg in args:
+    #         if isinstance(arg, ast.Name):
+    #             continue
+    #         if isinstance(arg, ast.Call):
+    #             if len(arg.keywords) > 0:
+    #                 raise Exception("ti.static on function with keyword arguments not currently supported", ast.dump(arg))
+    #             if not isinstance(arg.func, ast.Attribute):
+    #                 raise Exception("ti.static on following function not yet supported", ast.dump(arg))
+    #             flat_called_name = FunctionHasher._flatten_name(arg.func)
+    #             if flat_called_name == "ti.ndrange":
+    #                 # should be ok I think?
+    #                 continue
+    #             if flat_called_name == "ti.grouped":
+                    
+
     def hash_function(self, fn) -> str:
         start = time.time()
         # print("walk_function", FastCacher.unwrap(fn))
         source = inspect.getsource(fn)
         source = FunctionHasher._unindent(source)
+        source = FunctionHasher.remove_ti_static(source)
         # print(source)
         unwrap = FunctionHasher._unwrap
 
@@ -90,10 +112,12 @@ class FunctionHasher:
 
         to_visit = []
 
-        for call in [node for node in ast.walk(parsed) if isinstance(node, ast.Call)]:
+        call_queue = [node for node in ast.walk(parsed) if isinstance(node, ast.Call)]
+        while len(call_queue) > 0:
+            call = call_queue.pop()
             # print('call', ast.dump(call, indent=2))
             if isinstance(call.func, ast.Name):
-                # print("is ast.Name")
+                print("call func is ast.Name", call.func.id)
                 func_name = call.func.id
                 if func_name in ["range"]:
                     continue
@@ -121,17 +145,25 @@ class FunctionHasher:
                         continue
                     to_visit.append((module_name + "." + func_name, func_obj))
             elif isinstance(call.func, ast.Attribute):
-                # print("is ast.Attribute")
                 func = cast(ast.Attribute, call.func)
                 flat_name = FunctionHasher._flatten_name(func)
+                print("call func is ast.Attribute", flat_name)
                 if flat_name in self.seen_full_paths:
                     continue
                 self.seen_full_paths.add(flat_name)
-                if flat_name in ["ti.Vector.zero", "ti.Vector", ".normalized", "gstaichi._kernels.static"]:
+                # if flat_name in ["ti.Vector.zero", "ti.Vector", ".normalized", "gstaichi._kernels.static"]:
+                if flat_name in ["ti.Vector.zero", "ti.Vector", ".normalized"]:
                     continue
+                if flat_name == "ti.static":
+                    raise Exception("Found ti.static. Not handled", ast.dump(call.func))
+                    # if len(call.keywords) > 0:
+                    #     raise Exception("ti.static with keyword arguments not yet supported. Please raise a github issue")
+                    # check_ti_static_args(call.args)
+                    # continue
                 skip = False
                 for prefix in ["COMPARE.", "ti."]:
                     if flat_name.startswith(prefix):
+                        print("skipping because begins with prefix")
                         skip = True
                         break
                 if skip:
@@ -154,6 +186,9 @@ class FunctionHasher:
                 if hasattr(func_obj, "_is_in_gstaichi_scope"):
                     continue
                 to_visit.append((flat_name, func_obj))
+            elif isinstance(call.func, ast.Call):
+                # do nothing?
+                pass
             else:
                 raise Exception("Unexpected function node type " + ast.dump(call.func))
         # print("to_visit", to_visit)
