@@ -66,7 +66,7 @@ def test_function_hasher_filesets() -> None:
 
     for set in [
         'call_child_child_static', 'call_static_pair', 'call_child_child1', 'call_child1', 'basic1',
-        'static_ndrange',
+        'static_ndrange', 'static_range',
     ]:
         base = importlib.import_module(f"{set}_base")
         same = importlib.import_module(f"{set}_same")
