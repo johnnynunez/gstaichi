@@ -2,7 +2,7 @@ import gstaichi as ti
 import pytest
 from tests import test_utils
 
-from gstaichi.lang.fast_caching import function_hacher
+from gstaichi.lang.fast_caching import function_hasher
 
 
 @test_utils.test()
@@ -39,7 +39,7 @@ def test_fast_cacher_simple() -> None:
         def foo(a: int, b: float):
             return a + b
 
-    h = function_hacher.hash_kernel
+    h = function_hasher.hash_kernel
     print(h(one.foo))
     print(h(two.foo))
     print(h(one.foo))
@@ -59,7 +59,7 @@ def test_fast_cacher_simple() -> None:
 
 @test_utils.test()
 def test_fast_cacher_using_test_files() -> None:
-    h = function_hacher.hash_kernel
+    h = function_hasher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -74,7 +74,7 @@ def test_fast_cacher_using_test_files() -> None:
 
 @test_utils.test()
 def test_fast_cacher_child_func() -> None:
-    h = function_hacher.hash_kernel
+    h = function_hasher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -86,7 +86,7 @@ def test_fast_cacher_child_func() -> None:
 
 @test_utils.test()
 def test_fast_cacher_child_child_func() -> None:
-    h = function_hacher.hash_kernel
+    h = function_hasher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
@@ -99,7 +99,7 @@ def test_fast_cacher_child_child_func() -> None:
 @test_utils.test()
 @pytest.mark.xfail(reason="Not implemented yet")
 def test_fast_cacher_child_child_static_func() -> None:
-    h = function_hacher.hash_kernel
+    h = function_hasher.hash_kernel
 
     import sys
     sys.path.append("tests/python/gstaichi/lang/fast_caching/test_files")
