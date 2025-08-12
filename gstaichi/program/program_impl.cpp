@@ -42,7 +42,7 @@ void ProgramImpl::register_needs_finalizing(NeedsFinalizing *needs_finalizing) {
 }
 
 void ProgramImpl::run_need_finalizing() {
-  for(auto& node : need_finalizing_) {
+  for (auto &node : need_finalizing_) {
     node->finalize();
   }
 }
