@@ -14,7 +14,9 @@ def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]
     """
     cache key takes into account:
     - arg types
+    - cache value arg values
     - kernel function (but not sub functions)
+    - compilation config (which includes arch, and debug)
     """
     args_hash = args_hasher.hash_args(args)
     if args_hash is None:
