@@ -11,6 +11,15 @@ class PysideCache:
         filepath = os.path.join(self.cache_folder, f"{key}.cache.txt")
         return filepath
 
+    def _touch(self, filepath):
+        """
+        We can then simply remove any files older than ~24 hours or so,
+        to keep the cache automatically clean.
+        No need for metadata and stuff :)
+        """
+        with open(filepath, 'a'):
+            os.utime(filepath, None)
+
     def store(self, key: str, value: str) -> None:
         filepath = self._get_filepath(key)
         with open(filepath, "w") as f:
@@ -23,5 +32,6 @@ class PysideCache:
             print("cache miss for", key)
             return None
         print('loading', key, 'from', filepath)
+        self._touch(filepath)
         with open(filepath) as f:
             return f.read()
