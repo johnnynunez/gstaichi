@@ -31,7 +31,7 @@ from gstaichi._lib.core.gstaichi_python import (
 )
 from gstaichi.lang import impl, ops, runtime_ops
 from gstaichi.lang._template_mapper import GsTaichiCallableTemplateMapper
-from gstaichi.lang._wrap_inspect import getsourcefile, getsourcelines
+from gstaichi.lang._wrap_inspect import get_source_info_and_src, FunctionSourceInfo
 from gstaichi.lang.any_array import AnyArray
 from gstaichi.lang.argpack import ArgPack, ArgPackType
 from gstaichi.lang.ast import (
@@ -65,7 +65,7 @@ from gstaichi.types.compound_types import CompoundType
 from gstaichi.types.enums import AutodiffMode, Layout
 from gstaichi.types.utils import is_signed
 from gstaichi.lang.fast_caching import src_hasher
-from gstaichi.lang.fast_caching.fast_caching_types import FunctionSourceInfo
+# from gstaichi.lang.fast_caching.fast_caching_types import FunctionSourceInfo
 from gstaichi.lang.fast_caching.function_hasher import hash_functions
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
@@ -260,9 +260,10 @@ def _get_tree_and_ctx(
     current_kernel: "Kernel | None" = None,
 ) -> tuple[ast.Module, ASTTransformerContext]:
     # print("_get_tree_and_ctx", self.func.__name__)
-    file = getsourcefile(self.func)
-    src, start_lineno = getsourcelines(self.func)
-    end_lineno = start_lineno + len(src) - 1
+    function_source_info, src = get_source_info_and_src(self.func)
+    # file = getsourcefile(self.func)
+    # src, start_lineno = getsourcelines(self.func)
+    # end_lineno = start_lineno + len(src) - 1
     src = [textwrap.fill(line, tabsize=4, width=9999) for line in src]
     tree = ast.parse(textwrap.dedent("\n".join(src)))
 
@@ -284,12 +285,12 @@ def _get_tree_and_ctx(
                     flat_name = f"__ti_{param_name}_{member_field.name}"
                     global_vars[flat_name] = child_value
 
-    function_source_info = FunctionSourceInfo(
-            function_name=self.func.__name__,
-            filepath=file,
-            start_lineno=start_lineno,
-            end_lineno=end_lineno,
-        )
+    # function_source_info = FunctionSourceInfo(
+    #         function_name=self.func.__name__,
+    #         filepath=file,
+    #         start_lineno=start_lineno,
+    #         end_lineno=end_lineno,
+    #     )
     # print(function_source_info)
     if current_kernel is not None:  # Kernel
         current_kernel.kernel_function_info = function_source_info
@@ -315,9 +316,9 @@ def _get_tree_and_ctx(
         global_vars=global_vars,
         argument_data=args,
         src=src,
-        start_lineno=start_lineno,
-        end_lineno=end_lineno,
-        file=file,
+        start_lineno=function_source_info.start_lineno,
+        end_lineno=function_source_info.end_lineno,
+        file=function_source_info.filepath,
         ast_builder=ast_builder,
         is_real_function=is_real_function,
     )
@@ -750,7 +751,13 @@ class Kernel:
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
                 # print("pure function:", self.func.__name__)
-                self.fast_checksum = src_hasher.hash_source(self.func, args)
+                kernel_source_info, _src = get_source_info_and_src(self.func)
+                # kernel_source_info = FunctionSourceInfo(
+                #     function_name=self.func.__name__,
+                #     self
+                # )
+                self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
+                print("materialize() fast checksum", self.fast_checksum)
                 # impl.current_cfg().arch.name
                 # self.fast_checksum = function_hacher.hash_kernel(self.func) + impl.current_cfg().arch.name
                 # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
@@ -759,7 +766,6 @@ class Kernel:
                     # print("key", key)
                     # return
 
-                prog = impl.get_runtime().prog
                 # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
                 # print("dir(self.func)", dir(self.func), self)
                 # if getattr(self, "enable_fast_cache", False):
@@ -767,6 +773,7 @@ class Kernel:
                 # print("prog.config()", prog.config())
                 # print("prog.get_device_caps()", prog.get_device_caps())
                 if self.fast_checksum:
+                    prog = impl.get_runtime().prog
                     self.compiled_kernel_data = prog.load_fast_cache(
                         self.fast_checksum,
                         self.func.__name__,

@@ -1,17 +1,9 @@
 from pydantic import BaseModel
 import dataclasses
+from gstaichi.lang._wrap_inspect import FunctionSourceInfo
 
 
 # @dataclasses.dataclass(frozen=True)
-class FunctionSourceInfo(BaseModel):
-    function_name: str
-    filepath: str
-    start_lineno: int
-    end_lineno: int
-    # hash: str | None = None
-
-    class Config:
-        frozen = True
 
 
 class HashedFunctionSourceInfo(BaseModel):

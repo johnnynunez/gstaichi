@@ -18,7 +18,9 @@
 import atexit
 import inspect
 import os
+from typing import Any, Callable
 import tempfile
+from pydantic import BaseModel
 
 import dill
 
@@ -186,4 +188,27 @@ def getsourcefile(obj):
         return ret
 
 
-__all__ = ["getsourcelines", "getsourcefile"]
+class FunctionSourceInfo(BaseModel):
+    function_name: str
+    filepath: str
+    start_lineno: int
+    end_lineno: int
+
+    class Config:
+        frozen = True
+
+
+def get_source_info_and_src(func: Callable) -> tuple[FunctionSourceInfo, list[str]]:
+    file = getsourcefile(func)
+    name = func.__name__
+    src, start_lineno = getsourcelines(func)
+    end_lineno = start_lineno + len(src) - 1
+    return FunctionSourceInfo(
+        function_name=name,
+        filepath=file,
+        start_lineno=start_lineno,
+        end_lineno=end_lineno,
+    ), src
+
+
+__all__ = ["getsourcelines", "getsourcefile", "get_source_info_and_src"]

@@ -12,9 +12,22 @@ from pydantic import BaseModel
 
 
 
-def hash_source(fn: Callable, args: Sequence[Any]) -> str | None:
-    # so upstream doesnt crash, for now
-    return None
+def hash_source(kernel_source_info: FunctionSourceInfo, function_source_infos: Sequence[FunctionSourceInfo], args: Sequence[Any]) -> str | None:
+    """
+    create a cache key from kernel_source_info, function_source_infos and args, if possible (ie no args that violate constraints etc)
+    if anything about the function or args violates enforced constraints, then return None instead
+    of cache key
+
+    This function will get hash values for each of the fucntion source infos, and store these in a python side
+    cache, for verifiaction later
+    """
+    cache_key = create_cache_key(kernel_source_info, args)
+    if not cache_key:
+        return None
+    hashed_function_infos = function_hasher.hash_functions(function_source_infos)
+    store(kernel_source_info, args, hashed_function_infos)
+    print("cache_key", cache_key)
+    return cache_key
 
 
 # def hash_source(fn: Callable, args: Sequence[Any]) -> str | None:
@@ -39,6 +52,7 @@ def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]
     args_hash = args_hasher.hash_args(args)
     if args_hash is None:
         return None
+    print("kernel_source_info", kernel_source_info)
     kernel_hash = function_hasher.hash_kernel(kernel_source_info)
     arch = impl.get_runtime().prog.config().arch
     cache_key = hash_string(f"{kernel_hash}_{args_hash}_{arch}")
@@ -80,12 +94,16 @@ def try_load(cache_key: str) -> Sequence[HashedFunctionSourceInfo] | None:
 
 
 def validate_cache_key(cache_key: str) -> bool:
+    """
+    loads function source infos from cache, if available
+    checks the hashes against the current source code
+    """
     maybe_hashed_function_source_infos = try_load(cache_key)
     if not maybe_hashed_function_source_infos:
         return False
     for function_info in maybe_hashed_function_source_infos:
-        if not function_hasher.validate_hashed_function_info(function_info)
-        return False
+        if not function_hasher.validate_hashed_function_info(function_info):
+            return False
     return True
 
 

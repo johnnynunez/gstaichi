@@ -1,5 +1,6 @@
 import os
-from .fast_caching_types import FunctionSourceInfo, HashedFunctionSourceInfo
+from .fast_caching_types import HashedFunctionSourceInfo
+from gstaichi.lang._wrap_inspect import FunctionSourceInfo
 from typing import Iterable, Sequence, cast, TYPE_CHECKING
 # import hashlib
 from .hash_utils import hash_string
