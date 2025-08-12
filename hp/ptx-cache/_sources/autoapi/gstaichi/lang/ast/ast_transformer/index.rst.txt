@@ -33,7 +33,7 @@ Functions
 Module Contents
 ---------------
 
-.. py:function:: reshape_list(flat_list: list[Any], target_shape: Iterable[int]) -> list[Any]
+.. py:function:: reshape_list(flat_list: list[Any], target_shape: Sequence[int]) -> list[Any]
 
 .. py:function:: boundary_type_cast_warning(expression: gstaichi.lang.expr.Expr) -> None
 
