@@ -750,32 +750,13 @@ class Kernel:
 
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
-                # print("pure function:", self.func.__name__)
                 kernel_source_info, _src = get_source_info_and_src(self.func)
-                # kernel_source_info = FunctionSourceInfo(
-                #     function_name=self.func.__name__,
-                #     self
-                # )
                 _maybe_fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
                 if _maybe_fast_checksum:
                     checksum_ok = src_hasher.validate_cache_key(_maybe_fast_checksum)
                     if checksum_ok:
                         self.fast_checksum = _maybe_fast_checksum
                 print("materialize() fast checksum", self.fast_checksum)
-                # impl.current_cfg().arch.name
-                # self.fast_checksum = function_hacher.hash_kernel(self.func) + impl.current_cfg().arch.name
-                # if self.func.__name__ not in ["ndarray_to_ext_arr", "ext_arr_to_ndarray", "ndarray_matrix_to_ext_arr", "ext_arr_to_ndarray_matrix"]:
-                # print('fast_checksum', self.fast_checksum)
-                    # print(self.func.__name__, 'elapsed', time.time() - start)
-                    # print("key", key)
-                    # return
-
-                # compiled_kernel_data = prog.load_fast_cache(self.fast_checksum)
-                # print("dir(self.func)", dir(self.func), self)
-                # if getattr(self, "enable_fast_cache", False):
-                # print("check fast cache")
-                # print("prog.config()", prog.config())
-                # print("prog.get_device_caps()", prog.get_device_caps())
                 if self.fast_checksum:
                     prog = impl.get_runtime().prog
                     self.compiled_kernel_data = prog.load_fast_cache(
@@ -786,24 +767,10 @@ class Kernel:
                     )
                 else:
                     print('checksum None for', self.func.__name__)
-                # print("self.compiled_kernel_data", self.compiled_kernel_data)
             else:
                 pass
-                # print("not pure", self.func.__name__)
-                # if self.compiled_kernel_data:
-                #     print("loaded from fast cache: compiled_kernel_data", self.compiled_kernel_data)
         else:
             pass
-            # print("type(self)", type(self), self)
-    #           const std::string &checksum,
-    #   const std::string &kernel_name,
-    #   const CompileConfig &compile_config,
-    #   const DeviceCapabilityConfig &caps);
-
-        # print("compiled_kernel_data", compiled_kernel_data)
-        # if self.compiled_kernel_data:
-        #     self.materialized_kernels[key] = self.compiled_kernel_data
-        #     ...
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         # print("materializing kernel", kernel_name)
