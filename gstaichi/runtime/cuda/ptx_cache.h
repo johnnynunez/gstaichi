@@ -85,14 +85,6 @@ class PtxCache final {
 
   std::vector<WrappedPtx *> updated_data_;
   const std::string cache_dir_;
-
-  // kernel_compilation_manager:
-  // using KernelCacheData = CacheData::WrappedData;
-  // using CachingKernels = std::unordered_map<std::string, KernelCacheData>;
-
-  // CachingKernels caching_kernels_;
-  // CacheData cached_data_;
-  // std::vector<KernelCacheData *> updated_data_;
 };
 
 }  // namespace gstaichi::lang
