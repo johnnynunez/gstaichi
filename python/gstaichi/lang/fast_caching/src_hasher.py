@@ -21,11 +21,6 @@ def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]
         return None
     kernel_hash = function_hasher.hash_kernel(kernel_source_info)
     config_hash = config_hasher.hash_compile_config()
-    # config = impl.get_runtime().prog.config()
-    # arch = config.arch
-    # config_json = json.dumps(config.__dict__)
-    # print("config_json", config_json)
-    # config_hash = hash_string(config_json)
     cache_key = hash_string(f"{kernel_hash}_{args_hash}_{config_hash}")
     return cache_key
 
