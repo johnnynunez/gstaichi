@@ -1,5 +1,6 @@
+import json
 from typing import Any, Iterable, Sequence
-from . import args_hasher, function_hasher
+from . import args_hasher, function_hasher, config_hasher
 from gstaichi.lang import impl
 from .fast_caching_types import FunctionSourceInfo, HashedFunctionSourceInfo
 from gstaichi.lang import impl
@@ -19,8 +20,13 @@ def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]
     if args_hash is None:
         return None
     kernel_hash = function_hasher.hash_kernel(kernel_source_info)
-    arch = impl.get_runtime().prog.config().arch
-    cache_key = hash_string(f"{kernel_hash}_{args_hash}_{arch}")
+    config_hash = config_hasher.hash_compile_config()
+    # config = impl.get_runtime().prog.config()
+    # arch = config.arch
+    # config_json = json.dumps(config.__dict__)
+    # print("config_json", config_json)
+    # config_hash = hash_string(config_json)
+    cache_key = hash_string(f"{kernel_hash}_{args_hash}_{config_hash}")
     return cache_key
 
 
