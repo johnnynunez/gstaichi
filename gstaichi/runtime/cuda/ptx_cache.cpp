@@ -203,16 +203,16 @@ std::optional<std::string> PtxCache::try_load_cached(
   return std::nullopt;
 }
 
-std::optional<std::string> PtxCache::load_data_from_disk(const std::string &cache_key) {
+std::optional<std::string> PtxCache::load_data_from_disk(
+    const std::string &cache_key) {
   const auto filename = make_filename(cache_key);
   if (std::ifstream ifs(filename, std::ios::in | std::ios::binary);
       ifs.is_open()) {
     std::string ptx = std::string(std::istreambuf_iterator<char>(ifs),
                                   std::istreambuf_iterator<char>());
     if (!ifs) {
-      TI_WARN(
-          fmt::format("Failed to read PTX from file {}: {}", filename,
-                      std::strerror(errno)));
+      TI_WARN(fmt::format("Failed to read PTX from file {}: {}", filename,
+                          std::strerror(errno)));
       return std::nullopt;
     }
     TI_DEBUG("Loaded PTX from file {} (size: {} bytes)", filename, ptx.size());
@@ -222,8 +222,8 @@ std::optional<std::string> PtxCache::load_data_from_disk(const std::string &cach
     }
     return ptx;
   }
-  TI_WARN(fmt::format("Failed to load ptx file {}: {}",
-                      filename, std::strerror(errno)));
+  TI_WARN(fmt::format("Failed to load ptx file {}: {}", filename,
+                      std::strerror(errno)));
   return std::nullopt;
 }
 
