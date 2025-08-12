@@ -34,17 +34,6 @@ RhiResult MetalMemory::mapped_ptr(void **mapped_ptr) const {
   }
 }
 
-MetalImage::MetalImage(MTLTexture_id mtl_texture) : mtl_texture_(mtl_texture) {}
-MetalImage::~MetalImage() {
-  if (!dont_destroy_) {
-    [mtl_texture_ release];
-  }
-}
-
-void MetalImage::dont_destroy() { dont_destroy_ = true; }
-
-MTLTexture_id MetalImage::mtl_texture() const { return mtl_texture_; }
-
 MetalSampler::MetalSampler(MTLSamplerState_id mtl_sampler_state)
     : mtl_sampler_state_(mtl_sampler_state) {}
 MetalSampler::~MetalSampler() { [mtl_sampler_state_ release]; }
@@ -305,38 +294,6 @@ ShaderResourceSet &MetalShaderResourceSet::rw_buffer(uint32_t binding,
   return *this;
 }
 
-ShaderResourceSet &
-MetalShaderResourceSet::image(uint32_t binding, DeviceAllocation alloc,
-                              ImageSamplerConfig sampler_config) {
-  RHI_ASSERT(alloc.device == (Device *)device_);
-  const MetalImage &image = device_->get_image(alloc.alloc_id);
-
-  MetalShaderResource rsc{};
-  rsc.ty = MetalShaderResourceType::texture;
-  rsc.binding = binding;
-  rsc.texture.texture = image.mtl_texture();
-  rsc.texture.is_sampled = true;
-  resources_.push_back(std::move(rsc));
-
-  return *this;
-}
-
-ShaderResourceSet &MetalShaderResourceSet::rw_image(uint32_t binding,
-                                                    DeviceAllocation alloc,
-                                                    int lod) {
-  RHI_ASSERT(alloc.device == (Device *)device_);
-  const MetalImage &image = device_->get_image(alloc.alloc_id);
-
-  MetalShaderResource rsc{};
-  rsc.ty = MetalShaderResourceType::texture;
-  rsc.binding = binding;
-  rsc.texture.texture = image.mtl_texture();
-  rsc.texture.is_sampled = false;
-  resources_.push_back(std::move(rsc));
-
-  return *this;
-}
-
 RasterResources &MetalRasterResources::vertex_buffer(DevicePtr ptr,
                                                      uint32_t binding) {
   MTLBuffer_id buffer = (ptr != kDeviceNullPtr)
@@ -498,15 +455,6 @@ RhiResult MetalCommandList::dispatch(uint32_t x, uint32_t y,
         [encoder setBuffer:resource.buffer.buffer
                     offset:resource.buffer.offset
                    atIndex:resource.binding];
-        break;
-      }
-      case MetalShaderResourceType::texture: {
-        [encoder setTexture:resource.texture.texture atIndex:resource.binding];
-        if (resource.texture.is_sampled) {
-          [encoder
-              setSamplerState:device_->get_default_sampler().mtl_sampler_state()
-                      atIndex:resource.binding];
-        }
         break;
       }
       default:
@@ -1344,108 +1292,6 @@ void get_binding_mappings(
       mapping->fragment[binding] = MSL_index_pair;
     }
   }
-}
-
-std::unique_ptr<Pipeline> MetalDevice::create_raster_pipeline(
-    const std::vector<PipelineSourceDesc> &src,
-    const RasterParams &raster_params,
-    const std::vector<VertexInputBinding> &vertex_inputs,
-    const std::vector<VertexInputAttribute> &vertex_attrs, std::string name) {
-
-  // (geometry shaders aren't supported in Vulkan backend either)
-  RHI_ASSERT(src.size() == 2);
-  bool has_vertex = false;
-  bool has_fragment = false;
-  for (auto &pipe_source_desc : src) {
-    RHI_ASSERT(pipe_source_desc.type == PipelineSourceType::spirv_binary);
-    if (pipe_source_desc.stage == PipelineStageType::vertex)
-      has_vertex = true;
-    if (pipe_source_desc.stage == PipelineStageType::fragment)
-      has_fragment = true;
-  }
-  RHI_ASSERT(has_fragment && has_vertex);
-
-  spirv_cross::CompilerMSL::Options options{};
-
-  // Compile spirv binaries to MSL source
-  MetalShaderBindingMapping mapping;
-  std::string msl_vert_source = "";
-  std::string msl_frag_source = "";
-  for (int i = 0; i < 2; i++) {
-    const uint32_t *spv_data = (const uint32_t *)src[i].data;
-
-    RHI_ASSERT((size_t)spv_data % sizeof(uint32_t) == 0);
-    RHI_ASSERT(src[i].size % sizeof(uint32_t) == 0);
-
-    const bool isVertexStage = src[i].stage == PipelineStageType::vertex;
-
-    spirv_cross::CompilerMSL compiler(spv_data, src[i].size / sizeof(uint32_t));
-    compiler.set_msl_options(options);
-    compiler.rename_entry_point("main",
-                                isVertexStage
-                                    ? std::string(kMetalVertFunctionName)
-                                    : std::string(kMetalFragFunctionName),
-                                isVertexStage ? spv::ExecutionModelVertex
-                                              : spv::ExecutionModelFragment);
-
-    auto *msl_string = isVertexStage ? &msl_vert_source : &msl_frag_source;
-    try {
-      *msl_string = compiler.compile();
-    } catch (const spirv_cross::CompilerError &e) {
-      std::array<char, 4096> msgbuf;
-      snprintf(msgbuf.data(), msgbuf.size(), "(spirv-cross compiler) %s: %s",
-               name.c_str(), e.what());
-      RHI_LOG_ERROR(msgbuf.data());
-      return nullptr;
-    }
-
-    // Find mapping of GLSL binding to MSL index
-    spirv_cross::ShaderResources shader_res = compiler.get_shader_resources(
-        compiler.get_active_interface_variables());
-
-    get_binding_mappings(&shader_res.uniform_buffers, &compiler, &mapping,
-                         isVertexStage, false);
-    get_binding_mappings(&shader_res.storage_buffers, &compiler, &mapping,
-                         isVertexStage, false);
-    get_binding_mappings(&shader_res.sampled_images, &compiler, &mapping,
-                         isVertexStage, true);
-    get_binding_mappings(&shader_res.storage_images, &compiler, &mapping,
-                         isVertexStage, false);
-  }
-
-  // Compile MSL source to MTLLibrary
-  MetalRasterLibraries raster_libs;
-  raster_libs.vertex = get_mtl_library(msl_vert_source);
-  raster_libs.fragment = get_mtl_library(msl_frag_source);
-
-  // Get the MTLFunctions
-  MetalRasterFunctions mtl_functions;
-  mtl_functions.vertex =
-      get_mtl_function(raster_libs.vertex, std::string(kMetalVertFunctionName)),
-  mtl_functions.fragment = get_mtl_function(
-      raster_libs.fragment, std::string(kMetalFragFunctionName));
-
-  // Set vertex descriptor
-  MTLVertexDescriptor *vd = [MTLVertexDescriptor new];
-  for (auto &vert_attr : vertex_attrs) {
-    int location = vert_attr.location;
-    vd.attributes[location].format = vertexformat2mtl(vert_attr.format);
-    vd.attributes[location].offset = vert_attr.offset;
-    vd.attributes[location].bufferIndex =
-        vert_attr.binding + mapping.max_vert_buffer_index + 1;
-  }
-  for (auto &vert_input : vertex_inputs) {
-    int buffer_index = vert_input.binding + mapping.max_vert_buffer_index + 1;
-    vd.layouts[buffer_index].stride = vert_input.stride;
-    vd.layouts[buffer_index].stepFunction =
-        vert_input.instance ? MTLVertexStepFunctionPerInstance
-                            : MTLVertexStepFunctionPerVertex;
-    vd.layouts[buffer_index].stepRate = 1;
-  }
-
-  // Create the pipeline object
-  return std::make_unique<MetalPipeline>(*this, raster_libs, mtl_functions, vd,
-                                         mapping, raster_params);
 }
 
 MTLFunction_id

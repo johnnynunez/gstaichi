@@ -63,8 +63,8 @@ T gstaichi_union_cast(G g) {
 enum class ParameterType {
   kScalar,
   kNdarray,
-  kTexture,
-  kRWTexture,
+  kTextureNotUsed,
+  kRWTextureNotUsed,
   kTensor,
   kUnknown
 };

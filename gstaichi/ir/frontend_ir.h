@@ -373,54 +373,6 @@ class ArgLoadExpression : public Expression {
   TI_DEFINE_ACCEPT_FOR_EXPRESSION
 };
 
-class Texture;
-
-class TexturePtrExpression : public Expression {
- public:
-  const std::vector<int> arg_id;
-  int num_dims;
-  bool is_storage{false};
-  int arg_depth;
-
-  // Optional, for storage textures
-  BufferFormat format{BufferFormat::unknown};
-  int lod{0};
-
-  explicit TexturePtrExpression(const std::vector<int> &arg_id,
-                                int num_dims,
-                                int arg_depth,
-                                const DebugInfo &dbg_info = DebugInfo())
-      : Expression(dbg_info),
-        arg_id(arg_id),
-        num_dims(num_dims),
-        is_storage(false),
-        arg_depth(arg_depth),
-        format(BufferFormat::rgba8),
-        lod(0) {
-  }
-
-  TexturePtrExpression(const std::vector<int> &arg_id,
-                       int num_dims,
-                       int arg_depth,
-                       BufferFormat format,
-                       int lod,
-                       const DebugInfo &dbg_info = DebugInfo())
-      : Expression(dbg_info),
-        arg_id(arg_id),
-        num_dims(num_dims),
-        is_storage(true),
-        arg_depth(arg_depth),
-        format(format),
-        lod(lod) {
-  }
-
-  void type_check(const CompileConfig *config) override;
-
-  void flatten(FlattenContext *ctx) override;
-
-  TI_DEFINE_ACCEPT_FOR_EXPRESSION
-};
-
 class RandExpression : public Expression {
  public:
   DataType dt;
@@ -807,24 +759,6 @@ class SNodeOpExpression : public Expression {
   TI_DEFINE_ACCEPT_FOR_EXPRESSION
 };
 
-class TextureOpExpression : public Expression {
- public:
-  TextureOpType op;
-  Expr texture_ptr;
-  ExprGroup args;
-
-  explicit TextureOpExpression(TextureOpType op,
-                               Expr texture_ptr,
-                               const ExprGroup &args,
-                               const DebugInfo &dbg_info = DebugInfo());
-
-  void type_check(const CompileConfig *config) override;
-
-  void flatten(FlattenContext *ctx) override;
-
-  TI_DEFINE_ACCEPT_FOR_EXPRESSION
-};
-
 class ConstExpression : public Expression {
  public:
   TypedConstant val;
@@ -1133,10 +1067,6 @@ class ASTBuilder {
   void insert_snode_deactivate(SNode *snode,
                                const ExprGroup &expr_group,
                                const DebugInfo &dbg_info = DebugInfo());
-  Expr make_texture_op_expr(const TextureOpType &op,
-                            const Expr &texture_ptr,
-                            const ExprGroup &args,
-                            const DebugInfo &dbg_info = DebugInfo());
   /*
    * This function allocates the space for a new item (a struct or a scalar)
    * in the Dynamic SNode, and assigns values to the elements inside it.

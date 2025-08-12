@@ -40,8 +40,6 @@ using BufferInfo = TaskAttributes::BufferInfo;
 using BufferBind = TaskAttributes::BufferBind;
 using BufferInfoHasher = TaskAttributes::BufferInfoHasher;
 
-using TextureBind = TaskAttributes::TextureBind;
-
 std::string buffer_instance_name(BufferInfo b) {
   // https://www.khronos.org/opengl/wiki/Interface_Block_(GLSL)#Syntax
   switch (b.type) {
@@ -1299,80 +1297,6 @@ class TaskCodegen : public IRVisitor {
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
   }
 
-  void visit(TexturePtrStmt *stmt) override {
-    spirv::Value val;
-
-    auto arg_id = stmt->arg_load_stmt->as<ArgLoadStmt>()->arg_id;
-    if (argid_to_tex_value_.find(arg_id) != argid_to_tex_value_.end()) {
-      val = argid_to_tex_value_.at(arg_id);
-    } else {
-      if (stmt->is_storage) {
-        BufferFormat format = stmt->format;
-
-        int binding = binding_head_++;
-        val =
-            ir_->storage_image_argument(/*num_channels=*/4, stmt->dimensions,
-                                        /*descriptor_set=*/0, binding, format);
-        TextureBind bind;
-        bind.arg_id = arg_id;
-        bind.binding = binding;
-        bind.is_storage = true;
-        texture_binds_.push_back(bind);
-        argid_to_tex_value_[arg_id] = val;
-      } else {
-        int binding = binding_head_++;
-        val = ir_->texture_argument(/*num_channels=*/4, stmt->dimensions,
-                                    /*descriptor_set=*/0, binding);
-        TextureBind bind;
-        bind.arg_id = arg_id;
-        bind.binding = binding;
-        texture_binds_.push_back(bind);
-        argid_to_tex_value_[arg_id] = val;
-      }
-    }
-
-    ir_->register_value(stmt->raw_name(), val);
-  }
-
-  void visit(TextureOpStmt *stmt) override {
-    spirv::Value tex = ir_->query_value(stmt->texture_ptr->raw_name());
-    spirv::Value val;
-    if (stmt->op == TextureOpType::kSampleLod ||
-        stmt->op == TextureOpType::kFetchTexel) {
-      // Texture Ops
-      std::vector<spirv::Value> args;
-      for (int i = 0; i < stmt->args.size() - 1; i++) {
-        args.push_back(ir_->query_value(stmt->args[i]->raw_name()));
-      }
-      spirv::Value lod = ir_->query_value(stmt->args.back()->raw_name());
-      if (stmt->op == TextureOpType::kSampleLod) {
-        // Sample
-        val = ir_->sample_texture(tex, args, lod);
-      } else if (stmt->op == TextureOpType::kFetchTexel) {
-        // Texel fetch
-        val = ir_->fetch_texel(tex, args, lod);
-      }
-      ir_->register_value(stmt->raw_name(), val);
-    } else if (stmt->op == TextureOpType::kLoad ||
-               stmt->op == TextureOpType::kStore) {
-      // Image Ops
-      std::vector<spirv::Value> args;
-      for (int i = 0; i < stmt->args.size(); i++) {
-        args.push_back(ir_->query_value(stmt->args[i]->raw_name()));
-      }
-      if (stmt->op == TextureOpType::kLoad) {
-        // Image Load
-        val = ir_->image_load(tex, args);
-        ir_->register_value(stmt->raw_name(), val);
-      } else if (stmt->op == TextureOpType::kStore) {
-        // Image Store
-        ir_->image_store(tex, args);
-      }
-    } else {
-      TI_NOT_IMPLEMENTED;
-    }
-  }
-
   void visit(InternalFuncStmt *stmt) override {
     spirv::Value val;
 
@@ -1959,7 +1883,6 @@ class TaskCodegen : public IRVisitor {
     ir_->make_inst(spv::OpFunctionEnd);  // } Close kernel
 
     task_attribs_.buffer_binds = get_buffer_binds();
-    task_attribs_.texture_binds = get_texture_binds();
   }
 
   void gen_array_range(Stmt *stmt) {
@@ -2122,7 +2045,6 @@ class TaskCodegen : public IRVisitor {
     ir_->make_inst(spv::OpFunctionEnd);
 
     task_attribs_.buffer_binds = get_buffer_binds();
-    task_attribs_.texture_binds = get_texture_binds();
   }
 
   void generate_struct_for_kernel(OffloadedStmt *stmt) {
@@ -2189,7 +2111,6 @@ class TaskCodegen : public IRVisitor {
     ir_->make_inst(spv::OpFunctionEnd);  // } Close kernel
 
     task_attribs_.buffer_binds = get_buffer_binds();
-    task_attribs_.texture_binds = get_texture_binds();
   }
 
   spirv::Value at_buffer(const Stmt *ptr, DataType dt) {
@@ -2535,10 +2456,6 @@ class TaskCodegen : public IRVisitor {
     return result;
   }
 
-  std::vector<TextureBind> get_texture_binds() {
-    return texture_binds_;
-  }
-
   void push_loop_control_labels(spirv::Label continue_label,
                                 spirv::Label merge_label) {
     continue_label_stack_.push_back(continue_label);
@@ -2607,7 +2524,6 @@ class TaskCodegen : public IRVisitor {
                      uint32_t,
                      BufferInfoTypeTupleHasher>
       buffer_binding_map_;
-  std::vector<TextureBind> texture_binds_;
   std::vector<spirv::Value> shared_array_binds_;
   spirv::Value kernel_function_;
   spirv::Label kernel_return_label_;
