@@ -419,7 +419,6 @@ class Func:
 
     def __call__(self, *args, **kwargs) -> Any:
         args = _process_args(self, is_func=True, args=args, kwargs=kwargs)
-        # print("Func.__call___", self.func.__name__)
 
         if not impl.inside_kernel():
             if not self.pyfunc:
@@ -717,27 +716,17 @@ class Kernel:
         if key in self.materialized_kernels:
             return
 
-        if self.gstaichi_callable:
-            if self.gstaichi_callable.is_pure:
-                kernel_source_info, _src = get_source_info_and_src(self.func)
-                self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
-                checksum_validated = False
-                if self.fast_checksum:
-                    checksum_validated = src_hasher.validate_cache_key(self.fast_checksum)
-                if self.fast_checksum and checksum_validated:
-                    prog = impl.get_runtime().prog
-                    self.compiled_kernel_data = prog.load_fast_cache(
-                        self.fast_checksum,
-                        self.func.__name__,
-                        prog.config(),
-                        prog.get_device_caps(),
-                    )
-                else:
-                    print("checksum None for", self.func.__name__)
-            else:
-                pass
-        else:
-            pass
+        if self.gstaichi_callable and self.gstaichi_callable.is_pure:
+            kernel_source_info, _src = get_source_info_and_src(self.func)
+            self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
+            if self.fast_checksum and src_hasher.validate_cache_key(self.fast_checksum):
+                prog = impl.get_runtime().prog
+                self.compiled_kernel_data = prog.load_fast_cache(
+                    self.fast_checksum,
+                    self.func.__name__,
+                    prog.config(),
+                    prog.get_device_caps(),
+                )
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         _logging.trace(f"Materializing kernel {kernel_name} in {self.autodiff_mode}...")
