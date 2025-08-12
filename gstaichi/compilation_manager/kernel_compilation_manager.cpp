@@ -258,8 +258,8 @@ const CompiledKernelData &KernelCompilationManager::compile_and_cache_kernel(
     TI_INFO("Compiling kernel '{}'", kernel_def.get_name());
   }
   k.compiled_kernel_data = compile_kernel(compile_config, caps, kernel_def);
-  k.metadata.size =
-      0;  // Populate `size` within the KernelCompilationManager::dump()
+  // Populate `size` within the KernelCompilationManager::dump()
+  k.metadata.size = 0;
   k.metadata.cache_mode = cache_mode;
   const auto &kernel_data = (caching_kernels_[kernel_key] = std::move(k));
   return *kernel_data.compiled_kernel_data;

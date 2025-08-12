@@ -2,10 +2,9 @@ import atexit
 import functools
 import math
 import os
+import pathlib
 import shutil
 import threading
-from os import listdir, rmdir, stat
-from os.path import join
 from tempfile import mkdtemp
 
 import pytest
@@ -14,8 +13,8 @@ import gstaichi as ti
 
 from tests import test_utils
 
-OFFLINE_CACHE_TEMP_DIR = mkdtemp()
-atexit.register(lambda: rmdir(OFFLINE_CACHE_TEMP_DIR))
+OFFLINE_CACHE_TEMP_DIR = pathlib.Path(mkdtemp())
+atexit.register(lambda: os.rmdir(OFFLINE_CACHE_TEMP_DIR))
 
 supported_llvm_archs = {ti.cpu, ti.cuda, ti.amdgpu}
 supported_gfx_archs = {ti.vulkan, ti.metal}
@@ -23,20 +22,11 @@ supported_archs_offline_cache = supported_llvm_archs | supported_gfx_archs
 supported_archs_offline_cache = {v for v in supported_archs_offline_cache if v in test_utils.expected_archs()}
 
 
-def is_offline_cache_file(filename):
-    suffixes = (".tic",)
-    return filename.endswith(suffixes)
-
-
-def cache_files_size(path):
-    files = listdir(path)
+def cache_files_size(path: pathlib.Path) -> int:
     result = 0
-    for file in files:
-        filepath = os.path.join(path, file)
-        if os.path.isdir(filepath):
-            result += cache_files_size(filepath)
-        if is_offline_cache_file(filepath):
-            result += stat(filepath).st_size
+    for filepath in path.rglob("*.tic"):
+        if filepath.is_file():
+            result += os.stat(filepath).st_size
     return result
 
 
@@ -47,29 +37,26 @@ def expected_num_cache_files(num_kernels: int = 0) -> int:
     return num_kernels + 1
 
 
-def tmp_offline_cache_file_path():
-    return join(OFFLINE_CACHE_TEMP_DIR, str(threading.current_thread().ident))
+def tmp_offline_cache_file_path() -> pathlib.Path:
+    return OFFLINE_CACHE_TEMP_DIR / str(threading.current_thread().ident)
 
 
 def current_thread_ext_options():
     return {
         "offline_cache": True,
-        "offline_cache_file_path": tmp_offline_cache_file_path(),
+        "offline_cache_file_path": str(tmp_offline_cache_file_path()),
         "cuda_stack_limit": 1024,
         "device_memory_GB": 0.2,
     }
 
 
-def cache_files_cnt(folder: str | None = None) -> int:
+def cache_files_cnt(folder: pathlib.Path | None = None) -> int:
     if folder is None:
         folder = tmp_offline_cache_file_path()
     try:
         count = 0
-        for file in os.listdir(folder):
-            filepath = os.path.join(folder, file)
-            if os.path.isdir(filepath):
-                count += cache_files_cnt(filepath)
-            else:
+        for filepath in folder.rglob("*"):
+            if filepath.is_file():
                 count += 1
         return count
     except FileNotFoundError:
@@ -231,7 +218,7 @@ def _test_closing_offline_cache_for_a_kernel(curr_arch, kernel, args, result):
             arch=curr_arch,
             enable_fallback=False,
             offline_cache=False,
-            offline_cache_file_path=tmp_offline_cache_file_path(),
+            offline_cache_file_path=str(tmp_offline_cache_file_path()),
             cuda_stack_limit=1024,
             device_memory_GB=0.1,
         )

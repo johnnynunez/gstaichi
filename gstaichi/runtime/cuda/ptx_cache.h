@@ -76,12 +76,13 @@ class PtxCache final {
 
   const Config config_;
   const CompileConfig &compile_config_;
-  // using WrappedData = WrappedPtx;
 
-  std::unordered_map<std::string, WrappedPtx>
-      wrapped_by_key_;  // caching_kernels_ in kernel_compilation_manager
-  PtxCacheAllData
-      cached_all_data_;  // cached_data_ in kernel_compilation_manager
+  // caching_kernels_ in kernel_compilation_manager
+  std::unordered_map<std::string, WrappedPtx> wrapped_by_key_;
+
+  // cached_data_ in kernel_compilation_manager
+  PtxCacheAllData cached_all_data_;
+
   std::vector<WrappedPtx *> updated_data_;
   const std::string cache_dir_;
 
