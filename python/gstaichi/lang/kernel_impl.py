@@ -69,9 +69,6 @@ from gstaichi.types.utils import is_signed
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
 
-# fast_cacher = FastCacher()
-
-
 class GsTaichiCallable:
     """
     BoundGsTaichiCallable is used to enable wrapping a bindable function with a class.
