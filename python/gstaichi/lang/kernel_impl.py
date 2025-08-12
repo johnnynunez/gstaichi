@@ -752,10 +752,11 @@ class Kernel:
             if self.gstaichi_callable.is_pure:
                 kernel_source_info, _src = get_source_info_and_src(self.func)
                 _maybe_fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
+                checksum_ok = False
                 if _maybe_fast_checksum:
                     checksum_ok = src_hasher.validate_cache_key(_maybe_fast_checksum)
-                    if checksum_ok:
-                        self.fast_checksum = _maybe_fast_checksum
+                if checksum_ok:
+                    self.fast_checksum = _maybe_fast_checksum
                 print("materialize() fast checksum", self.fast_checksum)
                 if self.fast_checksum:
                     prog = impl.get_runtime().prog
@@ -1180,17 +1181,17 @@ class Kernel:
             if not self.compiled_kernel_data:
                 # print("py kernel_impl.py no compiled kernel data => calling prog.compile_kernel")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
-                print("===================================")
+                # print("===================================")
                 # for v in self.visited_functions:
                 #     print(v)
                 assert self.kernel_function_info is not None
                 kernel_hash = hash_functions([self.kernel_function_info])
                 tree_hash = hash_functions(self.visited_functions)
-                print('kernel_hash', kernel_hash)
+                # print('kernel_hash', kernel_hash)
                 # print('tree_hash', tree_hash)
-                for i, h in tree_hash:
-                    print(i, h)
-                print("===================================")
+                # for i, h in tree_hash:
+                #     print(i, h)
+                # print("===================================")
                 # asdfasdf
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)

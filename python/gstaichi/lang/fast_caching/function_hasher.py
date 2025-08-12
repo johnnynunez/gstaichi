@@ -27,10 +27,10 @@ def hash_functions(function_infos: Iterable[FunctionSourceInfo]) -> list[HashedF
     results = []
     for f_info in function_infos:
         _hash = _hash_function(f_info)
-        print(f_info.function_name, _hash)
+        # print(f_info.function_name, _hash)
         results.append(HashedFunctionSourceInfo(function_source_info=f_info, hash=_hash))
         # f_info.hash = _hash
-    print("len(function_infos)", len(results))
+    # print("len(function_infos)", len(results))
     return results
 
 

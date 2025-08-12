@@ -52,7 +52,7 @@ def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]
     args_hash = args_hasher.hash_args(args)
     if args_hash is None:
         return None
-    print("kernel_source_info", kernel_source_info)
+    # print("kernel_source_info", kernel_source_info)
     kernel_hash = function_hasher.hash_kernel(kernel_source_info)
     arch = impl.get_runtime().prog.config().arch
     cache_key = hash_string(f"{kernel_hash}_{args_hash}_{arch}")
