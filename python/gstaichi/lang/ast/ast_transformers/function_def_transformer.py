@@ -309,7 +309,7 @@ class FunctionDefTransformer:
             FunctionDefTransformer._transform_as_kernel(ctx, node, args)
 
         if ctx.only_parse_function_def:
-            return
+            return None
 
         if not ctx.is_kernel:  # ti.func
             if ctx.is_real_function:

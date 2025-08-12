@@ -50,9 +50,6 @@ from gstaichi.lang.exception import (
 )
 from gstaichi.lang.expr import Expr
 from gstaichi.lang.fast_caching import src_hasher
-
-# from gstaichi.lang.fast_caching.fast_caching_types import FunctionSourceInfo
-from gstaichi.lang.fast_caching.function_hasher import hash_functions
 from gstaichi.lang.kernel_arguments import KernelArgument
 from gstaichi.lang.matrix import MatrixType
 from gstaichi.lang.shell import _shell_pop_print

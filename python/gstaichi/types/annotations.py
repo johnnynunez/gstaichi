@@ -1,7 +1,5 @@
 from typing import Any, Generic, TypeVar
 
-from gstaichi.types import primitive_types
-
 T = TypeVar("T")
 
 

@@ -1,9 +1,6 @@
-import json
 from typing import Any, Iterable, Sequence
 
 from pydantic import BaseModel
-
-from gstaichi.lang import impl
 
 from . import args_hasher, config_hasher, function_hasher
 from .fast_caching_types import FunctionSourceInfo, HashedFunctionSourceInfo

@@ -19,7 +19,7 @@ import atexit
 import inspect
 import os
 import tempfile
-from typing import Any, Callable
+from typing import Callable
 
 import dill
 from pydantic import BaseModel
