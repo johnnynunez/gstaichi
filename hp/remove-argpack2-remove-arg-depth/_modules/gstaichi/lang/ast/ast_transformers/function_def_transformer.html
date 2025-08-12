@@ -414,8 +414,6 @@
                 <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">):</span>
                     <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_kernel_arg</span><span class="p">(</span>
                         <span class="n">ctx</span><span class="p">,</span>
-                        <span class="n">invoke_later_dict</span><span class="p">,</span>
-                        <span class="n">create_variable_later</span><span class="p">,</span>
                         <span class="n">flat_name</span><span class="p">,</span>
                         <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
                         <span class="n">this_arg_features</span><span class="p">[</span><span class="n">field_idx</span><span class="p">],</span>
@@ -426,7 +424,6 @@
                         <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
                         <span class="n">flat_name</span><span class="p">,</span>
                         <span class="n">this_arg_features</span><span class="p">[</span><span class="n">field_idx</span><span class="p">],</span>
-                        <span class="n">invoke_later_dict</span><span class="p">,</span>
                         <span class="s2">&quot;&quot;</span><span class="p">,</span>
                         <span class="mi">0</span><span class="p">,</span>
                     <span class="p">)</span>
