@@ -16,18 +16,15 @@ def test_function_hasher_hash_kernel() -> None:
     if test_files_path not in sys.path:
         sys.path.append(test_files_path)
 
-    f1_base = importlib.import_module("f1_base")
-    f1_same = importlib.import_module("f1_same")
-    f1_diff = importlib.import_module("f1_diff")
+    def get_hash(name: str) -> _wrap_inspect.FunctionSourceInfo:
+        mod = importlib.import_module(name)
+        info, _src = _wrap_inspect.get_source_info_and_src(mod.f1.fn)
+        hash = function_hasher.hash_kernel(info)
+        return hash
 
-    f1_base_info, _src = _wrap_inspect.get_source_info_and_src(f1_base.f1.fn)
-    f1_base_hash = function_hasher.hash_kernel(f1_base_info)
-
-    f1_same_info, _src = _wrap_inspect.get_source_info_and_src(f1_same.f1.fn)
-    f1_same_hash = function_hasher.hash_kernel(f1_same_info)
-
-    f1_diff_info, _src = _wrap_inspect.get_source_info_and_src(f1_diff.f1.fn)
-    f1_diff_hash = function_hasher.hash_kernel(f1_diff_info)
+    f1_base_hash = get_hash("f1_base")
+    f1_same_hash = get_hash("f1_same")
+    f1_diff_hash = get_hash("f1_diff")
 
     assert f1_base_hash is not None and f1_base_hash != ""
     assert f1_base_hash == f1_same_hash

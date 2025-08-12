@@ -5,6 +5,9 @@ import importlib
 from gstaichi.lang.fast_caching import src_hasher
 from gstaichi._test_tools import ti_init_same_arch
 from gstaichi.lang._wrap_inspect import get_source_info_and_src
+from gstaichi.lang.fast_caching import function_hasher
+from gstaichi.lang import _wrap_inspect
+from gstaichi.lang.fast_caching.fast_caching_types import HashedFunctionSourceInfo
 
 
 @test_utils.test()
@@ -31,6 +34,22 @@ def test_create_cache_key_vary_config() -> None:
 
 @test_utils.test()
 def test_create_cache_key_vary_fn() -> None:
+    import sys
+    test_files_path = "tests/python/gstaichi/lang/fast_caching/test_files"
+    if test_files_path not in sys.path:
+        sys.path.append(test_files_path)
+
+    def get_infos(name: str) -> list[HashedFunctionSourceInfo]:
+        mod = importlib.import_module(name)
+        info, _src = _wrap_inspect.get_source_info_and_src(mod.f1.fn)
+        hashed_infos = function_hasher.hash_functions([info])
+        return hashed_infos
+
+    f1_base_hashed_infos = get_infos("f1_base")
+    f1_same_hashed_infos = get_infos("f1_same")
+    f1_diff_hashed_infos = get_infos("f1_diff")
+
+
     ti_init_same_arch()
     kernel_info, _src = get_source_info_and_src(f1.fn)
     cache_key_base = src_hasher.create_cache_key(kernel_info, [])
