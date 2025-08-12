@@ -49,7 +49,7 @@ def store(cache_key: str, function_source_infos: Iterable[FunctionSourceInfo]) -
     cache.store(cache_key, cache_value_json)
 
 
-def try_load(cache_key: str) -> Sequence[HashedFunctionSourceInfo] | None:
+def _try_load(cache_key: str) -> Sequence[HashedFunctionSourceInfo] | None:
     cache = PysideCache()
     maybe_cache_value_json = cache.try_load(cache_key)
     if maybe_cache_value_json is None:
@@ -63,7 +63,7 @@ def validate_cache_key(cache_key: str) -> bool:
     loads function source infos from cache, if available
     checks the hashes against the current source code
     """
-    maybe_hashed_function_source_infos = try_load(cache_key)
+    maybe_hashed_function_source_infos = _try_load(cache_key)
     if not maybe_hashed_function_source_infos:
         return False
     return function_hasher.validate_hashed_function_infos(maybe_hashed_function_source_infos)
