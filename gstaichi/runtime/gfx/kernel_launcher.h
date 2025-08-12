@@ -12,7 +12,8 @@ class KernelLauncher : public lang::KernelLauncher {
     GfxRuntime *gfx_runtime_{nullptr};
   };
 
-  explicit KernelLauncher(Config config, const gstaichi::lang::ProgramImpl *program_impl);
+  explicit KernelLauncher(Config config,
+                          const gstaichi::lang::ProgramImpl *program_impl);
 
   void launch_kernel(const lang::CompiledKernelData &compiled_kernel_data,
                      LaunchContextBuilder &ctx) override;

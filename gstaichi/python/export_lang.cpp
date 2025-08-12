@@ -401,9 +401,9 @@ void export_lang(py::module &m) {
       .def("get_snode_root", &Program::get_snode_root,
            py::return_value_policy::reference)
       .def("store_fast_cache", &Program::store_fast_cache)
-      .def("load_fast_cache", &Program::load_fast_cache, py::return_value_policy::reference)
-      .def("dump_cache_data_to_disk",
-           &Program::dump_cache_data_to_disk)
+      .def("load_fast_cache", &Program::load_fast_cache,
+           py::return_value_policy::reference)
+      .def("dump_cache_data_to_disk", &Program::dump_cache_data_to_disk)
       .def(
           "create_kernel",
           [](Program *program, const std::function<void(Kernel *)> &body,

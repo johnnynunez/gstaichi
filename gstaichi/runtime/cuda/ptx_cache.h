@@ -11,10 +11,7 @@
 
 namespace gstaichi::lang {
 
-enum CacheMode {
-  MemCache,
-  MemAndDiskCache
-};
+enum CacheMode { MemCache, MemAndDiskCache };
 
 struct PtxMetadata {
   std::string cache_key;
@@ -59,10 +56,13 @@ class PtxCache final {
     std::string offline_cache_path;
   };
 
-  explicit PtxCache(const Config init_params, const CompileConfig & compile_config);
+  explicit PtxCache(const Config init_params,
+                    const CompileConfig &compile_config);
 
   void dump();
-  void clean_offline_cache(offline_cache::CleanCachePolicy policy, int max_bytes, double cleaning_factor) const;
+  void clean_offline_cache(offline_cache::CleanCachePolicy policy,
+                           int max_bytes,
+                           double cleaning_factor) const;
   void store_ptx(const std::string &cache_key, const std::string &ptx);
   std::optional<std::string> load_ptx(const std::string &cache_key);
   std::string make_cache_key(const std::string &llvm_ir) const;
@@ -70,15 +70,18 @@ class PtxCache final {
  private:
   std::string make_filename(const std::string &kernel_key) const;
   static CacheMode get_cache_mode(const CompileConfig &compile_config);
-  std::optional<std::string> try_load_cached(const std::string &cache_key, CacheMode cache_mode);
+  std::optional<std::string> try_load_cached(const std::string &cache_key,
+                                             CacheMode cache_mode);
   std::string load_data_from_disk(const std::string &cache_key);
 
   const Config config_;
   const CompileConfig &compile_config_;
   // using WrappedData = WrappedPtx;
 
-  std::unordered_map<std::string, WrappedPtx> wrapped_by_key_;  // caching_kernels_ in kernel_compilation_manager
-  PtxCacheAllData cached_all_data_;  // cached_data_ in kernel_compilation_manager
+  std::unordered_map<std::string, WrappedPtx>
+      wrapped_by_key_;  // caching_kernels_ in kernel_compilation_manager
+  PtxCacheAllData
+      cached_all_data_;  // cached_data_ in kernel_compilation_manager
   std::vector<WrappedPtx *> updated_data_;
   const std::string cache_dir_;
 

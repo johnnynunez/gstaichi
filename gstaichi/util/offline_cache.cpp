@@ -12,8 +12,8 @@ constexpr std::size_t min_mangled_name_length = offline_cache_key_length + 2;
 //         config->print_accessor_ir) {
 //       config->offline_cache = false;
 //       TI_WARN(
-//           "Disable offline_cache because print_preprocessed_ir or print_ir or "
-//           "print_accessor_ir is enabled");
+//           "Disable offline_cache because print_preprocessed_ir or print_ir or
+//           " "print_accessor_ir is enabled");
 //     }
 //   }
 // }

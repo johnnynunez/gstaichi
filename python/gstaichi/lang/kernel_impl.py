@@ -8,8 +8,8 @@ import os
 import pathlib
 import re
 import sys
-import time
 import textwrap
+import time
 import types
 import typing
 import warnings
@@ -31,7 +31,7 @@ from gstaichi._lib.core.gstaichi_python import (
 )
 from gstaichi.lang import impl, ops, runtime_ops
 from gstaichi.lang._template_mapper import GsTaichiCallableTemplateMapper
-from gstaichi.lang._wrap_inspect import get_source_info_and_src, FunctionSourceInfo
+from gstaichi.lang._wrap_inspect import FunctionSourceInfo, get_source_info_and_src
 from gstaichi.lang.any_array import AnyArray
 from gstaichi.lang.argpack import ArgPack, ArgPackType
 from gstaichi.lang.ast import (
@@ -49,6 +49,10 @@ from gstaichi.lang.exception import (
     handle_exception_from_cpp,
 )
 from gstaichi.lang.expr import Expr
+from gstaichi.lang.fast_caching import src_hasher
+
+# from gstaichi.lang.fast_caching.fast_caching_types import FunctionSourceInfo
+from gstaichi.lang.fast_caching.function_hasher import hash_functions
 from gstaichi.lang.kernel_arguments import KernelArgument
 from gstaichi.lang.matrix import MatrixType
 from gstaichi.lang.shell import _shell_pop_print
@@ -64,9 +68,6 @@ from gstaichi.types import (
 from gstaichi.types.compound_types import CompoundType
 from gstaichi.types.enums import AutodiffMode, Layout
 from gstaichi.types.utils import is_signed
-from gstaichi.lang.fast_caching import src_hasher
-# from gstaichi.lang.fast_caching.fast_caching_types import FunctionSourceInfo
-from gstaichi.lang.fast_caching.function_hasher import hash_functions
 
 CompiledKernelKeyType = tuple[Callable, int, AutodiffMode]
 
@@ -738,7 +739,7 @@ class Kernel:
                         prog.get_device_caps(),
                     )
                 else:
-                    print('checksum None for', self.func.__name__)
+                    print("checksum None for", self.func.__name__)
             else:
                 pass
         else:
@@ -1147,7 +1148,7 @@ class Kernel:
                         self.kernel_cpp,
                         prog.config(),
                         prog.get_device_caps(),
-                        self.compiled_kernel_data
+                        self.compiled_kernel_data,
                     )
             prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
         except Exception as e:

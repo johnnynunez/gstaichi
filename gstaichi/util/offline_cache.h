@@ -239,7 +239,8 @@ class CacheCleaner {
       Comparator cmp{nullptr};
       if (policy & CleanOldUsed) {  // LRU
         cmp = [](const KerData *a, const KerData *b) -> bool {
-          return a->second.metadata.last_used_at < b->second.metadata.last_used_at;
+          return a->second.metadata.last_used_at <
+                 b->second.metadata.last_used_at;
         };
       } else if (policy & CleanOldCreated) {  // FIFO
         cmp = [](const KerData *a, const KerData *b) -> bool {
@@ -249,7 +250,8 @@ class CacheCleaner {
 
       if (cmp) {
         PriQueue q(cmp);
-        std::size_t cnt = config.cleaning_factor * cache_data.wrappedDataByKey.size();
+        std::size_t cnt =
+            config.cleaning_factor * cache_data.wrappedDataByKey.size();
         TI_ASSERT(cnt != 0);
         for (const auto &e : cache_data.wrappedDataByKey) {
           if (q.size() == cnt && cmp(&e, q.top())) {

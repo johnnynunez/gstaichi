@@ -1,8 +1,9 @@
-from gstaichi.lang import _wrap_inspect
-from tests import test_utils
-import sys
 import importlib
+import sys
 
+from gstaichi.lang import _wrap_inspect
+
+from tests import test_utils
 
 
 @test_utils.test()

@@ -42,7 +42,7 @@ void ProgramImpl::register_needs_finalizing(NeedsFinalizing *needs_finalizing) {
 }
 
 void ProgramImpl::run_need_finalizing() {
-  for(auto it=need_finalizing_.begin(); it != need_finalizing_.end(); it++) {
+  for (auto it = need_finalizing_.begin(); it != need_finalizing_.end(); it++) {
     (*it)->finalize();
   }
 }

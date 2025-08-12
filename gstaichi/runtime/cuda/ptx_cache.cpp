@@ -58,11 +58,10 @@ struct CacheCleanerUtils<PtxCacheAllData> {
 
 }  // namespace offline_cache
 
-PtxCache::PtxCache(const Config config, const CompileConfig & compile_config)
+PtxCache::PtxCache(const Config config, const CompileConfig &compile_config)
     : config_(std::move(config)),
-    compile_config_(compile_config),
-    cache_dir_(join_path(config_.offline_cache_path, "ptx_cache"))
-  {
+      compile_config_(compile_config),
+      cache_dir_(join_path(config_.offline_cache_path, "ptx_cache")) {
   TI_DEBUG("Create ptxcache with offline_cache_file_path = {}",
            this->cache_dir_);
   auto filepath = join_path(this->cache_dir_, kMetadataFilename);
@@ -115,25 +114,27 @@ void PtxCache::dump() {
   // Add new data
   for (auto &[kernel_key, wrapped] : wrapped_by_key_) {
     if (wrapped.metadata.cache_mode == CacheMode::MemAndDiskCache) {
-      auto [iter, ok] = wrappedDataByKey.insert({kernel_key, std::move(wrapped)});
+      auto [iter, ok] =
+          wrappedDataByKey.insert({kernel_key, std::move(wrapped)});
       TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
   wrapped_by_key_.clear();
   // Dump cached CompiledKernelData to disk
   for (auto &[_, k] : wrappedDataByKey) {
-      if (!k.ptx.has_value()) {
-        TI_WARN("PTX for cache_key {} is not set, skipping dump", k.metadata.cache_key);
-        continue;
-      }
-      TI_DEBUG("Dumping PTX for cache_key {}", k.metadata.cache_key);
-      auto cache_filename = make_filename(k.metadata.cache_key);
-      std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
-      TI_ASSERT(fs.is_open());
-      fs << k.ptx.value();
-        TI_ASSERT(!!fs);
-        k.metadata.size = fs.tellp();
-        data.size += k.metadata.size;
+    if (!k.ptx.has_value()) {
+      TI_WARN("PTX for cache_key {} is not set, skipping dump",
+              k.metadata.cache_key);
+      continue;
+    }
+    TI_DEBUG("Dumping PTX for cache_key {}", k.metadata.cache_key);
+    auto cache_filename = make_filename(k.metadata.cache_key);
+    std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
+    TI_ASSERT(fs.is_open());
+    fs << k.ptx.value();
+    TI_ASSERT(!!fs);
+    k.metadata.size = fs.tellp();
+    data.size += k.metadata.size;
   }
   // Dump offline cache metadata
   if (!wrappedDataByKey.empty()) {
@@ -141,10 +142,9 @@ void PtxCache::dump() {
   }
 }
 
-void PtxCache::clean_offline_cache(
-    offline_cache::CleanCachePolicy policy,
-    int max_bytes,
-    double cleaning_factor) const {
+void PtxCache::clean_offline_cache(offline_cache::CleanCachePolicy policy,
+                                   int max_bytes,
+                                   double cleaning_factor) const {
   using CacheCleaner = offline_cache::CacheCleaner<PtxCacheAllData>;
   offline_cache::CacheCleanerConfig config;
   config.path = cache_dir_;
@@ -157,14 +157,11 @@ void PtxCache::clean_offline_cache(
   CacheCleaner::run(config);
 }
 
-std::string PtxCache::make_filename(
-    const std::string &kernel_key) const {
-  return join_path(cache_dir_,
-                   fmt::format(kCacheFilenameFormat, kernel_key));
+std::string PtxCache::make_filename(const std::string &kernel_key) const {
+  return join_path(cache_dir_, fmt::format(kCacheFilenameFormat, kernel_key));
 }
 
-std::string PtxCache::make_cache_key(
-    const std::string &llvm_ir) const {
+std::string PtxCache::make_cache_key(const std::string &llvm_ir) const {
   picosha2::hash256_one_by_one hasher;
   std::string fast_math_str = compile_config_.fast_math ? "1" : "0";
   hasher.process(fast_math_str.begin(), fast_math_str.end());
@@ -184,8 +181,8 @@ std::optional<std::string> PtxCache::try_load_cached(
     const auto &kernels = wrapped_by_key_;
     auto iter = kernels.find(cache_key);
     if (iter != kernels.end()) {
-        std::cout << "found in memory cache "
-                  << " key " << std::endl;
+      std::cout << "found in memory cache "
+                << " key " << std::endl;
       return iter->second.ptx;
     }
   }
@@ -195,32 +192,31 @@ std::optional<std::string> PtxCache::try_load_cached(
     auto iter = wrappedDataByKey.find(cache_key);
     if (iter != wrappedDataByKey.end()) {
       auto &k = iter->second;
-        TI_DEBUG("Found in cache (key='{}')",
-                 cache_key);
-        if(k.ptx.has_value()) {
-          std::cout << "found ptx in cache key " << cache_key << std::endl;
-          // std::cout << "returning " << k.ptx.value() << std::endl;
-          return k.ptx;
-        }
-        // If the PTX is not in memory, try to load it from disk
-        std::string ptx = load_data_from_disk(cache_key);
-        k.ptx = ptx;
-        return ptx;
+      TI_DEBUG("Found in cache (key='{}')", cache_key);
+      if (k.ptx.has_value()) {
+        std::cout << "found ptx in cache key " << cache_key << std::endl;
+        // std::cout << "returning " << k.ptx.value() << std::endl;
+        return k.ptx;
+      }
+      // If the PTX is not in memory, try to load it from disk
+      std::string ptx = load_data_from_disk(cache_key);
+      k.ptx = ptx;
+      return ptx;
     }
   }
   return std::nullopt;
 }
 
-std::string PtxCache::load_data_from_disk(
-    const std::string &cache_key) {
+std::string PtxCache::load_data_from_disk(const std::string &cache_key) {
   const auto filename = make_filename(cache_key);
   if (std::ifstream ifs(filename, std::ios::in | std::ios::binary);
       ifs.is_open()) {
-    std::string ptx = std::string(
-        std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    std::string ptx = std::string(std::istreambuf_iterator<char>(ifs),
+                                  std::istreambuf_iterator<char>());
     if (!ifs) {
-      throw std::runtime_error(fmt::format("Failed to read PTX from file {}: {}", filename,
-               std::strerror(errno)));
+      throw std::runtime_error(
+          fmt::format("Failed to read PTX from file {}: {}", filename,
+                      std::strerror(errno)));
     }
     TI_DEBUG("Loaded PTX from file {} (size: {} bytes)", filename, ptx.size());
     if (ptx.empty()) {
@@ -228,13 +224,11 @@ std::string PtxCache::load_data_from_disk(
     }
     return ptx;
   }
-  throw std::runtime_error(fmt::format("Failed to load ptx file {}: {}", filename, std::strerror(errno)));
+  throw std::runtime_error(fmt::format("Failed to load ptx file {}: {}",
+                                       filename, std::strerror(errno)));
 }
 
-void PtxCache::store_ptx(
-    const std::string &llvm_ir,
-    const std::string &ptx
-) {
+void PtxCache::store_ptx(const std::string &llvm_ir, const std::string &ptx) {
   std::string cache_key = make_cache_key(llvm_ir);
   TI_DEBUG("Store PTX for cache_key {}", cache_key);
   WrappedPtx k;
@@ -246,16 +240,13 @@ void PtxCache::store_ptx(
   wrapped_by_key_[cache_key] = std::move(k);
 }
 
-std::optional<std::string> PtxCache::load_ptx(
-      const std::string &llvm_ir
-  ) {
+std::optional<std::string> PtxCache::load_ptx(const std::string &llvm_ir) {
   auto cache_mode = get_cache_mode(compile_config_);
   std::string cache_key = make_cache_key(llvm_ir);
   return try_load_cached(cache_key, cache_mode);
 }
 
-CacheMode PtxCache::get_cache_mode(
-    const CompileConfig &compile_config) {
+CacheMode PtxCache::get_cache_mode(const CompileConfig &compile_config) {
   return CacheMode::MemAndDiskCache;
 }
 

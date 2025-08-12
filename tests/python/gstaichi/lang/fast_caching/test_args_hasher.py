@@ -1,8 +1,11 @@
 import dataclasses
-import gstaichi as ti
-from tests import test_utils
+
 import numpy as np
-from gstaichi.lang.fast_caching import args_hasher, FIELD_METADATA_CACHE_VALUE
+
+import gstaichi as ti
+from gstaichi.lang.fast_caching import FIELD_METADATA_CACHE_VALUE, args_hasher
+
+from tests import test_utils
 
 
 @test_utils.test()
@@ -22,8 +25,7 @@ def test_args_hasher_numeric() -> None:
 @test_utils.test()
 def test_args_hasher_unsupported_data_oriented() -> None:
     @ti.data_oriented
-    class Foo:
-        ...
+    class Foo: ...
 
     foo = Foo()
     assert args_hasher.hash_args([foo]) is None
@@ -200,6 +202,7 @@ def test_cache_values_unchecked() -> None:
     Should we consider two dataclasses with same fields but different name as different?
     Considering them to be the same makes testing easier for now...
     """
+
     @dataclasses.dataclass
     class MyConfigNoChecked:
         some_int_unchecked: int

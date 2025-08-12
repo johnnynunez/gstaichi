@@ -35,7 +35,7 @@ class ProgramImpl {
   explicit ProgramImpl(CompileConfig &config);
 
   class NeedsFinalizing {
-    public:
+   public:
     virtual void finalize() = 0;
   };
 

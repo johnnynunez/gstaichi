@@ -2,9 +2,9 @@
 
 import ast
 import builtins
+import dataclasses
 import traceback
 from enum import Enum
-import dataclasses
 from textwrap import TextWrapper
 from typing import TYPE_CHECKING, Any, List
 

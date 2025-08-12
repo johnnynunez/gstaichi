@@ -20,7 +20,7 @@ class KernelLauncher {
 
   virtual ~KernelLauncher() = default;
 
-protected:
+ protected:
   const ProgramImpl *program_impl_;
 };
 

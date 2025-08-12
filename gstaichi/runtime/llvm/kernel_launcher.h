@@ -14,7 +14,8 @@ class KernelLauncher : public lang::KernelLauncher {
     LlvmRuntimeExecutor *executor{nullptr};
   };
 
-  explicit KernelLauncher(Config config, const gstaichi::lang::ProgramImpl *program_impl);
+  explicit KernelLauncher(Config config,
+                          const gstaichi::lang::ProgramImpl *program_impl);
 
   void launch_kernel(const lang::CompiledKernelData &compiled_kernel_data,
                      LaunchContextBuilder &ctx) override;

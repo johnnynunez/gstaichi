@@ -1,13 +1,14 @@
 import json
 from typing import Any, Iterable, Sequence
-from . import args_hasher, function_hasher, config_hasher
-from gstaichi.lang import impl
-from .fast_caching_types import FunctionSourceInfo, HashedFunctionSourceInfo
-from gstaichi.lang import impl
-from .hash_utils import hash_string
-from .pyside_cache import PysideCache
+
 from pydantic import BaseModel
 
+from gstaichi.lang import impl
+
+from . import args_hasher, config_hasher, function_hasher
+from .fast_caching_types import FunctionSourceInfo, HashedFunctionSourceInfo
+from .hash_utils import hash_string
+from .pyside_cache import PysideCache
 
 
 def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]) -> str | None:

@@ -1,7 +1,9 @@
 from typing import Any, Generic, TypeVar
+
 from gstaichi.types import primitive_types
 
 T = TypeVar("T")
+
 
 class Template(Generic[T]):
     """Type annotation for template kernel parameter.

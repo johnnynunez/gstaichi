@@ -124,19 +124,19 @@ TypeFactory &Program::get_type_factory() {
 }
 
 void Program::store_fast_cache(const std::string &checksum,
-  const Kernel &kernel,
-    const CompileConfig &compile_config,
-    const DeviceCapabilityConfig &caps,
-                     CompiledKernelData &ckd) {
+                               const Kernel &kernel,
+                               const CompileConfig &compile_config,
+                               const DeviceCapabilityConfig &caps,
+                               CompiledKernelData &ckd) {
   auto &mgr = program_impl_->get_kernel_compilation_manager();
   mgr.store_fast_cache(checksum, kernel, compile_config, caps, ckd);
 }
 
 const CompiledKernelData *Program::load_fast_cache(
-      const std::string &checksum,
-      const std::string &kernel_name,
-      const CompileConfig &compile_config,
-      const DeviceCapabilityConfig &caps) {
+    const std::string &checksum,
+    const std::string &kernel_name,
+    const CompileConfig &compile_config,
+    const DeviceCapabilityConfig &caps) {
   auto &mgr = program_impl_->get_kernel_compilation_manager();
   return mgr.load_fast_cache(checksum, kernel_name, compile_config, caps);
 }
@@ -150,8 +150,8 @@ Function *Program::create_function(const FunctionKey &func_key) {
 }
 
 Kernel &Program::create_kernel(const std::function<void(Kernel *)> &body,
-                const std::string &name,
-                AutodiffMode autodiff_mode) {
+                               const std::string &name,
+                               AutodiffMode autodiff_mode) {
   // Expr::set_allow_store(true);
   auto func = std::make_unique<Kernel>(*this, body, name, autodiff_mode);
   // Expr::set_allow_store(false);

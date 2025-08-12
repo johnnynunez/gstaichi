@@ -1,5 +1,7 @@
 import os
+
 from gstaichi.lang import impl
+
 
 class PysideCache:
     def __init__(self) -> None:
@@ -17,7 +19,7 @@ class PysideCache:
         to keep the cache automatically clean.
         No need for metadata and stuff :)
         """
-        with open(filepath, 'a'):
+        with open(filepath, "a"):
             os.utime(filepath, None)
 
     def store(self, key: str, value: str) -> None:
@@ -25,7 +27,7 @@ class PysideCache:
         with open(filepath, "w") as f:
             f.write(value)
 
-    def try_load(self, key:str) -> str | None:
+    def try_load(self, key: str) -> str | None:
         filepath = self._get_filepath(key)
         if not os.path.isfile(filepath):
             return None

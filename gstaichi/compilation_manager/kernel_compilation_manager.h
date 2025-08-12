@@ -75,18 +75,16 @@ class KernelCompilationManager final {
                            int max_bytes,
                            double cleaning_factor) const;
 
-  void store_fast_cache(
-    const std::string &checksum,
-    const Kernel &kernel,
-    const CompileConfig &compile_config,
-    const DeviceCapabilityConfig &caps,
-    CompiledKernelData &ckd);
+  void store_fast_cache(const std::string &checksum,
+                        const Kernel &kernel,
+                        const CompileConfig &compile_config,
+                        const DeviceCapabilityConfig &caps,
+                        CompiledKernelData &ckd);
 
-  const CompiledKernelData *load_fast_cache(
-    const std::string &checksum,
-    const std::string &kernel_name,
-    const CompileConfig &compile_config,
-    const DeviceCapabilityConfig &caps);
+  const CompiledKernelData *load_fast_cache(const std::string &checksum,
+                                            const std::string &kernel_name,
+                                            const CompileConfig &compile_config,
+                                            const DeviceCapabilityConfig &caps);
 
  private:
   std::string make_filename(const std::string &kernel_key) const;
@@ -119,8 +117,7 @@ class KernelCompilationManager final {
   static CacheData::CacheMode get_cache_mode(
       const CompileConfig &compile_config,
       // const Kernel &kernel_def
-      bool kernel_ir_is_ast
-  );
+      bool kernel_ir_is_ast);
 
   Config config_;
   CachingKernels caching_kernels_;

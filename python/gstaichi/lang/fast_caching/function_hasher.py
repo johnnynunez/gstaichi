@@ -1,9 +1,10 @@
 import os
-from .fast_caching_types import HashedFunctionSourceInfo
-from gstaichi.lang._wrap_inspect import FunctionSourceInfo
-from typing import Iterable, TYPE_CHECKING
-from .hash_utils import hash_string
+from typing import TYPE_CHECKING, Iterable
 
+from gstaichi.lang._wrap_inspect import FunctionSourceInfo
+
+from .fast_caching_types import HashedFunctionSourceInfo
+from .hash_utils import hash_string
 
 if TYPE_CHECKING:
     from gstaichi.lang.kernel_impl import GsTaichiCallable
@@ -17,7 +18,7 @@ def pure(fn: "GsTaichiCallable") -> "GsTaichiCallable":
 def _hash_function(function_info: FunctionSourceInfo) -> str:
     with open(function_info.filepath) as f:
         contents = f.read().split("\n")
-    lines = contents[function_info.start_lineno: function_info.end_lineno]
+    lines = contents[function_info.start_lineno : function_info.end_lineno]
     _hash = hash_string("\n".join(lines))
     return _hash
 
@@ -35,7 +36,7 @@ def hash_kernel(kernel_info: FunctionSourceInfo) -> str:
 
 
 def dump_stats() -> None:
-    print('function hasher dump stats')
+    print("function hasher dump stats")
 
 
 def _validate_hashed_function_info(hashed_function_info: HashedFunctionSourceInfo) -> bool:

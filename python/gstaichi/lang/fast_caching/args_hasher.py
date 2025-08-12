@@ -2,15 +2,17 @@ import dataclasses
 import enum
 import time
 from typing import Any, Sequence
-import numpy as np
-from gstaichi.lang._ndarray import ScalarNdarray
-from gstaichi.lang.matrix import VectorNdarray, MatrixNdarray, MatrixField
-from gstaichi.lang.field import ScalarField
-from gstaichi.lang.util import is_data_oriented
-from gstaichi.lang.fast_caching import FIELD_METADATA_CACHE_VALUE
-import torch
-from .hash_utils import hash_string
 
+import numpy as np
+import torch
+
+from gstaichi.lang._ndarray import ScalarNdarray
+from gstaichi.lang.fast_caching import FIELD_METADATA_CACHE_VALUE
+from gstaichi.lang.field import ScalarField
+from gstaichi.lang.matrix import MatrixField, MatrixNdarray, VectorNdarray
+from gstaichi.lang.util import is_data_oriented
+
+from .hash_utils import hash_string
 
 g_num_calls = 0
 g_num_args = 0
