@@ -10,11 +10,9 @@ from gstaichi.lang.fast_caching.fast_caching_types import HashedFunctionSourceIn
 
 
 @test_utils.test()
-def test_function_hasher_hash_kernel() -> None:
-    import sys
+def test_function_hasher_hash_kernel(monkeypatch) -> None:
     test_files_path = "tests/python/gstaichi/lang/fast_caching/test_files"
-    if test_files_path not in sys.path:
-        sys.path.append(test_files_path)
+    monkeypatch.syspath_prepend(test_files_path)
 
     def get_hash(name: str) -> _wrap_inspect.FunctionSourceInfo:
         mod = importlib.import_module(name)
@@ -30,15 +28,11 @@ def test_function_hasher_hash_kernel() -> None:
     assert f1_base_hash == f1_same_hash
     assert f1_base_hash != f1_diff_hash
 
-    sys.path.remove(test_files_path)
-
 
 @test_utils.test()
-def test_function_hasher_hash_functions() -> None:
-    import sys
+def test_function_hasher_hash_functions(monkeypatch) -> None:
     test_files_path = "tests/python/gstaichi/lang/fast_caching/test_files"
-    if test_files_path not in sys.path:
-        sys.path.append(test_files_path)
+    monkeypatch.syspath_prepend(test_files_path)
 
     def get_infos(name: str) -> list[HashedFunctionSourceInfo]:
         mod = importlib.import_module(name)
@@ -55,14 +49,11 @@ def test_function_hasher_hash_functions() -> None:
     assert f1_base_hashed_infos[0].hash == f1_same_hashed_infos[0].hash
     assert f1_base_hashed_infos[0].hash != f1_diff_hashed_infos[0].hash
 
-    sys.path.remove(test_files_path)
-
 
 @test_utils.test()
-def test_function_hasher_validate_hashed_function_infos(tmp_path: pathlib.Path) -> None:
-    import sys
+def test_function_hasher_validate_hashed_function_infos(monkeypatch, tmp_path: pathlib.Path) -> None:
     test_files_path = pathlib.Path("tests/python/gstaichi/lang/fast_caching/test_files")
-    sys.path.append(str(tmp_path))
+    monkeypatch.syspath_prepend(str(tmp_path))
 
     def setup_folder(filename: str) -> None:
         shutil.copy2(test_files_path / filename, tmp_path / "child_diff.py")
@@ -89,5 +80,3 @@ def test_function_hasher_validate_hashed_function_infos(tmp_path: pathlib.Path) 
 
     setup_folder("child_diff_same.py")
     assert function_hasher.validate_hashed_function_infos(hashed_fileinfos)
-
-    sys.path.remove(str(tmp_path))
