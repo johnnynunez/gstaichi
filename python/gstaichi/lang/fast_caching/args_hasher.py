@@ -1,3 +1,4 @@
+import dataclasses
 import enum
 import time
 from typing import Any, Sequence
@@ -6,6 +7,7 @@ from gstaichi.lang._ndarray import ScalarNdarray
 from gstaichi.lang.matrix import VectorNdarray, MatrixNdarray, MatrixField
 from gstaichi.lang.field import ScalarField
 from gstaichi.lang.util import is_data_oriented
+from gstaichi.lang.fast_caching import FIELD_METADATA_CACHE_VALUE
 import torch
 from .hash_utils import hash_string
 
@@ -15,6 +17,18 @@ g_num_args = 0
 g_hashing_time = 0
 g_repr_time = 0
 g_num_ignored_calls = 0
+
+
+def dataclass_to_repr(arg: Any) -> str:
+    repr_l = []
+    for field in dataclasses.fields(arg):
+        child_value = getattr(arg, field.name)
+        _repr = to_representative_str(child_value)
+        full_repr = f"{field.name}: ({_repr})"
+        if field.metadata.get(FIELD_METADATA_CACHE_VALUE, False):
+            full_repr += f" = {child_value}"
+        repr_l.append(full_repr)
+    return "[" + ",".join(repr_l) + "]"
 
 
 def to_representative_str(arg: Any) -> str | None:
@@ -38,6 +52,8 @@ def to_representative_str(arg: Any) -> str | None:
         return f"[np-{arg.dtype}-{arg.ndim}]"
     if isinstance(arg, MatrixField):
         return f"[fm-{arg.m}-{arg.n}-{arg.snode._id}-{arg.dtype}-{arg.shape}]"
+    if dataclasses.is_dataclass(arg):
+        return dataclass_to_repr(arg)
     if is_data_oriented(arg):
         child_repr_l = []
         for k, v in arg.__dict__.items():

@@ -1,9 +1,10 @@
+import dataclasses
 from typing import Any
 import gstaichi as ti
 from tests import test_utils
 import numpy as np
 import pytest
-from gstaichi.lang.fast_caching import args_hasher
+from gstaichi.lang.fast_caching import args_hasher, FIELD_METADATA_CACHE_VALUE
 
 
 @test_utils.test()
@@ -82,6 +83,7 @@ def test_args_hasher_ndarray_matrix() -> None:
 
 
 def _ti_init_same_arch() -> None:
+    assert ti.cfg is not None
     ti.init(arch=getattr(ti, ti.cfg.arch.name))
 
 
@@ -192,3 +194,49 @@ def test_args_hasher_field_vs_ndarray() -> None:
     assert ndarray_hash is not None
     assert field_hash is not None
     assert ndarray_hash != field_hash
+
+
+@test_utils.test()
+def test_cache_values_unchecked() -> None:
+    """
+    Should we consider two dataclasses with same fields but different name as different?
+    Considering them to be the same makes testing easier for now...
+    """
+    @dataclasses.dataclass
+    class MyConfigNoChecked:
+        some_int_unchecked: int
+
+    @dataclasses.dataclass
+    class MyConfigNoCheckedSame:
+        some_int_unchecked: int
+
+    @dataclasses.dataclass
+    class MyConfigNoCheckedDiff:
+        some_int_new: int
+
+    base = MyConfigNoChecked(some_int_unchecked=3)
+    same = MyConfigNoCheckedSame(some_int_unchecked=6)
+    diff = MyConfigNoCheckedDiff(some_int_new=3)
+
+    h = args_hasher.hash_args
+    h_base = h([base])
+    assert h_base is not None
+    assert h_base == h([same])
+    assert h_base != h([diff])
+
+
+@test_utils.test()
+def test_cache_values_checked() -> None:
+    @dataclasses.dataclass
+    class MyConfigChecked:
+        some_int_checked: int = dataclasses.field(metadata={FIELD_METADATA_CACHE_VALUE: True})
+
+    base = MyConfigChecked(some_int_checked=5)
+    same = MyConfigChecked(some_int_checked=5)
+    diff = MyConfigChecked(some_int_checked=7)
+
+    h = args_hasher.hash_args
+    h_base = h([base])
+    assert h_base is not None
+    assert h_base == h([same])
+    assert h_base != h([diff])
