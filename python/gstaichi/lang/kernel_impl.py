@@ -745,21 +745,16 @@ class Kernel:
         self.fast_checksum = None
 
         if key in self.materialized_kernels:
-            # print('py materialize() found key in materialized kernels')
             return
 
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
                 kernel_source_info, _src = get_source_info_and_src(self.func)
                 self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
-                # checksum_ok = False
                 checksum_validated = False
                 if self.fast_checksum:
                     checksum_validated = src_hasher.validate_cache_key(self.fast_checksum)
-                # if checksum_ok:
-                #     self.fast_checksum = _maybe_fast_checksum
                 if self.fast_checksum and checksum_validated:
-                    # print("materialize() fast checksum", self.fast_checksum, "checksum validated")
                     prog = impl.get_runtime().prog
                     self.compiled_kernel_data = prog.load_fast_cache(
                         self.fast_checksum,
@@ -775,7 +770,6 @@ class Kernel:
             pass
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
-        # print("materializing kernel", kernel_name)
         _logging.trace(f"Materializing kernel {kernel_name} in {self.autodiff_mode}...")
 
         tree, ctx = _get_tree_and_ctx(
@@ -1178,24 +1172,9 @@ class Kernel:
 
         try:
             prog = impl.get_runtime().prog
-            # Compile kernel (& Online Cache & Offline Cache)
             if not self.compiled_kernel_data:
-                # print("py kernel_impl.py no compiled kernel data => calling prog.compile_kernel")
                 self.compiled_kernel_data = prog.compile_kernel(prog.config(), prog.get_device_caps(), t_kernel)
-                # print("===================================")
-                # for v in self.visited_functions:
-                #     print(v)
-                assert self.kernel_function_info is not None
-                kernel_hash = hash_functions([self.kernel_function_info])
-                tree_hash = hash_functions(self.visited_functions)
-                # print('kernel_hash', kernel_hash)
-                # print('tree_hash', tree_hash)
-                # for i, h in tree_hash:
-                #     print(i, h)
-                # print("===================================")
-                # asdfasdf
                 if self.fast_checksum:
-                    print("storing to fast cache", self.fast_checksum)
                     src_hasher.store(self.fast_checksum, self.visited_functions)
                     prog.store_fast_cache(
                         self.fast_checksum,
@@ -1204,17 +1183,7 @@ class Kernel:
                         prog.get_device_caps(),
                         self.compiled_kernel_data
                     )
-            # else:
-                # print("using ckd from warm cache")
-            # prog.dump_cache_data_to_disk()
-            # Launch kernel
-            # print("launching...")
-            gstaichi.lang.sync()
-            start_prog_launch_kernel = time.time()
             prog.launch_kernel(self.compiled_kernel_data, launch_ctx)
-            gstaichi.lang.sync()
-            # print("time prog.launch_kernel", time.time() - start_prog_launch_kernel)
-            # print("... launched")
         except Exception as e:
             e = handle_exception_from_cpp(e)
             if impl.get_runtime().print_full_traceback:
