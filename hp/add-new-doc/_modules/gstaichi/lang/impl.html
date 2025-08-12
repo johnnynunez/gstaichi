@@ -320,6 +320,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._lib.core.gstaichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DataTypeCxx</span><span class="p">,</span>
     <span class="n">Function</span><span class="p">,</span>
+    <span class="n">KernelCxx</span><span class="p">,</span>
     <span class="n">Program</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._snode.fields_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldsBuilder</span>
@@ -382,17 +383,14 @@
 
 <span class="nd">@gstaichi_scope</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">expr_init_shared_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">element_type</span><span class="p">):</span>
-    <span class="n">compiling_callable</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span>
-    <span class="k">assert</span> <span class="n">compiling_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span><span class="o">.</span><span class="n">expr_alloca_shared_array</span><span class="p">(</span>
-        <span class="n">shape</span><span class="p">,</span> <span class="n">element_type</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
-    <span class="p">)</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">debug_info</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">ast_builder</span><span class="o">.</span><span class="n">expr_alloca_shared_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">element_type</span><span class="p">,</span> <span class="n">debug_info</span><span class="p">)</span>
 
 
 <span class="nd">@gstaichi_scope</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">expr_init</span><span class="p">(</span><span class="n">rhs</span><span class="p">):</span>
     <span class="n">compiling_callable</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span>
-    <span class="k">assert</span> <span class="n">compiling_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">rhs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Expr</span><span class="p">(</span>
             <span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span><span class="o">.</span><span class="n">expr_alloca</span><span class="p">(</span><span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">()))</span>
@@ -506,9 +504,7 @@
 <span class="nd">@gstaichi_scope</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">subscript</span><span class="p">(</span><span class="n">ast_builder</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">_indices</span><span class="p">,</span> <span class="n">skip_reordered</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">dbg_info</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
-    <span class="n">compiling_callable</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span>
-    <span class="k">assert</span> <span class="n">compiling_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
     <span class="c1"># Directly evaluate in Python for non-GsTaichi types</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
         <span class="n">value</span><span class="p">,</span>
@@ -649,8 +645,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_prog</span><span class="p">:</span> <span class="n">Program</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">src_info_stack</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inside_kernel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">compiling_callable</span><span class="p">:</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="n">Function</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># pointer to instance of lang::Kernel/Function</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_current_kernel</span><span class="p">:</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compiling_callable</span><span class="p">:</span> <span class="n">KernelCxx</span> <span class="o">|</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="n">Function</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_kernel</span><span class="p">:</span> <span class="s2">&quot;Kernel | None&quot;</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_vars</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grad_vars</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span> <span class="o">=</span> <span class="p">[]</span>
@@ -665,6 +661,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span> <span class="o">=</span> <span class="n">kernels</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_signal_handler_registry</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unfinalized_fields_builder</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compiling_callable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KernelCxx</span> <span class="o">|</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="n">Function</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiling_callable</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GsTaichiRuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;_compiling_callable attribute not initialized. Maybe you forgot to call `ti.init()` first?&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compiling_callable</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">prog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Program</span><span class="p">:</span>
@@ -1292,11 +1296,9 @@
 
     <span class="n">_vars</span> <span class="o">=</span> <span class="n">add_separators</span><span class="p">(</span><span class="n">_vars</span><span class="p">)</span>
     <span class="n">contents</span><span class="p">,</span> <span class="n">formats</span> <span class="o">=</span> <span class="n">ti_format_list_to_content_entries</span><span class="p">(</span><span class="n">_vars</span><span class="p">)</span>
-    <span class="n">compiling_callable</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span>
-    <span class="k">assert</span> <span class="n">compiling_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span><span class="o">.</span><span class="n">create_print</span><span class="p">(</span>
-        <span class="n">contents</span><span class="p">,</span> <span class="n">formats</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
-    <span class="p">)</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">debug_info</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
+    <span class="n">ast_builder</span><span class="o">.</span><span class="n">create_print</span><span class="p">(</span><span class="n">contents</span><span class="p">,</span> <span class="n">formats</span><span class="p">,</span> <span class="n">debug_info</span><span class="p">)</span>
 
 
 <span class="nd">@gstaichi_scope</span>
@@ -1326,9 +1328,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">ti_assert</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">,</span> <span class="n">dbg_info</span><span class="p">):</span>
     <span class="c1"># Mostly a wrapper to help us convert from Expr (defined in Python) to</span>
     <span class="c1"># _ti_core.Expr (defined in C++)</span>
-    <span class="n">compiling_callable</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span>
-    <span class="k">assert</span> <span class="n">compiling_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span><span class="o">.</span><span class="n">create_assert_stmt</span><span class="p">(</span><span class="n">Expr</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">ptr</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">,</span> <span class="n">dbg_info</span><span class="p">)</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">ast_builder</span><span class="o">.</span><span class="n">create_assert_stmt</span><span class="p">(</span><span class="n">Expr</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">ptr</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">,</span> <span class="n">dbg_info</span><span class="p">)</span>
 
 
 <span class="nd">@gstaichi_scope</span>
