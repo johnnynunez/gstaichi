@@ -38,7 +38,7 @@ def dump_stats() -> None:
     print('function hasher dump stats')
 
 
-def validate_hashed_function_info(hashed_function_info: HashedFunctionSourceInfo) -> bool:
+def _validate_hashed_function_info(hashed_function_info: HashedFunctionSourceInfo) -> bool:
     """
     Checks the hash
     """
@@ -46,3 +46,10 @@ def validate_hashed_function_info(hashed_function_info: HashedFunctionSourceInfo
         return False
     _hash = _hash_function(hashed_function_info.function_source_info)
     return _hash == hashed_function_info.hash
+
+
+def validate_hashed_function_infos(function_infos: Iterable[HashedFunctionSourceInfo]) -> bool:
+    for function_info in function_infos:
+        if not _validate_hashed_function_info(function_info):
+            return False
+    return True

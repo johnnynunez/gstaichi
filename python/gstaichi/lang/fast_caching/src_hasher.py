@@ -71,10 +71,7 @@ def validate_cache_key(cache_key: str) -> bool:
     maybe_hashed_function_source_infos = try_load(cache_key)
     if not maybe_hashed_function_source_infos:
         return False
-    for function_info in maybe_hashed_function_source_infos:
-        if not function_hasher.validate_hashed_function_info(function_info):
-            return False
-    return True
+    return function_hasher.validate_hashed_function_infos(maybe_hashed_function_source_infos)
 
 
 def dump_stats() -> None:
