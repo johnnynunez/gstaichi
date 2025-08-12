@@ -183,4 +183,7 @@ def test_function_hasher_validate_hashed_function_infos(tmp_path: pathlib.Path) 
     setup_folder("child_diff_diff.py")
     assert not function_hasher.validate_hashed_function_infos(hashed_fileinfos)
 
+    setup_folder("child_diff_same.py")
+    assert function_hasher.validate_hashed_function_infos(hashed_fileinfos)
+
     sys.path.remove(str(tmp_path))
