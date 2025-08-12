@@ -151,7 +151,7 @@ Module Contents
 
 
 
-.. py:class:: ASTTransformerContext(excluded_parameters, end_lineno: int, is_kernel: bool, func: Func | Kernel, arg_features, global_vars: dict[str, Any], argument_data, file: str, src: list[str], start_lineno: int, ast_builder: gstaichi._lib.core.gstaichi_python.ASTBuilder | None, is_real_function: bool)
+.. py:class:: ASTTransformerContext(excluded_parameters, end_lineno: int, is_kernel: bool, func: Func | Kernel, arg_features: list[tuple[Any, Ellipsis]], global_vars: dict[str, Any], argument_data, file: str, src: list[str], start_lineno: int, ast_builder: gstaichi._lib.core.gstaichi_python.ASTBuilder | None, is_real_function: bool)
 
    .. py:attribute:: func
 
