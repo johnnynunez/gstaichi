@@ -1195,6 +1195,7 @@ class Kernel:
                 # asdfasdf
                 if self.fast_checksum:
                     # print("storing to fast cache", self.fast_checksum)
+                    src_hasher.store(self.fast_checksum, self.visited_functions)
                     prog.store_fast_cache(
                         self.fast_checksum,
                         self.kernel_cpp,

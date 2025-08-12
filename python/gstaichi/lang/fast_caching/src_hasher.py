@@ -1,5 +1,5 @@
 import json
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Iterable, Sequence
 from . import args_hasher, function_hasher
 from gstaichi.lang import impl
 from .fast_caching_types import FunctionSourceInfo, HashedFunctionSourceInfo
@@ -12,22 +12,22 @@ from pydantic import BaseModel
 
 
 
-def hash_source(kernel_source_info: FunctionSourceInfo, function_source_infos: Sequence[FunctionSourceInfo], args: Sequence[Any]) -> str | None:
-    """
-    create a cache key from kernel_source_info, function_source_infos and args, if possible (ie no args that violate constraints etc)
-    if anything about the function or args violates enforced constraints, then return None instead
-    of cache key
+# def hash_source(kernel_source_info: FunctionSourceInfo, function_source_infos: Sequence[FunctionSourceInfo], args: Sequence[Any]) -> str | None:
+#     """
+#     create a cache key from kernel_source_info, function_source_infos and args, if possible (ie no args that violate constraints etc)
+#     if anything about the function or args violates enforced constraints, then return None instead
+#     of cache key
 
-    This function will get hash values for each of the fucntion source infos, and store these in a python side
-    cache, for verifiaction later
-    """
-    cache_key = create_cache_key(kernel_source_info, args)
-    if not cache_key:
-        return None
-    hashed_function_infos = function_hasher.hash_functions(function_source_infos)
-    store(kernel_source_info, args, hashed_function_infos)
-    print("cache_key", cache_key)
-    return cache_key
+#     This function will get hash values for each of the fucntion source infos, and store these in a python side
+#     cache, for verifiaction later
+#     """
+#     cache_key = create_cache_key(kernel_source_info, args)
+#     if not cache_key:
+#         return None
+#     hashed_function_infos = function_hasher.hash_functions(function_source_infos)
+#     store(kernel_source_info, args, hashed_function_infos)
+#     print("cache_key", cache_key)
+#     return cache_key
 
 
 # def hash_source(fn: Callable, args: Sequence[Any]) -> str | None:
@@ -60,11 +60,11 @@ def create_cache_key(kernel_source_info: FunctionSourceInfo, args: Sequence[Any]
 
 
 class CacheValue(BaseModel):
-    kernel_source_info: FunctionSourceInfo
+    # kernel_source_info: FunctionSourceInfo
     hashed_function_source_infos: list[HashedFunctionSourceInfo]
 
 
-def store(kernel_source_info: FunctionSourceInfo, args: Sequence[Any], hashed_function_source_infos: Sequence[HashedFunctionSourceInfo]) -> None:
+def store(cache_key: str, function_source_infos: Iterable[FunctionSourceInfo]) -> None:
     """
     Note that unlike other caches, this cache is not going to store the actual value we want. This cache is only used for verification
     that our cache key is valid. Big picture:
@@ -75,11 +75,12 @@ def store(kernel_source_info: FunctionSourceInfo, args: Sequence[Any], hashed_fu
     - the python side cache contains information we will use to verify that our cache key is valid
         - ie the list of function source infos
     """
-    cache_key = create_cache_key(kernel_source_info, args)
+    # cache_key = create_cache_key(kernel_source_info, args)
     if not cache_key:
         return
     cache = PysideCache()
-    cache_value_obj = CacheValue(kernel_source_info=kernel_source_info, hashed_function_source_infos=list(hashed_function_source_infos))
+    hashed_function_source_infos = function_hasher.hash_functions(function_source_infos)
+    cache_value_obj = CacheValue(hashed_function_source_infos=list(hashed_function_source_infos))
     cache_value_json = cache_value_obj.json()
     cache.store(cache_key, cache_value_json)
 
