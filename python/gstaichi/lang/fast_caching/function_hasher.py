@@ -14,7 +14,6 @@ def pure(fn: "GsTaichiCallable") -> "GsTaichiCallable":
 
 def hash_functions(function_infos: Iterable[FunctionSourceInfo]) -> list[tuple[FunctionSourceInfo, str]]:
     results = []
-    print("len(function_infos)", len(function_infos))
     for f_info in function_infos:
         # print('-------------------------')
         with open(f_info.filepath) as f:
@@ -26,4 +25,5 @@ def hash_functions(function_infos: Iterable[FunctionSourceInfo]) -> list[tuple[F
         _hash = hashlib.sha256("\n".join(lines).encode('utf-8')).hexdigest()
         print(f_info.function_name, _hash)
         results.append((f_info, _hash))
+    print("len(function_infos)", len(results))
     return results
