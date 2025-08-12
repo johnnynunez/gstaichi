@@ -383,11 +383,9 @@
 
 <span class="nd">@gstaichi_scope</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">expr_init_shared_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">element_type</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="n">get_runtime</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">expr_alloca_shared_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">element_type</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">()))</span>
-    <span class="p">)</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">debug_info</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">ast_builder</span><span class="o">.</span><span class="n">expr_alloca_shared_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">element_type</span><span class="p">,</span> <span class="n">debug_info</span><span class="p">)</span>
 
 
 <span class="nd">@gstaichi_scope</span>
@@ -1298,9 +1296,9 @@
 
     <span class="n">_vars</span> <span class="o">=</span> <span class="n">add_separators</span><span class="p">(</span><span class="n">_vars</span><span class="p">)</span>
     <span class="n">contents</span><span class="p">,</span> <span class="n">formats</span> <span class="o">=</span> <span class="n">ti_format_list_to_content_entries</span><span class="p">(</span><span class="n">_vars</span><span class="p">)</span>
-    <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span><span class="o">.</span><span class="n">create_print</span><span class="p">(</span>
-        <span class="n">contents</span><span class="p">,</span> <span class="n">formats</span><span class="p">,</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
-    <span class="p">)</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">debug_info</span> <span class="o">=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">DebugInfo</span><span class="p">(</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">get_current_src_info</span><span class="p">())</span>
+    <span class="n">ast_builder</span><span class="o">.</span><span class="n">create_print</span><span class="p">(</span><span class="n">contents</span><span class="p">,</span> <span class="n">formats</span><span class="p">,</span> <span class="n">debug_info</span><span class="p">)</span>
 
 
 <span class="nd">@gstaichi_scope</span>
@@ -1330,7 +1328,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">ti_assert</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">,</span> <span class="n">dbg_info</span><span class="p">):</span>
     <span class="c1"># Mostly a wrapper to help us convert from Expr (defined in Python) to</span>
     <span class="c1"># _ti_core.Expr (defined in C++)</span>
-    <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span><span class="o">.</span><span class="n">create_assert_stmt</span><span class="p">(</span><span class="n">Expr</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">ptr</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">,</span> <span class="n">dbg_info</span><span class="p">)</span>
+    <span class="n">ast_builder</span> <span class="o">=</span> <span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">ast_builder</span><span class="p">()</span>
+    <span class="n">ast_builder</span><span class="o">.</span><span class="n">create_assert_stmt</span><span class="p">(</span><span class="n">Expr</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">ptr</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">,</span> <span class="n">dbg_info</span><span class="p">)</span>
 
 
 <span class="nd">@gstaichi_scope</span>

@@ -572,11 +572,11 @@
     <span class="n">py_args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    inject template parameters into globals</span>
+<span class="sd">    Inject template parameters into globals</span>
 
-<span class="sd">    globals are being abused to store the python objects associated</span>
-<span class="sd">    with templates. we continue this approach, and in addition this function</span>
-<span class="sd">    handles injecting expanded python variables from dataclasses</span>
+<span class="sd">    Globals are being abused to store the python objects associated</span>
+<span class="sd">    with templates. We continue this approach, and in addition this function</span>
+<span class="sd">    handles injecting expanded python variables from dataclasses.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">template_slot_locations</span><span class="p">:</span>
         <span class="n">template_var_name</span> <span class="o">=</span> <span class="n">argument_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
@@ -636,10 +636,6 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_process_args</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Func | Kernel&quot;</span><span class="p">,</span> <span class="n">is_func</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    used for both Func and Kernel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">is_func</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span> <span class="o">=</span> <span class="n">_kernel_impl_dataclass</span><span class="o">.</span><span class="n">expand_func_arguments</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">)</span>
 
@@ -647,7 +643,7 @@
     <span class="n">len_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">len_args</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">fused_args</span><span class="p">):</span>
-        <span class="n">arg_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">arg_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
         <span class="n">expected_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">annotation</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">)</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Too many arguments. Expected (</span><span class="si">{</span><span class="n">expected_str</span><span class="si">}</span><span class="s2">), got (</span><span class="si">{</span><span class="n">arg_str</span><span class="si">}</span><span class="s2">).&quot;</span>
         <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
