@@ -751,14 +751,15 @@ class Kernel:
         if self.gstaichi_callable:
             if self.gstaichi_callable.is_pure:
                 kernel_source_info, _src = get_source_info_and_src(self.func)
-                _maybe_fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
-                checksum_ok = False
-                if _maybe_fast_checksum:
-                    checksum_ok = src_hasher.validate_cache_key(_maybe_fast_checksum)
-                if checksum_ok:
-                    self.fast_checksum = _maybe_fast_checksum
-                print("materialize() fast checksum", self.fast_checksum)
+                self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
+                # checksum_ok = False
+                checksum_validated = False
                 if self.fast_checksum:
+                    checksum_validated = src_hasher.validate_cache_key(self.fast_checksum)
+                # if checksum_ok:
+                #     self.fast_checksum = _maybe_fast_checksum
+                if self.fast_checksum and checksum_validated:
+                    # print("materialize() fast checksum", self.fast_checksum, "checksum validated")
                     prog = impl.get_runtime().prog
                     self.compiled_kernel_data = prog.load_fast_cache(
                         self.fast_checksum,
@@ -1194,7 +1195,7 @@ class Kernel:
                 # print("===================================")
                 # asdfasdf
                 if self.fast_checksum:
-                    # print("storing to fast cache", self.fast_checksum)
+                    print("storing to fast cache", self.fast_checksum)
                     src_hasher.store(self.fast_checksum, self.visited_functions)
                     prog.store_fast_cache(
                         self.fast_checksum,
