@@ -694,15 +694,6 @@ between corresponding items can be performed.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gstaichi.lang.struct.StructField.from_paddle">
-<span class="sig-name descname"><span class="pre">from_paddle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/gstaichi/lang/struct.html#StructField.from_paddle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.lang.struct.StructField.from_paddle" title="Link to this definition">#</a></dt>
-<dd><p>Copies the data from a set of <cite>paddle.Tensor</cite> into this field.</p>
-<p>The argument <cite>array_dict</cite> must be a dictionay-like object, it
-contains all the keys in this field and the copying process
-between corresponding items can be performed.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="gstaichi.lang.struct.StructField.to_numpy">
 <span class="sig-name descname"><span class="pre">to_numpy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/gstaichi/lang/struct.html#StructField.to_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.lang.struct.StructField.to_numpy" title="Link to this definition">#</a></dt>
 <dd><p>Converts the Struct field instance to a dictionary of NumPy arrays.</p>
@@ -736,29 +727,6 @@ desired device of returned tensor.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Dict[str, Union[torch.Tensor, Dict]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="gstaichi.lang.struct.StructField.to_paddle">
-<span class="sig-name descname"><span class="pre">to_paddle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">place</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/gstaichi/lang/struct.html#StructField.to_paddle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.lang.struct.StructField.to_paddle" title="Link to this definition">#</a></dt>
-<dd><p>Converts the Struct field instance to a dictionary of Paddle tensors.</p>
-<p>The dictionary may be nested when converting nested structs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>place</strong> (<em>paddle.CPUPlace</em><em>(</em><em>)</em><em>/CUDAPlace</em><em>(</em><em>n</em><em>)</em><em>, </em><em>optional</em>) – The
-desired place of returned tensor.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>The result</dt><dd><p>Paddle tensor.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, Union[paddle.Tensor, Dict]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -881,10 +849,8 @@ Functions in the class can be run on the struct instance.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.get_member_field"><code class="docutils literal notranslate"><span class="pre">StructField.get_member_field()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.from_numpy"><code class="docutils literal notranslate"><span class="pre">StructField.from_numpy()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.from_torch"><code class="docutils literal notranslate"><span class="pre">StructField.from_torch()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.from_paddle"><code class="docutils literal notranslate"><span class="pre">StructField.from_paddle()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.to_numpy"><code class="docutils literal notranslate"><span class="pre">StructField.to_numpy()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.to_torch"><code class="docutils literal notranslate"><span class="pre">StructField.to_torch()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.StructField.to_paddle"><code class="docutils literal notranslate"><span class="pre">StructField.to_paddle()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.lang.struct.dataclass"><code class="docutils literal notranslate"><span class="pre">dataclass()</span></code></a></li>

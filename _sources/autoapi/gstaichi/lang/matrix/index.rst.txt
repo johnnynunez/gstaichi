@@ -728,21 +728,6 @@ Module Contents
 
 
 
-   .. py:method:: to_paddle(place=None, keep_dims=False)
-
-      Converts the field instance to a Paddle tensor.
-
-      :param place: The desired place of returned tensor.
-      :type place: paddle.CPUPlace()/CUDAPlace(n), optional
-      :param keep_dims: Whether to keep the dimension after conversion.
-                        See :meth:`~gstaichi.lang.field.MatrixField.to_numpy` for more detailed explanation.
-      :type keep_dims: bool, optional
-
-      :returns: The result paddle tensor.
-      :rtype: paddle.Tensor
-
-
-
    .. py:method:: from_numpy(arr)
 
       Copies an `numpy.ndarray` into this field.

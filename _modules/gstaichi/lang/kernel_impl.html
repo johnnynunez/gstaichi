@@ -365,7 +365,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">MatrixType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.shell</span><span class="w"> </span><span class="kn">import</span> <span class="n">_shell_pop_print</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.struct</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">cook_dtype</span><span class="p">,</span> <span class="n">has_paddle</span><span class="p">,</span> <span class="n">has_pytorch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">cook_dtype</span><span class="p">,</span> <span class="n">has_pytorch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.types</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ndarray_type</span><span class="p">,</span>
     <span class="n">primitive_types</span><span class="p">,</span>
@@ -1186,41 +1186,6 @@
                     <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Argument of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
-            <span class="k">elif</span> <span class="n">has_paddle</span><span class="p">():</span>
-                <span class="c1"># Do we want to continue to support paddle? :thinking_face:</span>
-                <span class="c1"># #maybeprunable</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">paddle</span>  <span class="c1"># pylint: disable=C0415  # type: ignore</span>
-
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">paddle</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-                    <span class="c1"># For now, paddle.fluid.core.Tensor._ptr() is only available on develop branch</span>
-                    <span class="k">def</span><span class="w"> </span><span class="nf">get_call_back</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-                        <span class="k">def</span><span class="w"> </span><span class="nf">call_back</span><span class="p">():</span>
-                            <span class="n">u</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-
-                        <span class="k">return</span> <span class="n">call_back</span>
-
-                    <span class="n">tmp</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">()</span>
-                    <span class="n">gstaichi_arch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">prog</span><span class="o">.</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">arch</span>
-                    <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">place</span><span class="o">.</span><span class="n">is_gpu_place</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">gstaichi_arch</span> <span class="o">!=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">Arch</span><span class="o">.</span><span class="n">cuda</span><span class="p">:</span>
-                            <span class="c1"># Paddle cuda tensor on GsTaichi non-cuda arch</span>
-                            <span class="n">host_v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
-                            <span class="n">tmp</span> <span class="o">=</span> <span class="n">host_v</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">()</span>
-                            <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_call_back</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">host_v</span><span class="p">))</span>
-                    <span class="k">elif</span> <span class="n">v</span><span class="o">.</span><span class="n">place</span><span class="o">.</span><span class="n">is_cpu_place</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">gstaichi_arch</span> <span class="o">==</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">Arch</span><span class="o">.</span><span class="n">cuda</span><span class="p">:</span>
-                            <span class="c1"># Paddle cpu tensor on GsTaichi cuda arch</span>
-                            <span class="n">gpu_v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
-                            <span class="n">tmp</span> <span class="o">=</span> <span class="n">gpu_v</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">()</span>
-                            <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_call_back</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">gpu_v</span><span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># Paddle do support many other backends like XPU, NPU, MLU, IPU</span>
-                        <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GsTaichi do not support backend </span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">place</span><span class="si">}</span><span class="s2"> that Paddle support&quot;</span><span class="p">)</span>
-                    <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_external_array_with_shape</span><span class="p">(</span>
-                        <span class="n">indices</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">_ptr</span><span class="p">()),</span> <span class="n">v</span><span class="o">.</span><span class="n">element_size</span><span class="p">()</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">array_shape</span><span class="p">,</span> <span class="mi">0</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
