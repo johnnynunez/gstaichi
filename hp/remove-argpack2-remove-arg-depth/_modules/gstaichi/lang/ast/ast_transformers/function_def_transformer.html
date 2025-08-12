@@ -316,6 +316,10 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._lib.core.gstaichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BoundaryMode</span><span class="p">,</span>
+    <span class="n">DataTypeCxx</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">_ndarray</span><span class="p">,</span>
     <span class="n">any_array</span><span class="p">,</span>
@@ -325,6 +329,7 @@
     <span class="n">matrix</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang</span><span class="w"> </span><span class="kn">import</span> <span class="n">ops</span> <span class="k">as</span> <span class="n">ti_ops</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang._dataclass_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_flat_name</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.ast.ast_transformer_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ASTTransformerContext</span><span class="p">,</span>
 <span class="p">)</span>
@@ -342,38 +347,51 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">FunctionDefTransformer</span><span class="p">:</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_decl_and_create_variable</span><span class="p">(</span>
-        <span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">,</span> <span class="n">annotation</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">arg_features</span><span class="p">,</span> <span class="n">prefix_name</span>
+        <span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">,</span>
+        <span class="n">annotation</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">this_arg_features</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">prefix_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">full_name</span> <span class="o">=</span> <span class="n">prefix_name</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">name</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">RefType</span><span class="p">):</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">kernel_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">annotation</span> <span class="o">==</span> <span class="n">annotations</span><span class="o">.</span><span class="n">template</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">annotations</span><span class="o">.</span><span class="n">template</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">global_vars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">global_vars</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">annotations</span><span class="o">.</span><span class="n">sparse_matrix_builder</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
                 <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_sparse_matrix</span><span class="p">,</span>
                 <span class="p">(</span>
-                    <span class="n">to_gstaichi_type</span><span class="p">(</span><span class="n">arg_features</span><span class="p">),</span>
+                    <span class="n">to_gstaichi_type</span><span class="p">(</span><span class="n">this_arg_features</span><span class="p">),</span>
                     <span class="n">full_name</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">this_arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">raw_element_type</span><span class="p">:</span> <span class="n">DataTypeCxx</span>
+            <span class="n">ndim</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">needs_grad</span><span class="p">:</span> <span class="nb">bool</span>
+            <span class="n">boundary</span><span class="p">:</span> <span class="n">BoundaryMode</span>
+            <span class="n">raw_element_type</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">needs_grad</span><span class="p">,</span> <span class="n">boundary</span> <span class="o">=</span> <span class="n">this_arg_features</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
                 <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_ndarray_arg</span><span class="p">,</span>
                 <span class="p">(</span>
-                    <span class="n">to_gstaichi_type</span><span class="p">(</span><span class="n">arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                    <span class="n">arg_features</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">to_gstaichi_type</span><span class="p">(</span><span class="n">raw_element_type</span><span class="p">),</span>
+                    <span class="n">ndim</span><span class="p">,</span>
                     <span class="n">full_name</span><span class="p">,</span>
-                    <span class="n">arg_features</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-                    <span class="n">arg_features</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                    <span class="n">needs_grad</span><span class="p">,</span>
+                    <span class="n">boundary</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">texture_type</span><span class="o">.</span><span class="n">TextureType</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_texture_arg</span><span class="p">,</span> <span class="p">(</span><span class="n">arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">full_name</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">this_arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_texture_arg</span><span class="p">,</span> <span class="p">(</span><span class="n">this_arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">full_name</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">texture_type</span><span class="o">.</span><span class="n">RWTextureType</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">this_arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
                 <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_rw_texture_arg</span><span class="p">,</span>
-                <span class="p">(</span><span class="n">arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">arg_features</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">arg_features</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">full_name</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">this_arg_features</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">this_arg_features</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">full_name</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">MatrixType</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_matrix_arg</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -389,23 +407,35 @@
         <span class="n">this_arg_features</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">argument_type</span><span class="p">):</span>
-            <span class="n">arg_features</span> <span class="o">=</span> <span class="n">this_arg_features</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">argument_type</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">field_idx</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">argument_type</span><span class="p">)):</span>
-                <span class="n">flat_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;__ti_</span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="n">result</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_decl_and_create_variable</span><span class="p">(</span>
-                    <span class="n">ctx</span><span class="p">,</span>
-                    <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
-                    <span class="n">flat_name</span><span class="p">,</span>
-                    <span class="n">arg_features</span><span class="p">[</span><span class="n">field_idx</span><span class="p">],</span>
-                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-                    <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">flat_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+                <span class="n">flat_name</span> <span class="o">=</span> <span class="n">create_flat_name</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="c1"># if a field is a dataclass, then feed back into process_kernel_arg recursively</span>
+                <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">):</span>
+                    <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_kernel_arg</span><span class="p">(</span>
+                        <span class="n">ctx</span><span class="p">,</span>
+                        <span class="n">invoke_later_dict</span><span class="p">,</span>
+                        <span class="n">create_variable_later</span><span class="p">,</span>
+                        <span class="n">flat_name</span><span class="p">,</span>
+                        <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                        <span class="n">this_arg_features</span><span class="p">[</span><span class="n">field_idx</span><span class="p">],</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">decl_type_func</span><span class="p">,</span> <span class="n">type_args</span> <span class="o">=</span> <span class="n">obj</span>
-                    <span class="n">obj</span> <span class="o">=</span> <span class="n">decl_type_func</span><span class="p">(</span><span class="o">*</span><span class="n">type_args</span><span class="p">)</span>
-                    <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">flat_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+                    <span class="n">result</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_decl_and_create_variable</span><span class="p">(</span>
+                        <span class="n">ctx</span><span class="p">,</span>
+                        <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                        <span class="n">flat_name</span><span class="p">,</span>
+                        <span class="n">this_arg_features</span><span class="p">[</span><span class="n">field_idx</span><span class="p">],</span>
+                        <span class="n">invoke_later_dict</span><span class="p">,</span>
+                        <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                        <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">flat_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">decl_type_func</span><span class="p">,</span> <span class="n">type_args</span> <span class="o">=</span> <span class="n">obj</span>
+                        <span class="n">obj</span> <span class="o">=</span> <span class="n">decl_type_func</span><span class="p">(</span><span class="o">*</span><span class="n">type_args</span><span class="p">)</span>
+                        <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">flat_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">result</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_decl_and_create_variable</span><span class="p">(</span>
                 <span class="n">ctx</span><span class="p">,</span>
@@ -414,31 +444,34 @@
                 <span class="n">this_arg_features</span> <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s2">&quot;&quot;</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
                 <span class="n">decl_type_func</span><span class="p">,</span> <span class="n">type_args</span> <span class="o">=</span> <span class="n">obj</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">decl_type_func</span><span class="p">(</span><span class="o">*</span><span class="n">type_args</span><span class="p">)</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_transform_as_kernel</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">FunctionDef</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">returns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">returns</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">return_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="k">for</span> <span class="n">return_type</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">return_type</span><span class="p">:</span>
                     <span class="n">kernel_arguments</span><span class="o">.</span><span class="n">decl_ret</span><span class="p">(</span><span class="n">return_type</span><span class="p">)</span>
-        <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">finalize_rets</span><span class="p">()</span>
+        <span class="n">compiling_callable</span> <span class="o">=</span> <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span>
+        <span class="k">assert</span> <span class="n">compiling_callable</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">compiling_callable</span><span class="o">.</span><span class="n">finalize_rets</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
-            <span class="n">argument</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">args</span><span class="p">)):</span>
+            <span class="n">arg_meta</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_kernel_arg</span><span class="p">(</span>
                 <span class="n">ctx</span><span class="p">,</span>
-                <span class="n">argument</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">argument</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span>
+                <span class="n">arg_meta</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">arg_meta</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">arg_features</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">arg_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(),</span>
             <span class="p">)</span>
 
-        <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">compiling_callable</span><span class="o">.</span><span class="n">finalize_params</span><span class="p">()</span>
+        <span class="n">compiling_callable</span><span class="o">.</span><span class="n">finalize_params</span><span class="p">()</span>
         <span class="c1"># remove original args</span>
         <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -449,15 +482,16 @@
         <span class="n">argument_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Template arguments are passed by reference.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argument_type</span><span class="p">,</span> <span class="n">annotations</span><span class="o">.</span><span class="n">template</span><span class="p">):</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">argument_type</span><span class="p">):</span>
-            <span class="n">dataclass_type</span> <span class="o">=</span> <span class="n">argument_type</span>
-            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">dataclass_type</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">argument_type</span><span class="p">):</span>
+                <span class="n">flat_name</span> <span class="o">=</span> <span class="n">create_flat_name</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 <span class="n">data_child</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
                     <span class="n">data_child</span><span class="p">,</span>
                     <span class="p">(</span>
                         <span class="n">_ndarray</span><span class="o">.</span><span class="n">ScalarNdarray</span><span class="p">,</span>
@@ -466,33 +500,33 @@
                         <span class="n">any_array</span><span class="o">.</span><span class="n">AnyArray</span><span class="p">,</span>
                     <span class="p">),</span>
                 <span class="p">):</span>
-                    <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">dataclass_type</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> is not recognized.&quot;</span>
+                    <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">check_matched</span><span class="p">(</span><span class="n">data_child</span><span class="o">.</span><span class="n">get_type</span><span class="p">(),</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">flat_name</span><span class="p">,</span> <span class="n">data_child</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">data_child</span><span class="p">):</span>
+                    <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_func_arg</span><span class="p">(</span>
+                        <span class="n">ctx</span><span class="p">,</span>
+                        <span class="n">flat_name</span><span class="p">,</span>
+                        <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                        <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
                     <span class="p">)</span>
-                <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">check_matched</span><span class="p">(</span><span class="n">data_child</span><span class="o">.</span><span class="n">get_type</span><span class="p">(),</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                <span class="n">var_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;__ti_</span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">data_child</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> is not recognized.&quot;</span>
+                    <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Ndarray arguments are passed by reference.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argument_type</span><span class="p">,</span> <span class="p">(</span><span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">)):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
-                <span class="n">data</span><span class="p">,</span>
-                <span class="p">(</span>
-                    <span class="n">_ndarray</span><span class="o">.</span><span class="n">ScalarNdarray</span><span class="p">,</span>
-                    <span class="n">matrix</span><span class="o">.</span><span class="n">VectorNdarray</span><span class="p">,</span>
-                    <span class="n">matrix</span><span class="o">.</span><span class="n">MatrixNdarray</span><span class="p">,</span>
-                    <span class="n">any_array</span><span class="o">.</span><span class="n">AnyArray</span><span class="p">,</span>
-                <span class="p">),</span>
+                <span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">_ndarray</span><span class="o">.</span><span class="n">ScalarNdarray</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">VectorNdarray</span><span class="p">,</span> <span class="n">matrix</span><span class="o">.</span><span class="n">MatrixNdarray</span><span class="p">,</span> <span class="n">any_array</span><span class="o">.</span><span class="n">AnyArray</span><span class="p">)</span>
             <span class="p">):</span>
-                <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">arg</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is not recognized.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is not recognized.&quot;</span><span class="p">)</span>
             <span class="n">argument_type</span><span class="o">.</span><span class="n">check_matched</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get_type</span><span class="p">(),</span> <span class="n">argument_name</span><span class="p">)</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Matrix arguments are passed by value.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argument_type</span><span class="p">,</span> <span class="p">(</span><span class="n">MatrixType</span><span class="p">)):</span>
-            <span class="n">var_name</span> <span class="o">=</span> <span class="n">argument_name</span>
             <span class="c1"># &quot;data&quot; is expected to be an Expr here,</span>
             <span class="c1"># so we simply call &quot;impl.expr_init_func(data)&quot; to perform:</span>
             <span class="c1">#</span>
@@ -502,32 +536,31 @@
             <span class="c1"># We created local variable &quot;t&quot; - a copy of the passed-in argument &quot;data&quot;</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">Expr</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">ptr</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">():</span>
                 <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix, but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix, but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
                 <span class="p">)</span>
 
             <span class="n">element_shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">ptr</span><span class="o">.</span><span class="n">get_rvalue_type</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element_shape</span><span class="p">)</span> <span class="o">!=</span> <span class="n">argument_type</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix with ndim </span><span class="si">{</span><span class="n">argument_type</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">, but got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">element_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix with ndim </span><span class="si">{</span><span class="n">argument_type</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">, but got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">element_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
                 <span class="p">)</span>
 
             <span class="k">assert</span> <span class="n">argument_type</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="n">element_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">argument_type</span><span class="o">.</span><span class="n">n</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix with n </span><span class="si">{</span><span class="n">argument_type</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">, but got </span><span class="si">{</span><span class="n">element_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix with n </span><span class="si">{</span><span class="n">argument_type</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2">, but got </span><span class="si">{</span><span class="n">element_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
                 <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">argument_type</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">element_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">argument_type</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix with m </span><span class="si">{</span><span class="n">argument_type</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">, but got </span><span class="si">{</span><span class="n">element_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">argument_name</span><span class="si">}</span><span class="s2"> of type </span><span class="si">{</span><span class="n">argument_type</span><span class="si">}</span><span class="s2"> is expected to be a Matrix with m </span><span class="si">{</span><span class="n">argument_type</span><span class="o">.</span><span class="n">m</span><span class="si">}</span><span class="s2">, but got </span><span class="si">{</span><span class="n">element_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
                 <span class="p">)</span>
 
-            <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">impl</span><span class="o">.</span><span class="n">expr_init_func</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">impl</span><span class="o">.</span><span class="n">expr_init_func</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">argument_type</span><span class="p">)</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">type_ids</span><span class="p">:</span>
-            <span class="n">var_name</span> <span class="o">=</span> <span class="n">argument_name</span>
-            <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">impl</span><span class="o">.</span><span class="n">expr_init_func</span><span class="p">(</span><span class="n">ti_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">argument_type</span><span class="p">)))</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">impl</span><span class="o">.</span><span class="n">expr_init_func</span><span class="p">(</span><span class="n">ti_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">argument_type</span><span class="p">)))</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># Create a copy for non-template arguments,</span>
         <span class="c1"># so that they are passed by value.</span>
@@ -537,15 +570,16 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_transform_as_func</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ASTTransformerContext</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">FunctionDef</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">data_i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span><span class="p">):</span>
-            <span class="n">argument</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="n">data_i</span><span class="p">]</span>
-            <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_func_arg</span><span class="p">(</span>
-                <span class="n">ctx</span><span class="p">,</span>
-                <span class="n">argument</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">argument</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span>
-                <span class="n">data</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="c1"># pylint: disable=import-outside-toplevel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.kernel_impl</span><span class="w"> </span><span class="kn">import</span> <span class="n">Func</span>
 
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">Func</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">data_i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span><span class="p">):</span>
+            <span class="n">argument</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">data_i</span><span class="p">]</span>
+            <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_func_arg</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">argument</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">argument</span><span class="o">.</span><span class="n">annotation</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># deal with dataclasses</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">orig_arguments</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">annotation</span><span class="p">):</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">create_variable</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
@@ -574,15 +608,15 @@
             <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_as_kernel</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># ti.func</span>
+            <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">is_real_function</span><span class="p">:</span>
                 <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_as_kernel</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_as_func</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">ctx</span><span class="o">.</span><span class="n">variable_scope_guard</span><span class="p">():</span>
-            <span class="n">build_stmts</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="kc">None</span></div>
+            <span class="n">build_stmts</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
