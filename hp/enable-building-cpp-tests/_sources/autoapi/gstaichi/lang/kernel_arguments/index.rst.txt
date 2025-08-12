@@ -9,7 +9,7 @@ Classes
 
 .. autoapisummary::
 
-   gstaichi.lang.kernel_arguments.KernelArgument
+   gstaichi.lang.kernel_arguments.ArgMetadata
    gstaichi.lang.kernel_arguments.SparseMatrixEntry
    gstaichi.lang.kernel_arguments.SparseMatrixProxy
 
@@ -35,7 +35,10 @@ Functions
 Module Contents
 ---------------
 
-.. py:class:: KernelArgument(_annotation, _name, _default=inspect.Parameter.empty)
+.. py:class:: ArgMetadata(annotation, name, default=inspect.Parameter.empty)
+
+   Metadata about an argument to a function
+
 
    .. py:attribute:: annotation
 
@@ -85,7 +88,7 @@ Module Contents
 
 .. py:function:: decl_sparse_matrix(dtype, name)
 
-.. py:function:: decl_ndarray_arg(element_type, ndim, name, needs_grad, boundary)
+.. py:function:: decl_ndarray_arg(element_type: gstaichi._lib.core.gstaichi_python.DataTypeCxx, ndim: int, name: str, needs_grad: bool, boundary: gstaichi._lib.core.gstaichi_python.BoundaryMode) -> gstaichi.lang.any_array.AnyArray
 
 .. py:function:: decl_texture_arg(num_dimensions, name)
 
