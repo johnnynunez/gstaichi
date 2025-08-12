@@ -1,9 +1,7 @@
 import dataclasses
-from typing import Any
 import gstaichi as ti
 from tests import test_utils
 import numpy as np
-import pytest
 from gstaichi.lang.fast_caching import args_hasher, FIELD_METADATA_CACHE_VALUE
 
 
