@@ -395,7 +395,3 @@ Module Contents
 
 .. py:function:: build_stmts(ctx: gstaichi.lang.ast.ast_transformer_utils.ASTTransformerContext, stmts: list[ast.stmt])
 
-   TODO: Should we just make this part of ASTTransformer? Then, easier to pass around (just
-   pass the ASTTransformer object around)
-
-
