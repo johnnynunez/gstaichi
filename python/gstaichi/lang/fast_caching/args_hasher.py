@@ -1,5 +1,5 @@
 import enum
-import hashlib
+# import hashlib
 import time
 from typing import Any, Sequence
 import numpy as np
@@ -8,6 +8,7 @@ from gstaichi.lang.matrix import VectorNdarray, MatrixNdarray, MatrixField
 from gstaichi.lang.field import ScalarField
 from gstaichi.lang.util import is_data_oriented
 import torch
+from .hash_utils import hash_string
 
 
 g_num_calls = 0
@@ -70,7 +71,7 @@ def hash_args(args: Sequence[Any]) -> str | None:
             return None
         hash_l.append(_hash)
     start = time.time()
-    res = hashlib.sha256("_".join(hash_l).encode('utf-8')).hexdigest()
+    res = hash_string("_".join(hash_l))
     g_hashing_time += time.time() - start
     return res
 
