@@ -3,14 +3,12 @@ import shutil
 from typing import Callable
 import gstaichi as ti
 from tests import test_utils
-import sys
 import importlib
 from gstaichi.lang.fast_caching import src_hasher
 from gstaichi._test_tools import ti_init_same_arch
 from gstaichi.lang._wrap_inspect import get_source_info_and_src
 from gstaichi.lang.fast_caching import function_hasher
 from gstaichi.lang import _wrap_inspect
-from gstaichi.lang.fast_caching.fast_caching_types import HashedFunctionSourceInfo
 
 
 @test_utils.test()
