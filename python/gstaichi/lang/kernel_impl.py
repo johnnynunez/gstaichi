@@ -9,7 +9,6 @@ import pathlib
 import re
 import sys
 import textwrap
-import time
 import types
 import typing
 import warnings
@@ -259,11 +258,7 @@ def _get_tree_and_ctx(
     is_real_function: bool = False,
     current_kernel: "Kernel | None" = None,
 ) -> tuple[ast.Module, ASTTransformerContext]:
-    # print("_get_tree_and_ctx", self.func.__name__)
     function_source_info, src = get_source_info_and_src(self.func)
-    # file = getsourcefile(self.func)
-    # src, start_lineno = getsourcelines(self.func)
-    # end_lineno = start_lineno + len(src) - 1
     src = [textwrap.fill(line, tabsize=4, width=9999) for line in src]
     tree = ast.parse(textwrap.dedent("\n".join(src)))
 
@@ -285,29 +280,13 @@ def _get_tree_and_ctx(
                     flat_name = f"__ti_{param_name}_{member_field.name}"
                     global_vars[flat_name] = child_value
 
-    # function_source_info = FunctionSourceInfo(
-    #         function_name=self.func.__name__,
-    #         filepath=file,
-    #         start_lineno=start_lineno,
-    #         end_lineno=end_lineno,
-    #     )
-    # print(function_source_info)
     if current_kernel is not None:  # Kernel
         current_kernel.kernel_function_info = function_source_info
     if current_kernel is None:
         current_kernel = impl.get_runtime()._current_kernel
-    # print('current_kernel', current_kernel)
-    # print('get_runtime', impl.get_runtime())
-    # print('_current_kernel', impl.get_runtime()._current_kernel)
-    # if current_kernel is not None:
-    #     print(current_kernel.func.__name__)
-    # print('get_runtime', impl.get_runtime())
     assert current_kernel is not None
-    # print("appending to visited functions", len(current_kernel.visited_functions))
     current_kernel.visited_functions.add(function_source_info)
-    # print("    new len", len(current_kernel.visited_functions))
 
-    # print("_get_tree_and_ctx", self.func, "is kernel", is_kernel)
     return tree, ASTTransformerContext(
         excluded_parameters=excluded_parameters,
         is_kernel=is_kernel,
@@ -622,9 +601,6 @@ def _get_global_vars(_func: Callable) -> dict[str, Any]:
     return global_vars
 
 
-LAST_PRINT = time.time()
-
-
 class Kernel:
     counter = 0
 
@@ -736,8 +712,6 @@ class Kernel:
             self.arguments.append(KernelArgument(annotation, param.name, param.default))
 
     def materialize(self, key: CompiledKernelKeyType | None, args: tuple[Any, ...], arg_features):
-        global LAST_PRINT
-        start = time.time()
         if key is None:
             key = (self.func, 0, self.autodiff_mode)
         self.runtime.materialize()
@@ -838,10 +812,7 @@ class Kernel:
                 struct_locals = extract_struct_locals_from_context(ctx)
                 tree = unpack_ndarray_struct(tree, struct_locals=struct_locals)
                 ctx.only_parse_function_def = self.compiled_kernel_data is not None
-                start = time.time()
                 transform_tree(tree, ctx)
-                elapsed = time.time() - start
-                # print("transform tree time", elapsed)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
                         raise GsTaichiSyntaxError("Kernel has a return type but does not have a return statement")
@@ -850,14 +821,8 @@ class Kernel:
                 self.runtime._current_kernel = None
                 self.runtime.compiling_callable = None
 
-        # print("running prog.create_kernel")
         gstaichi_kernel = impl.get_runtime().prog.create_kernel(gstaichi_ast_generator, kernel_name, self.autodiff_mode)
         assert key not in self.materialized_kernels
-        elapsed = time.time() - start
-        this_time = time.time()
-        # print("time since last print", this_time - LAST_PRINT, "create_kernel", kernel_name, elapsed)
-        LAST_PRINT = this_time
-        # print("storing created kernel in self.materialized_kernels")
         self.materialized_kernels[key] = gstaichi_kernel
 
     def launch_kernel(self, t_kernel: KernelCxx, *args) -> Any:
