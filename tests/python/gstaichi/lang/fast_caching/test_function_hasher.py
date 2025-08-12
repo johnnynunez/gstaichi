@@ -6,6 +6,7 @@ from tests import test_utils
 
 from gstaichi.lang.fast_caching import function_hasher
 from gstaichi.lang import _wrap_inspect
+from gstaichi.lang.fast_caching.fast_caching_types import HashedFunctionSourceInfo
 
 
 @test_utils.test()
@@ -42,18 +43,15 @@ def test_function_hasher_hash_functions() -> None:
     if test_files_path not in sys.path:
         sys.path.append(test_files_path)
 
-    f1_base = importlib.import_module("f1_base")
-    f1_same = importlib.import_module("f1_same")
-    f1_diff = importlib.import_module("f1_diff")
+    def get_infos(name: str) -> list[HashedFunctionSourceInfo]:
+        mod = importlib.import_module(name)
+        info, _src = _wrap_inspect.get_source_info_and_src(mod.f1.fn)
+        hashed_infos = function_hasher.hash_functions([info])
+        return hashed_infos
 
-    f1_base_info, _src = _wrap_inspect.get_source_info_and_src(f1_base.f1.fn)
-    f1_base_hashed_infos = function_hasher.hash_functions([f1_base_info])
-
-    f1_same_info, _src = _wrap_inspect.get_source_info_and_src(f1_same.f1.fn)
-    f1_same_hashed_infos = function_hasher.hash_functions([f1_same_info])
-
-    f1_diff_info, _src = _wrap_inspect.get_source_info_and_src(f1_diff.f1.fn)
-    f1_diff_hashed_infos = function_hasher.hash_functions([f1_diff_info])
+    f1_base_hashed_infos = get_infos("f1_base")
+    f1_same_hashed_infos = get_infos("f1_same")
+    f1_diff_hashed_infos = get_infos("f1_diff")
 
     assert len(f1_base_hashed_infos) == len(f1_same_hashed_infos) == len(f1_diff_hashed_infos) == 1
     assert f1_base_hashed_infos[0].hash is not None and f1_base_hashed_infos[0].hash != ""
