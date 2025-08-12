@@ -72,7 +72,7 @@ class PtxCache final {
   static CacheMode get_cache_mode(const CompileConfig &compile_config);
   std::optional<std::string> try_load_cached(const std::string &cache_key,
                                              CacheMode cache_mode);
-  std::string load_data_from_disk(const std::string &cache_key);
+  std::optional<std::string> load_data_from_disk(const std::string &cache_key);
 
   const Config config_;
   const CompileConfig &compile_config_;

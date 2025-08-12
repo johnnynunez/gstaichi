@@ -195,7 +195,7 @@ std::optional<std::string> PtxCache::try_load_cached(
         return k.ptx;
       }
       // If the PTX is not in memory, try to load it from disk
-      std::string ptx = load_data_from_disk(cache_key);
+      std::optional<std::string> ptx = load_data_from_disk(cache_key);
       k.ptx = ptx;
       return ptx;
     }
@@ -203,25 +203,28 @@ std::optional<std::string> PtxCache::try_load_cached(
   return std::nullopt;
 }
 
-std::string PtxCache::load_data_from_disk(const std::string &cache_key) {
+std::optional<std::string> PtxCache::load_data_from_disk(const std::string &cache_key) {
   const auto filename = make_filename(cache_key);
   if (std::ifstream ifs(filename, std::ios::in | std::ios::binary);
       ifs.is_open()) {
     std::string ptx = std::string(std::istreambuf_iterator<char>(ifs),
                                   std::istreambuf_iterator<char>());
     if (!ifs) {
-      throw std::runtime_error(
+      TI_WARN(
           fmt::format("Failed to read PTX from file {}: {}", filename,
                       std::strerror(errno)));
+      return std::nullopt;
     }
     TI_DEBUG("Loaded PTX from file {} (size: {} bytes)", filename, ptx.size());
     if (ptx.empty()) {
-      throw std::runtime_error(fmt::format("PTX file {} is empty", filename));
+      TI_WARN(fmt::format("PTX file {} is empty", filename));
+      return std::nullopt;
     }
     return ptx;
   }
-  throw std::runtime_error(fmt::format("Failed to load ptx file {}: {}",
-                                       filename, std::strerror(errno)));
+  TI_WARN(fmt::format("Failed to load ptx file {}: {}",
+                      filename, std::strerror(errno)));
+  return std::nullopt;
 }
 
 void PtxCache::store_ptx(const std::string &llvm_ir, const std::string &ptx) {
