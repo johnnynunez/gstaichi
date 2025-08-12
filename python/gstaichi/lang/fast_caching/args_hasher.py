@@ -1,5 +1,4 @@
 import enum
-# import hashlib
 import time
 from typing import Any, Sequence
 import numpy as np
@@ -54,7 +53,6 @@ def to_representative_str(arg: Any) -> str | None:
         return f"enum-{arg.name}-{arg.value}"
     print("arg not recognized", type(arg))
     return None
-    # return "#"
 
 
 def hash_args(args: Sequence[Any]) -> str | None:

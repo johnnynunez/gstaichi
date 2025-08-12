@@ -1,8 +1,7 @@
 import os
 from .fast_caching_types import HashedFunctionSourceInfo
 from gstaichi.lang._wrap_inspect import FunctionSourceInfo
-from typing import Iterable, Sequence, cast, TYPE_CHECKING
-# import hashlib
+from typing import Iterable, TYPE_CHECKING
 from .hash_utils import hash_string
 
 
@@ -27,10 +26,7 @@ def hash_functions(function_infos: Iterable[FunctionSourceInfo]) -> list[HashedF
     results = []
     for f_info in function_infos:
         _hash = _hash_function(f_info)
-        # print(f_info.function_name, _hash)
         results.append(HashedFunctionSourceInfo(function_source_info=f_info, hash=_hash))
-        # f_info.hash = _hash
-    # print("len(function_infos)", len(results))
     return results
 
 

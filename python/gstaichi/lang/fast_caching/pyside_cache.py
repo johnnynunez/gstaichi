@@ -24,14 +24,11 @@ class PysideCache:
         filepath = self._get_filepath(key)
         with open(filepath, "w") as f:
             f.write(value)
-        # print('stored', key, 'to', filepath)
 
     def try_load(self, key:str) -> str | None:
         filepath = self._get_filepath(key)
         if not os.path.isfile(filepath):
-            # print("cache miss for", key)
             return None
-        # print('loading', key, 'from', filepath)
         self._touch(filepath)
         with open(filepath) as f:
             return f.read()
