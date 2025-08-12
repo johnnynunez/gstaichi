@@ -756,7 +756,11 @@ class Kernel:
                 #     function_name=self.func.__name__,
                 #     self
                 # )
-                self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
+                _maybe_fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
+                if _maybe_fast_checksum:
+                    checksum_ok = src_hasher.validate_cache_key(_maybe_fast_checksum)
+                    if checksum_ok:
+                        self.fast_checksum = _maybe_fast_checksum
                 print("materialize() fast checksum", self.fast_checksum)
                 # impl.current_cfg().arch.name
                 # self.fast_checksum = function_hacher.hash_kernel(self.func) + impl.current_cfg().arch.name
