@@ -35,6 +35,7 @@ class ProgramImpl {
   class NeedsFinalizing {
    public:
     virtual void finalize() = 0;
+    virtual ~NeedsFinalizing() = default;
   };
 
   /**

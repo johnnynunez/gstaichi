@@ -135,7 +135,7 @@ Kernel &Program::create_kernel(const std::function<void(Kernel *)> &body,
                                const std::string &name,
                                AutodiffMode autodiff_mode) {
   auto func = std::make_unique<Kernel>(*this, body, name, autodiff_mode);
-  kernels.emplace_back(std::move(func));
+  kernels.push_back(std::move(func));
   return *kernels.back();
 }
 
