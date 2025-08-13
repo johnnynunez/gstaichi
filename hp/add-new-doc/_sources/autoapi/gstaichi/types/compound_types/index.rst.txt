@@ -12,7 +12,6 @@ Functions
    gstaichi.types.compound_types.matrix
    gstaichi.types.compound_types.vector
    gstaichi.types.compound_types.struct
-   gstaichi.types.compound_types.argpack
 
 
 Module Contents
@@ -68,23 +67,6 @@ Module Contents
 
        >>> vec3 = ti.types.vector(3, ti.f32)
        >>> sphere = ti.types.struct(center=vec3, radius=float)
-       >>> s = sphere(center=vec3([0., 0., 0.]), radius=1.0)
-
-
-.. py:function:: argpack(**kwargs)
-
-   Creates an argument pack type with given members.
-
-   :param kwargs: a dictionary contains the names and types of the
-                  argument pack members.
-   :type kwargs: dict
-
-   :returns: A argument pack type.
-
-   Example::
-
-       >>> vec3 = ti.types.vector(3, ti.f32)
-       >>> sphere = ti.types.argpack(center=vec3, radius=float)
        >>> s = sphere(center=vec3([0., 0., 0.]), radius=1.0)
 
 

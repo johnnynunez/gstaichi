@@ -248,16 +248,6 @@ Module Contents
 
 
 
-   .. py:method:: from_paddle(array_dict)
-
-      Copies the data from a set of `paddle.Tensor` into this field.
-
-      The argument `array_dict` must be a dictionay-like object, it
-      contains all the keys in this field and the copying process
-      between corresponding items can be performed.
-
-
-
    .. py:method:: to_numpy()
 
       Converts the Struct field instance to a dictionary of NumPy arrays.
@@ -284,24 +274,6 @@ Module Contents
                 The result
                     PyTorch tensor.
       :rtype: Dict[str, Union[torch.Tensor, Dict]]
-
-
-
-   .. py:method:: to_paddle(place=None)
-
-      Converts the Struct field instance to a dictionary of Paddle tensors.
-
-      The dictionary may be nested when converting nested structs.
-
-      :param place: The
-                    desired place of returned tensor.
-      :type place: paddle.CPUPlace()/CUDAPlace(n), optional
-
-      :returns:
-
-                The result
-                    Paddle tensor.
-      :rtype: Dict[str, Union[paddle.Tensor, Dict]]
 
 
 

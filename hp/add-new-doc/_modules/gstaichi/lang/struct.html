@@ -897,20 +897,6 @@
 
 
     <span class="nd">@python_scope</span>
-<div class="viewcode-block" id="StructField.from_paddle">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/lang/struct/index.html#gstaichi.lang.struct.StructField.from_paddle">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_paddle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array_dict</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copies the data from a set of `paddle.Tensor` into this field.</span>
-
-<span class="sd">        The argument `array_dict` must be a dictionay-like object, it</span>
-<span class="sd">        contains all the keys in this field and the copying process</span>
-<span class="sd">        between corresponding items can be performed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">:</span>
-            <span class="n">v</span><span class="o">.</span><span class="n">from_paddle</span><span class="p">(</span><span class="n">array_dict</span><span class="p">[</span><span class="n">k</span><span class="p">])</span></div>
-
-
-    <span class="nd">@python_scope</span>
 <div class="viewcode-block" id="StructField.to_numpy">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/struct/index.html#gstaichi.lang.struct.StructField.to_numpy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_numpy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -941,25 +927,6 @@
 <span class="sd">                PyTorch tensor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">to_torch</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">}</span></div>
-
-
-    <span class="nd">@python_scope</span>
-<div class="viewcode-block" id="StructField.to_paddle">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/lang/struct/index.html#gstaichi.lang.struct.StructField.to_paddle">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_paddle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">place</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the Struct field instance to a dictionary of Paddle tensors.</span>
-
-<span class="sd">        The dictionary may be nested when converting nested structs.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            place (paddle.CPUPlace()/CUDAPlace(n), optional): The</span>
-<span class="sd">                desired place of returned tensor.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dict[str, Union[paddle.Tensor, Dict]]: The result</span>
-<span class="sd">                Paddle tensor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">to_paddle</span><span class="p">(</span><span class="n">place</span><span class="o">=</span><span class="n">place</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">}</span></div>
 
 
     <span class="nd">@python_scope</span>
@@ -1120,24 +1087,6 @@
                         <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_struct_arg_uint</span><span class="p">(</span><span class="n">ret_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">index</span><span class="p">,),</span> <span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
                 <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">real_types</span><span class="p">:</span>
                     <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_struct_arg_float</span><span class="p">(</span><span class="n">ret_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">index</span><span class="p">,),</span> <span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid argument type on index=</span><span class="si">{</span><span class="n">ret_index</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_argpack_struct_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">struct</span><span class="p">,</span> <span class="n">argpack</span><span class="p">,</span> <span class="n">ret_index</span><span class="o">=</span><span class="p">()):</span>
-        <span class="c1"># TODO: move this to class Struct after we add dtype to Struct</span>
-        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
-            <span class="n">name</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">pair</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">CompoundType</span><span class="p">):</span>
-                <span class="n">dtype</span><span class="o">.</span><span class="n">set_kernel_struct_args</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">argpack</span><span class="p">,</span> <span class="n">ret_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">integer_types</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">is_signed</span><span class="p">(</span><span class="n">cook_dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)):</span>
-                        <span class="n">argpack</span><span class="o">.</span><span class="n">set_arg_int</span><span class="p">(</span><span class="n">ret_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">index</span><span class="p">,),</span> <span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">argpack</span><span class="o">.</span><span class="n">set_arg_uint</span><span class="p">(</span><span class="n">ret_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">index</span><span class="p">,),</span> <span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">real_types</span><span class="p">:</span>
-                    <span class="n">argpack</span><span class="o">.</span><span class="n">set_arg_float</span><span class="p">(</span><span class="n">ret_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">index</span><span class="p">,),</span> <span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid argument type on index=</span><span class="si">{</span><span class="n">ret_index</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 

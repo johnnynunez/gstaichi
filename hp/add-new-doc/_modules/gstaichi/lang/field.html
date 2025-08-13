@@ -321,7 +321,6 @@
     <span class="n">in_python_scope</span><span class="p">,</span>
     <span class="n">python_scope</span><span class="p">,</span>
     <span class="n">to_numpy_type</span><span class="p">,</span>
-    <span class="n">to_paddle_type</span><span class="p">,</span>
     <span class="n">to_pytorch_type</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -500,21 +499,6 @@
 
 
     <span class="nd">@python_scope</span>
-<div class="viewcode-block" id="Field.to_paddle">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/lang/field/index.html#gstaichi.lang.field.Field.to_paddle">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_paddle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">place</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts `self` to a paddle tensor.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            place (paddle.CPUPlace()/CUDAPlace(n), optional): The desired place of returned tensor.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            paddle.Tensor: The result paddle tensor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
-
-
-    <span class="nd">@python_scope</span>
 <div class="viewcode-block" id="Field.from_numpy">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/field/index.html#gstaichi.lang.field.Field.from_numpy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_numpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
@@ -544,20 +528,6 @@
 <span class="sd">            arr (torch.tensor): The source torch tensor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_from_external_arr</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">contiguous</span><span class="p">())</span></div>
-
-
-    <span class="nd">@python_scope</span>
-<div class="viewcode-block" id="Field.from_paddle">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/lang/field/index.html#gstaichi.lang.field.Field.from_paddle">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_paddle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads all elements from a paddle tensor.</span>
-
-<span class="sd">        The shape of the paddle tensor needs to be the same as `self`.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            arr (paddle.Tensor): The source paddle tensor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span></div>
 
 
     <span class="nd">@python_scope</span>
@@ -692,23 +662,6 @@
 
         <span class="c1"># pylint: disable=E1101</span>
         <span class="n">arr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">to_pytorch_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._kernels</span><span class="w"> </span><span class="kn">import</span> <span class="n">tensor_to_ext_arr</span>  <span class="c1"># pylint: disable=C0415</span>
-
-        <span class="n">tensor_to_ext_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
-        <span class="n">gstaichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">runtime_ops</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">arr</span></div>
-
-
-    <span class="nd">@python_scope</span>
-<div class="viewcode-block" id="ScalarField.to_paddle">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/lang/field/index.html#gstaichi.lang.field.ScalarField.to_paddle">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_paddle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">place</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts this field to a `paddle.Tensor`.&quot;&quot;&quot;</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">paddle</span>  <span class="c1"># pylint: disable=C0415</span>
-
-        <span class="c1"># pylint: disable=E1101</span>
-        <span class="c1"># paddle.empty() doesn&#39;t support argument `place``</span>
-        <span class="n">arr</span> <span class="o">=</span> <span class="n">paddle</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">(</span><span class="n">paddle</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">to_paddle_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)),</span> <span class="n">place</span><span class="o">=</span><span class="n">place</span><span class="p">)</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._kernels</span><span class="w"> </span><span class="kn">import</span> <span class="n">tensor_to_ext_arr</span>  <span class="c1"># pylint: disable=C0415</span>
 
         <span class="n">tensor_to_ext_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
