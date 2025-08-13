@@ -355,7 +355,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">&#64;ti.struct</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&#64;ti.dataclass</span></code> (effectively an alias of <code class="docutils literal notranslate"><span class="pre">&#64;ti.struct</span></code>: uses same underlying class, and mechanism)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&#64;ti.data_oriented</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">argpack</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dataclasses.dataclass</span></code></p></li>
 </ul>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -395,18 +394,7 @@
 <td><p>no</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ti.argpack</span></code></p></td>
-<td><p>yes</p></td>
-<td><p>no</p></td>
-<td><p>yes</p></td>
-<td><p>no</p></td>
-<td><p>no</p></td>
-<td><p>yes</p></td>
-<td><p>yes</p></td>
-<td><p>yes</p></td>
-<td><p>scheduled to be removed</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;dataclasses.dataclass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;dataclasses.dataclass</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
@@ -427,7 +415,6 @@
 <li><p>can be used in both kernel and func calls</p></li>
 <li><p>can be combined with other parameters, in a kernel or func call</p></li>
 </ul>
-<p>ti.argpack is scheduled to be removed because its functionality is a subset of the union of <code class="docutils literal notranslate"><span class="pre">dataclasses.dataclass</span></code> and caching (planned).</p>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="dataclasses-dataclass">
 <h1>dataclasses.dataclass<a class="headerlink" href="#dataclasses-dataclass" title="Link to this heading">#</a></h1>
@@ -448,9 +435,8 @@
 <section id="limitations">
 <h2>Limitations:<a class="headerlink" href="#limitations" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&#64;ti.real_func</span></code> not supported currently</p></li>
-<li><p>nested dataclasses are not supported currently</p></li>
-<li><p>automatic differentiation not supported currently</p></li>
+<li><p>Passing python dataclasses to <code class="docutils literal notranslate"><span class="pre">&#64;ti.real_func</span></code> it not supported currently</p></li>
+<li><p>automatic differentiation is not supported currently</p></li>
 </ul>
 </section>
 <section id="usage">

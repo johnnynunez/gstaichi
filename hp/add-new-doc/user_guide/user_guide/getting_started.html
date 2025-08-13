@@ -353,8 +353,8 @@
 <h2>Pre-requisites<a class="headerlink" href="#pre-requisites" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>one of the operating systems described in <a class="reference internal" href="supported_systems.html"><span class="std std-doc">Supported systems</span></a></p></li>
-<li><p>a supported Python version installed, and in the PATH</p></li>
-<li><p>a supported GPU</p></li>
+<li><p>a supported Python version installed, and in the PATH, see <a class="reference internal" href="supported_systems.html"><span class="std std-doc">Supported systems</span></a></p></li>
+<li><p>a supported GPU, see <a class="reference internal" href="supported_systems.html"><span class="std std-doc">Supported systems</span></a></p></li>
 </ul>
 </section>
 <section id="procedure">
@@ -407,7 +407,7 @@
 </div>
 <p>You can find the full code also at <a class="reference download internal" download="" href="../../_downloads/720a5c32924fcc0dc40fa5f642dc83f5/lcg_python.py"><span class="xref download myst">lcg_python.py</span></a></p>
 <p>On a Macbook Air M4, this gives the following output:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># elapsed 5.552601099014282 on macbook air m4</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># elapsed 5.552601099014282</span>
 </pre></div>
 </div>
 <p>Now let’s convert it to gstaichi</p>
@@ -572,7 +572,7 @@ iteration time 21.44002914428711 us
 </pre></div>
 </div>
 <p>=&gt; in this test, fields are around 28% faster than ndarrays.</p>
-<p>(The exact ratio obviously depends on the kernel. In addition it’s possible to construct toy examples like this where ndarray appears to be faster than fields, but in actual kernels, such as Genesis func narrow phase kernel, for collisions, we observe fields are around ~30% faster)</p>
+<p>Technical note: the exact ratio depends on the kernel. In addition it’s possible to construct toy examples like this where ndarray appears to be faster than fields, but in many commonly used kernels, such as Genesis func narrow phase kernel, for collisions, we observe fields are around ~30% faster</p>
 </section>
 </section>
 
