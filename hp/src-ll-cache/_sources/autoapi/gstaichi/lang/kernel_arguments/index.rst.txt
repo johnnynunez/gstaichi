@@ -23,8 +23,6 @@ Functions
    gstaichi.lang.kernel_arguments.get_type_for_kernel_args
    gstaichi.lang.kernel_arguments.decl_matrix_arg
    gstaichi.lang.kernel_arguments.decl_struct_arg
-   gstaichi.lang.kernel_arguments.push_argpack_arg
-   gstaichi.lang.kernel_arguments.decl_argpack_arg
    gstaichi.lang.kernel_arguments.decl_sparse_matrix
    gstaichi.lang.kernel_arguments.decl_ndarray_arg
    gstaichi.lang.kernel_arguments.decl_texture_arg
@@ -74,17 +72,13 @@ Module Contents
    .. py:method:: subscript(i, j)
 
 
-.. py:function:: decl_scalar_arg(dtype, name, arg_depth)
+.. py:function:: decl_scalar_arg(dtype, name)
 
 .. py:function:: get_type_for_kernel_args(dtype, name)
 
-.. py:function:: decl_matrix_arg(matrixtype, name, arg_depth)
+.. py:function:: decl_matrix_arg(matrixtype, name)
 
-.. py:function:: decl_struct_arg(structtype, name, arg_depth)
-
-.. py:function:: push_argpack_arg(name)
-
-.. py:function:: decl_argpack_arg(argpacktype, member_dict)
+.. py:function:: decl_struct_arg(structtype, name)
 
 .. py:function:: decl_sparse_matrix(dtype, name)
 
