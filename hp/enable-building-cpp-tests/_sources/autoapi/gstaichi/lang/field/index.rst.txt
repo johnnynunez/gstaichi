@@ -122,20 +122,6 @@ Module Contents
 
 
 
-   .. py:method:: to_paddle(place=None)
-      :abstractmethod:
-
-
-      Converts `self` to a paddle tensor.
-
-      :param place: The desired place of returned tensor.
-      :type place: paddle.CPUPlace()/CUDAPlace(n), optional
-
-      :returns: The result paddle tensor.
-      :rtype: paddle.Tensor
-
-
-
    .. py:method:: from_numpy(arr)
       :abstractmethod:
 
@@ -157,17 +143,6 @@ Module Contents
 
       :param arr: The source torch tensor.
       :type arr: torch.tensor
-
-
-
-   .. py:method:: from_paddle(arr)
-
-      Loads all elements from a paddle tensor.
-
-      The shape of the paddle tensor needs to be the same as `self`.
-
-      :param arr: The source paddle tensor.
-      :type arr: paddle.Tensor
 
 
 
@@ -208,12 +183,6 @@ Module Contents
    .. py:method:: to_torch(device=None)
 
       Converts this field to a `torch.tensor`.
-
-
-
-   .. py:method:: to_paddle(place=None)
-
-      Converts this field to a `paddle.Tensor`.
 
 
 

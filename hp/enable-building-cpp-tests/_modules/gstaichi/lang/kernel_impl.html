@@ -345,7 +345,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang._template_mapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateMapper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang._wrap_inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">getsourcefile</span><span class="p">,</span> <span class="n">getsourcelines</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.any_array</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyArray</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.argpack</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArgPack</span><span class="p">,</span> <span class="n">ArgPackType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.ast</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ASTTransformerContext</span><span class="p">,</span>
     <span class="n">KernelSimplicityASTChecker</span><span class="p">,</span>
@@ -365,7 +364,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">MatrixType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.shell</span><span class="w"> </span><span class="kn">import</span> <span class="n">_shell_pop_print</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.struct</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">cook_dtype</span><span class="p">,</span> <span class="n">has_paddle</span><span class="p">,</span> <span class="n">has_pytorch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.lang.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">cook_dtype</span><span class="p">,</span> <span class="n">has_pytorch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi.types</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ndarray_type</span><span class="p">,</span>
     <span class="n">primitive_types</span><span class="p">,</span>
@@ -971,8 +970,6 @@
                     <span class="k">pass</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">StructType</span><span class="p">):</span>
                     <span class="k">pass</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">ArgPackType</span><span class="p">):</span>
-                    <span class="k">pass</span>
                 <span class="k">elif</span> <span class="n">annotation</span> <span class="o">==</span> <span class="n">template</span><span class="p">:</span>
                     <span class="k">pass</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">annotation</span><span class="p">):</span>
@@ -1186,41 +1183,6 @@
                     <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Argument of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="p">)</span>
-            <span class="k">elif</span> <span class="n">has_paddle</span><span class="p">():</span>
-                <span class="c1"># Do we want to continue to support paddle? :thinking_face:</span>
-                <span class="c1"># #maybeprunable</span>
-                <span class="kn">import</span><span class="w"> </span><span class="nn">paddle</span>  <span class="c1"># pylint: disable=C0415  # type: ignore</span>
-
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">paddle</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-                    <span class="c1"># For now, paddle.fluid.core.Tensor._ptr() is only available on develop branch</span>
-                    <span class="k">def</span><span class="w"> </span><span class="nf">get_call_back</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-                        <span class="k">def</span><span class="w"> </span><span class="nf">call_back</span><span class="p">():</span>
-                            <span class="n">u</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-
-                        <span class="k">return</span> <span class="n">call_back</span>
-
-                    <span class="n">tmp</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">()</span>
-                    <span class="n">gstaichi_arch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">prog</span><span class="o">.</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">arch</span>
-                    <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">place</span><span class="o">.</span><span class="n">is_gpu_place</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">gstaichi_arch</span> <span class="o">!=</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">Arch</span><span class="o">.</span><span class="n">cuda</span><span class="p">:</span>
-                            <span class="c1"># Paddle cuda tensor on GsTaichi non-cuda arch</span>
-                            <span class="n">host_v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
-                            <span class="n">tmp</span> <span class="o">=</span> <span class="n">host_v</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">()</span>
-                            <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_call_back</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">host_v</span><span class="p">))</span>
-                    <span class="k">elif</span> <span class="n">v</span><span class="o">.</span><span class="n">place</span><span class="o">.</span><span class="n">is_cpu_place</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">gstaichi_arch</span> <span class="o">==</span> <span class="n">_ti_core</span><span class="o">.</span><span class="n">Arch</span><span class="o">.</span><span class="n">cuda</span><span class="p">:</span>
-                            <span class="c1"># Paddle cpu tensor on GsTaichi cuda arch</span>
-                            <span class="n">gpu_v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
-                            <span class="n">tmp</span> <span class="o">=</span> <span class="n">gpu_v</span><span class="o">.</span><span class="n">value</span><span class="p">()</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">()</span>
-                            <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_call_back</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">gpu_v</span><span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># Paddle do support many other backends like XPU, NPU, MLU, IPU</span>
-                        <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GsTaichi do not support backend </span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">place</span><span class="si">}</span><span class="s2"> that Paddle support&quot;</span><span class="p">)</span>
-                    <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_external_array_with_shape</span><span class="p">(</span>
-                        <span class="n">indices</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">_ptr</span><span class="p">()),</span> <span class="n">v</span><span class="o">.</span><span class="n">element_size</span><span class="p">()</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">array_shape</span><span class="p">,</span> <span class="mi">0</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument </span><span class="si">{</span><span class="n">needed</span><span class="si">}</span><span class="s2"> cannot be converted into required type </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -1266,43 +1228,28 @@
 <span class="sd">            e.g. templates don&#39;t set kernel args, so returns 0</span>
 <span class="sd">            a single ndarray is 1 kernel arg, so returns 1</span>
 <span class="sd">            a struct of 3 ndarrays would set 3 kernel args, so return 3</span>
+<span class="sd">            note: len(indices) &gt; 1 only happens with argpack (which we are removing support for)</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">in_argpack</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
             <span class="k">nonlocal</span> <span class="n">actual_argument_slot</span><span class="p">,</span> <span class="n">exceed_max_arg_num</span><span class="p">,</span> <span class="n">set_later_list</span>
             <span class="k">if</span> <span class="n">actual_argument_slot</span> <span class="o">&gt;=</span> <span class="n">max_arg_num</span><span class="p">:</span>
                 <span class="n">exceed_max_arg_num</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">return</span> <span class="mi">0</span>
             <span class="n">actual_argument_slot</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">ArgPackType</span><span class="p">):</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">ArgPack</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">provided_arg_type</span><span class="p">))</span>
-                <span class="n">idx_new</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">anno</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-                    <span class="n">idx_new</span> <span class="o">+=</span> <span class="n">recursive_set_args</span><span class="p">(</span><span class="n">anno</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">name</span><span class="p">]),</span> <span class="n">v</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">indices</span> <span class="o">+</span> <span class="p">(</span><span class="n">idx_new</span><span class="p">,))</span>
-                <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_argpack</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">_ArgPack__argpack</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-                <span class="k">return</span> <span class="mi">1</span>
             <span class="c1"># Note: do not use sth like &quot;needed == f32&quot;. That would be slow.</span>
             <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">)</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">real_type_ids</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="o">.</span><span class="n">to_string</span><span class="p">(),</span> <span class="n">provided_arg_type</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="mi">1</span>
                 <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_float</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">)</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">integer_type_ids</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="o">.</span><span class="n">to_string</span><span class="p">(),</span> <span class="n">provided_arg_type</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">is_signed</span><span class="p">(</span><span class="n">cook_dtype</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">)):</span>
                     <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_int</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">launch_ctx</span><span class="o">.</span><span class="n">set_arg_uint</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">sparse_matrix_builder</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="n">set_later_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">set_arg_sparse_matrix_builder</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,)))</span>
-                    <span class="k">return</span> <span class="mi">0</span>
                 <span class="n">set_arg_sparse_matrix_builder</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">):</span>
@@ -1314,39 +1261,23 @@
                     <span class="n">idx</span> <span class="o">+=</span> <span class="n">recursive_set_args</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field_value</span><span class="p">,</span> <span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">idx</span><span class="p">,))</span>
                 <span class="k">return</span> <span class="n">idx</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">gstaichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_ndarray</span><span class="o">.</span><span class="n">Ndarray</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="n">set_later_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">set_arg_ndarray</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,)))</span>
-                    <span class="k">return</span> <span class="mi">0</span>
                 <span class="n">set_arg_ndarray</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">texture_type</span><span class="o">.</span><span class="n">TextureType</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">gstaichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_texture</span><span class="o">.</span><span class="n">Texture</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="n">set_later_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">set_arg_texture</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,)))</span>
-                    <span class="k">return</span> <span class="mi">0</span>
                 <span class="n">set_arg_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">texture_type</span><span class="o">.</span><span class="n">RWTextureType</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
                 <span class="n">v</span><span class="p">,</span> <span class="n">gstaichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">_texture</span><span class="o">.</span><span class="n">Texture</span>
             <span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="n">set_later_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">set_arg_rw_texture</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,)))</span>
-                    <span class="k">return</span> <span class="mi">0</span>
                 <span class="n">set_arg_rw_texture</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="n">set_later_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">set_arg_ext_array</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">)))</span>
-                    <span class="k">return</span> <span class="mi">0</span>
                 <span class="n">set_arg_ext_array</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">MatrixType</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="mi">1</span>
                 <span class="n">set_arg_matrix</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">,</span> <span class="n">StructType</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">in_argpack</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="mi">1</span>
                 <span class="c1"># Unclear how to make the following pass typing checks</span>
                 <span class="c1"># StructType implements __instancecheck__, which should be a classmethod, but</span>
                 <span class="c1"># is currently an instance method</span>

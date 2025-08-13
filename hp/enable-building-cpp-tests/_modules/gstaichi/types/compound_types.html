@@ -389,29 +389,7 @@
 
 
 
-<div class="viewcode-block" id="argpack">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/types/compound_types/index.html#gstaichi.types.compound_types.argpack">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">argpack</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates an argument pack type with given members.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        kwargs (dict): a dictionary contains the names and types of the</span>
-<span class="sd">            argument pack members.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A argument pack type.</span>
-
-<span class="sd">    Example::</span>
-
-<span class="sd">        &gt;&gt;&gt; vec3 = ti.types.vector(3, ti.f32)</span>
-<span class="sd">        &gt;&gt;&gt; sphere = ti.types.argpack(center=vec3, radius=float)</span>
-<span class="sd">        &gt;&gt;&gt; s = sphere(center=vec3([0., 0., 0.]), radius=1.0)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">gstaichi</span><span class="o">.</span><span class="n">lang</span><span class="o">.</span><span class="n">argpack</span><span class="o">.</span><span class="n">ArgPackType</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
-
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;vector&quot;</span><span class="p">,</span> <span class="s2">&quot;struct&quot;</span><span class="p">,</span> <span class="s2">&quot;argpack&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;vector&quot;</span><span class="p">,</span> <span class="s2">&quot;struct&quot;</span><span class="p">]</span>
 </pre></div>
 
                 </article>
