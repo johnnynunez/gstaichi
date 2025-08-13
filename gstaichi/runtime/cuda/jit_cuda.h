@@ -74,7 +74,7 @@ class JITSessionCUDA : public JITSession {
     void finalize() override {
       ptx_cache_->dump();
     }
-    virtual ~Finalizer() = default;
+    ~Finalizer() override = default;
 
    private:
     PtxCache *ptx_cache_;
