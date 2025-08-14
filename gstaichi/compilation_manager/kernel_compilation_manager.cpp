@@ -109,13 +109,13 @@ void KernelCompilationManager::dump() {
   data.version[0] = TI_VERSION_MAJOR;
   data.version[1] = TI_VERSION_MINOR;
   data.version[2] = TI_VERSION_PATCH;
-  auto &dataWrapperByKey = data.dataWrapperByKey;
+  auto &dataWrapperByCacheKey = data.dataWrapperByCacheKey;
   // Load old cached data
   offline_cache::load_metadata_with_checking(data, filepath);
   // Update the cached data
   for (const auto *e : updated_data_) {
-    auto iter = dataWrapperByKey.find(e->metadata.kernel_key);
-    if (iter != dataWrapperByKey.end()) {
+    auto iter = dataWrapperByCacheKey.find(e->metadata.kernel_key);
+    if (iter != dataWrapperByCacheKey.end()) {
       iter->second.metadata.last_used_at = e->metadata.last_used_at;
     }
   }
@@ -123,14 +123,14 @@ void KernelCompilationManager::dump() {
   for (auto &[kernel_key, kernel] : caching_kernels_) {
     if (kernel.metadata.cache_mode == CacheData::MemAndDiskCache) {
       auto [iter, ok] =
-          dataWrapperByKey.insert({kernel_key, std::move(kernel)});
+          dataWrapperByCacheKey.insert({kernel_key, std::move(kernel)});
       TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
   // Clear caching_kernels_
   caching_kernels_.clear();
   // Dump cached CompiledKernelData to disk
-  for (auto &[_, k] : dataWrapperByKey) {
+  for (auto &[_, k] : dataWrapperByCacheKey) {
     if (k.compiled_kernel_data) {
       auto cache_filename = make_filename(k.metadata.kernel_key);
       std::ofstream fs{cache_filename, std::ios::out | std::ios::binary};
@@ -147,7 +147,7 @@ void KernelCompilationManager::dump() {
     }
   }
   // Dump offline cache metadata
-  if (!dataWrapperByKey.empty()) {
+  if (!dataWrapperByCacheKey.empty()) {
     write_to_binary_file(data, filepath);
   }
 }
@@ -218,9 +218,9 @@ const CompiledKernelData *KernelCompilationManager::try_load_cached_kernel(
   }
   // Find in disk-cache (cached_data_)
   if (cache_mode == CacheData::MemAndDiskCache) {
-    auto &dataWrapperByKey = cached_data_.dataWrapperByKey;
-    auto iter = dataWrapperByKey.find(kernel_key);
-    if (iter != dataWrapperByKey.end()) {
+    auto &dataWrapperByCacheKey = cached_data_.dataWrapperByCacheKey;
+    auto iter = dataWrapperByCacheKey.find(kernel_key);
+    if (iter != dataWrapperByCacheKey.end()) {
       auto &k = iter->second;
       if (k.compiled_kernel_data) {
         TI_DEBUG("Create kernel '{}' from cache (key='{}')", kernel_name,

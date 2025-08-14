@@ -38,10 +38,10 @@ struct CacheData {
 
   Version version{};
   std::size_t size{0};
-  std::unordered_map<std::string, DataWrapper> dataWrapperByKey;
+  std::unordered_map<std::string, DataWrapper> dataWrapperByCacheKey;
 
   // NOTE: The "version" must be the first field to be serialized
-  TI_IO_DEF(version, size, dataWrapperByKey);
+  TI_IO_DEF(version, size, dataWrapperByCacheKey);
 };
 
 class KernelCompilationManager final {
