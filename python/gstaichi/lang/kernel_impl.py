@@ -641,6 +641,9 @@ class Kernel:
                     ),
                 ):
                     pass
+                elif annotation in [ndarray_type.NdarrayType]:
+                    # convert from ti.types.NDArray into ti.types.NDArray()
+                    annotation = annotation()
                 elif id(annotation) in primitive_types.type_ids:
                     pass
                 elif isinstance(annotation, sparse_matrix_builder):
