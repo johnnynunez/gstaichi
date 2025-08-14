@@ -959,7 +959,7 @@ def test_ndarray_bad_assign():
     tp_ivec3 = ti.types.vector(3, ti.i32)
 
     @ti.kernel
-    def test4(arr: ti.types.ndarray(dtype=tp_ivec3)):
+    def test4(arr: ti.types.NDArray[tp_ivec3, 2]):
         for I in ti.grouped(arr):
             arr[I] = [1, 2]
 
@@ -973,7 +973,7 @@ def test_bad_ndim():
     x = ti.ndarray(ti.f32, shape=(12, 13))
 
     @ti.kernel
-    def test5(arr: ti.types.ndarray(ndim=1)):
+    def test5(arr: ti.types.NDArray[ti.f32, 1]):
         for i, j in arr:
             arr[i, j] = 0
 
@@ -984,7 +984,7 @@ def test_bad_ndim():
 @test_utils.test(arch=supported_archs_gstaichi_ndarray)
 def test_type_hint_matrix():
     @ti.kernel
-    def test(x: ti.types.ndarray(dtype=ti.types.matrix())):
+    def test(x: ti.types.NDArray[ti.types.matrix(), 1]):
         for I in ti.grouped(x):
             x[I] = 1.0
 
@@ -1004,7 +1004,7 @@ def test_type_hint_matrix():
 @test_utils.test(arch=supported_archs_gstaichi_ndarray)
 def test_type_hint_vector():
     @ti.kernel
-    def test(x: ti.types.ndarray(dtype=ti.types.vector())):
+    def test(x: ti.types.NDArray[ti.types.vector(), 1]):
         for I in ti.grouped(x):
             x[I] = 1.0
 
@@ -1024,11 +1024,11 @@ def test_type_hint_vector():
 @test_utils.test(arch=supported_archs_gstaichi_ndarray)
 def test_pass_ndarray_to_func():
     @ti.func
-    def bar(weight: ti.types.ndarray(ti.f32, ndim=3)) -> ti.f32:
+    def bar(weight: ti.types.NDArray[ti.f32, 3]) -> ti.f32:
         return weight[1, 1, 1]
 
     @ti.kernel
-    def foo(weight: ti.types.ndarray(ti.f32, ndim=3)) -> ti.f32:
+    def foo(weight: ti.types.NDArray[ti.f32, 3]) -> ti.f32:
         return bar(weight)
 
     weight = ti.ndarray(dtype=ti.f32, shape=(2, 2, 2))
@@ -1039,11 +1039,11 @@ def test_pass_ndarray_to_func():
 @test_utils.test(arch=[ti.cpu, ti.cuda])
 def test_pass_ndarray_to_real_func():
     @ti.real_func
-    def bar(weight: ti.types.ndarray(ti.f32, ndim=3)) -> ti.f32:
+    def bar(weight: ti.types.NDArray[ti.f32, 3]) -> ti.f32:
         return weight[1, 1, 1]
 
     @ti.kernel
-    def foo(weight: ti.types.ndarray(ti.f32, ndim=3)) -> ti.f32:
+    def foo(weight: ti.types.NDArray[ti.f32, 3]) -> ti.f32:
         return bar(weight)
 
     weight = ti.ndarray(dtype=ti.f32, shape=(2, 2, 2))
@@ -1056,7 +1056,7 @@ def test_pass_ndarray_outside_kernel_to_real_func():
     weight = ti.ndarray(dtype=ti.f32, shape=(2, 2, 2))
 
     @ti.real_func
-    def bar(weight: ti.types.ndarray(ti.f32, ndim=3)) -> ti.f32:
+    def bar(weight: ti.types.NDArray[ti.f32, 3]) -> ti.f32:
         return weight[1, 1, 1]
 
     @ti.kernel
@@ -1127,7 +1127,7 @@ def test_ndarray_clamp_verify():
 @test_utils.test(arch=supported_archs_gstaichi_ndarray)
 def test_ndarray_arg_builtin_float_type():
     @ti.kernel
-    def foo(x: ti.types.ndarray(float, ndim=0)) -> ti.f32:
+    def foo(x: ti.types.NDArray[float, 0]) -> ti.f32:
         return x[None]
 
     x = ti.ndarray(ti.f32, shape=())
@@ -1138,11 +1138,11 @@ def test_ndarray_arg_builtin_float_type():
 @test_utils.test(arch=[ti.cpu, ti.cuda])
 def test_real_func_vector_ndarray_arg():
     @ti.real_func
-    def foo(x: ti.types.ndarray(ndim=1)) -> vec3:
+    def foo(x: ti.types.NDArray[vec3, 1]) -> vec3:
         return x[0]
 
     @ti.kernel
-    def test(x: ti.types.ndarray(ndim=1)) -> vec3:
+    def test(x: ti.types.NDArray[vec3, 1]) -> vec3:
         return foo(x)
 
     x = ti.Vector.ndarray(3, ti.f32, shape=(1))
