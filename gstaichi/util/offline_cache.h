@@ -152,7 +152,7 @@ struct CacheCleanerUtils {
 template <typename MetadataType>
 class CacheCleaner {
   using Utils = CacheCleanerUtils<MetadataType>;
-  using WrappedData = typename MetadataType::WrappedData;
+  using WrappedData = typename MetadataType::DataWrapper;
 
  public:
   static void run(const CacheCleanerConfig &config) {

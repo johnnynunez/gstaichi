@@ -227,7 +227,8 @@ std::string JITSessionCUDA::compile_module_to_ptx(
   llvm::raw_string_ostream llvm_ir_stream(llvm_ir_str);
   module->print(llvm_ir_stream, nullptr);
   llvm_ir_stream.flush();
-  std::string ptx_cache_key = ptx_cache_->make_cache_key(llvm_ir_str);
+  std::string ptx_cache_key =
+      ptx_cache_->make_cache_key(llvm_ir_str, this->config_.fast_math);
   std::optional<std::string> maybe_ptx = ptx_cache_->load_ptx(ptx_cache_key);
   if (maybe_ptx.has_value()) {
     TI_TRACE("Loaded PTX from cache for module {}", module->getName().str());

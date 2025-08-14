@@ -29,7 +29,7 @@ struct CacheData {
     TI_IO_DEF(kernel_key, size, created_at, last_used_at);
   };
 
-  struct WrappedData {
+  struct DataWrapper {
     Metadata metadata;
     std::unique_ptr<lang::CompiledKernelData> compiled_kernel_data;
 
@@ -38,10 +38,10 @@ struct CacheData {
 
   Version version{};
   std::size_t size{0};
-  std::unordered_map<std::string, WrappedData> wrappedDataByKey;
+  std::unordered_map<std::string, DataWrapper> dataWrapperByKey;
 
   // NOTE: The "version" must be the first field to be serialized
-  TI_IO_DEF(version, size, wrappedDataByKey);
+  TI_IO_DEF(version, size, dataWrapperByKey);
 };
 
 class KernelCompilationManager final {
@@ -50,7 +50,7 @@ class KernelCompilationManager final {
   static constexpr char kCacheFilenameFormat[] = "{}.tic";
   static constexpr char kMetadataLockName[] = "ticache.lock";
 
-  using KernelCacheData = CacheData::WrappedData;
+  using KernelCacheData = CacheData::DataWrapper;
   using CachingKernels = std::unordered_map<std::string, KernelCacheData>;
 
   struct Config {

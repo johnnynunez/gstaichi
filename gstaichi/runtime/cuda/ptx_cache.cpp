@@ -19,7 +19,6 @@ constexpr char kPtxCacheFilenameExt[] = "ptx";
 template <>
 struct CacheCleanerUtils<PtxCacheAllData> {
   using MetadataType = PtxCacheAllData;
-  // using KernelMetaData = typename MetadataType::WrappedData;
 
   // To save metadata as file
   static bool save_metadata(const CacheCleanerConfig &config,
@@ -101,13 +100,13 @@ void PtxCache::dump() {
   data.version[0] = TI_VERSION_MAJOR;
   data.version[1] = TI_VERSION_MINOR;
   data.version[2] = TI_VERSION_PATCH;
-  auto &wrappedDataByKey = data.wrappedDataByKey;
+  auto &dataWrapperByKey = data.dataWrapperByKey;
   // Load old cached data
   offline_cache::load_metadata_with_checking(data, filepath);
   // Update the cached data
   for (const auto *e : updated_data_) {
-    auto iter = wrappedDataByKey.find(e->metadata.cache_key);
-    if (iter != wrappedDataByKey.end()) {
+    auto iter = dataWrapperByKey.find(e->metadata.cache_key);
+    if (iter != dataWrapperByKey.end()) {
       iter->second.metadata.last_used_at = e->metadata.last_used_at;
     }
   }
@@ -115,13 +114,13 @@ void PtxCache::dump() {
   for (auto &[kernel_key, wrapped] : wrapped_by_key_) {
     if (wrapped.metadata.cache_mode == CacheMode::MemAndDiskCache) {
       auto [iter, ok] =
-          wrappedDataByKey.insert({kernel_key, std::move(wrapped)});
+          dataWrapperByKey.insert({kernel_key, std::move(wrapped)});
       TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
   wrapped_by_key_.clear();
   // Dump cached CompiledKernelData to disk
-  for (auto &[_, k] : wrappedDataByKey) {
+  for (auto &[_, k] : dataWrapperByKey) {
     if (!k.ptx.has_value()) {
       TI_WARN("PTX for cache_key {} is not set, skipping dump",
               k.metadata.cache_key);
@@ -137,7 +136,7 @@ void PtxCache::dump() {
     data.size += k.metadata.size;
   }
   // Dump offline cache metadata
-  if (!wrappedDataByKey.empty()) {
+  if (!dataWrapperByKey.empty()) {
     write_to_binary_file(data, filepath);
   }
 }
@@ -161,9 +160,10 @@ std::string PtxCache::make_filename(const std::string &kernel_key) const {
   return join_path(cache_dir_, fmt::format(kCacheFilenameFormat, kernel_key));
 }
 
-std::string PtxCache::make_cache_key(const std::string &llvm_ir) const {
+std::string PtxCache::make_cache_key(const std::string &llvm_ir,
+                                     bool use_fast_math) const {
   picosha2::hash256_one_by_one hasher;
-  std::string fast_math_str = compile_config_.fast_math ? "1" : "0";
+  std::string fast_math_str = use_fast_math ? "1" : "0";
   hasher.process(fast_math_str.begin(), fast_math_str.end());
   hasher.process(llvm_ir.begin(), llvm_ir.end());
   hasher.finish();
@@ -186,9 +186,9 @@ std::optional<std::string> PtxCache::try_load_cached(
   }
   // Find in disk-cache
   if (cache_mode == CacheMode::MemAndDiskCache) {
-    auto &wrappedDataByKey = cached_all_data_.wrappedDataByKey;
-    auto iter = wrappedDataByKey.find(cache_key);
-    if (iter != wrappedDataByKey.end()) {
+    auto &dataWrapperByKey = cached_all_data_.dataWrapperByKey;
+    auto iter = dataWrapperByKey.find(cache_key);
+    if (iter != dataWrapperByKey.end()) {
       auto &k = iter->second;
       TI_DEBUG("Found in cache (key='{}')", cache_key);
       if (k.ptx.has_value()) {
