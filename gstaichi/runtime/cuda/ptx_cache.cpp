@@ -100,13 +100,13 @@ void PtxCache::dump() {
   data.version[0] = TI_VERSION_MAJOR;
   data.version[1] = TI_VERSION_MINOR;
   data.version[2] = TI_VERSION_PATCH;
-  auto &dataWrapperByKey = data.dataWrapperByKey;
+  auto &dataWrapperByCacheKey = data.dataWrapperByCacheKey;
   // Load old cached data
   offline_cache::load_metadata_with_checking(data, filepath);
   // Update the cached data
   for (const auto *e : updated_data_) {
-    auto iter = dataWrapperByKey.find(e->metadata.cache_key);
-    if (iter != dataWrapperByKey.end()) {
+    auto iter = dataWrapperByCacheKey.find(e->metadata.cache_key);
+    if (iter != dataWrapperByCacheKey.end()) {
       iter->second.metadata.last_used_at = e->metadata.last_used_at;
     }
   }
@@ -114,13 +114,13 @@ void PtxCache::dump() {
   for (auto &[kernel_key, wrapped] : wrapped_by_key_) {
     if (wrapped.metadata.cache_mode == CacheMode::MemAndDiskCache) {
       auto [iter, ok] =
-          dataWrapperByKey.insert({kernel_key, std::move(wrapped)});
+          dataWrapperByCacheKey.insert({kernel_key, std::move(wrapped)});
       TI_ASSERT(!ok || iter->second.metadata.size == 0);
     }
   }
   wrapped_by_key_.clear();
   // Dump cached CompiledKernelData to disk
-  for (auto &[_, k] : dataWrapperByKey) {
+  for (auto &[_, k] : dataWrapperByCacheKey) {
     if (!k.ptx.has_value()) {
       TI_WARN("PTX for cache_key {} is not set, skipping dump",
               k.metadata.cache_key);
@@ -136,7 +136,7 @@ void PtxCache::dump() {
     data.size += k.metadata.size;
   }
   // Dump offline cache metadata
-  if (!dataWrapperByKey.empty()) {
+  if (!dataWrapperByCacheKey.empty()) {
     write_to_binary_file(data, filepath);
   }
 }
@@ -186,9 +186,9 @@ std::optional<std::string> PtxCache::try_load_cached(
   }
   // Find in disk-cache
   if (cache_mode == CacheMode::MemAndDiskCache) {
-    auto &dataWrapperByKey = cached_all_data_.dataWrapperByKey;
-    auto iter = dataWrapperByKey.find(cache_key);
-    if (iter != dataWrapperByKey.end()) {
+    auto &dataWrapperByCacheKey = cached_all_data_.dataWrapperByCacheKey;
+    auto iter = dataWrapperByCacheKey.find(cache_key);
+    if (iter != dataWrapperByCacheKey.end()) {
       auto &k = iter->second;
       TI_DEBUG("Found in cache (key='{}')", cache_key);
       if (k.ptx.has_value()) {

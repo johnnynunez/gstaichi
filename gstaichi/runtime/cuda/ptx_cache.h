@@ -36,12 +36,12 @@ struct PtxCacheAllData {
   using Version = std::uint16_t[3];
   Version version{};
   std::size_t size{0};
-  std::unordered_map<std::string, WrappedPtx> dataWrapperByKey;
+  std::unordered_map<std::string, WrappedPtx> dataWrapperByCacheKey;
 
   using DataWrapper = WrappedPtx;
 
   // NOTE: The "version" must be the first field to be serialized
-  TI_IO_DEF(version, size, dataWrapperByKey);
+  TI_IO_DEF(version, size, dataWrapperByCacheKey);
 };
 
 class PtxCache final {
