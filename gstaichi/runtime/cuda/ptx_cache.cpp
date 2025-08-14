@@ -227,8 +227,7 @@ std::optional<std::string> PtxCache::load_data_from_disk(
   return std::nullopt;
 }
 
-void PtxCache::store_ptx(const std::string &llvm_ir, const std::string &ptx) {
-  std::string cache_key = make_cache_key(llvm_ir);
+void PtxCache::store_ptx(const std::string &cache_key, const std::string &ptx) {
   TI_DEBUG("Store PTX for cache_key {}", cache_key);
   WrappedPtx k;
   k.ptx = ptx;
