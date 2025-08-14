@@ -238,9 +238,8 @@ void PtxCache::store_ptx(const std::string &cache_key, const std::string &ptx) {
   wrapped_by_key_[cache_key] = std::move(k);
 }
 
-std::optional<std::string> PtxCache::load_ptx(const std::string &llvm_ir) {
+std::optional<std::string> PtxCache::load_ptx(const std::string &cache_key) {
   auto cache_mode = get_cache_mode(compile_config_);
-  std::string cache_key = make_cache_key(llvm_ir);
   return try_load_cached(cache_key, cache_mode);
 }
 
