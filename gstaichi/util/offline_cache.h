@@ -152,7 +152,7 @@ struct CacheCleanerUtils {
 template <typename MetadataType>
 class CacheCleaner {
   using Utils = CacheCleanerUtils<MetadataType>;
-  using WrappedData = typename MetadataType::DataWrapper;
+  using DataWrapper = typename MetadataType::DataWrapper;
 
  public:
   static void run(const CacheCleanerConfig &config) {
@@ -225,12 +225,12 @@ class CacheCleaner {
 
       if (cache_data.size < config.max_size ||
           static_cast<std::size_t>(config.cleaning_factor *
-                                   cache_data.wrappedDataByKey.size()) == 0) {
+                                   cache_data.dataWrapperByKey.size()) == 0) {
         return;
       }
 
       // LRU or FIFO
-      using KerData = std::pair<const std::string, WrappedData>;
+      using KerData = std::pair<const std::string, DataWrapper>;
       using Comparator = std::function<bool(const KerData *, const KerData *)>;
       using PriQueue =
           std::priority_queue<const KerData *, std::vector<const KerData *>,
@@ -251,9 +251,9 @@ class CacheCleaner {
       if (cmp) {
         PriQueue q(cmp);
         std::size_t cnt =
-            config.cleaning_factor * cache_data.wrappedDataByKey.size();
+            config.cleaning_factor * cache_data.dataWrapperByKey.size();
         TI_ASSERT(cnt != 0);
-        for (const auto &e : cache_data.wrappedDataByKey) {
+        for (const auto &e : cache_data.dataWrapperByKey) {
           if (q.size() == cnt && cmp(&e, q.top())) {
             q.pop();
           }
@@ -268,11 +268,11 @@ class CacheCleaner {
             files_to_rm.push_back(f);
           }
           cache_data.size -= e->second.metadata.size;
-          cache_data.wrappedDataByKey.erase(e->first);
+          cache_data.dataWrapperByKey.erase(e->first);
           q.pop();
         }
 
-        if (cache_data.wrappedDataByKey.empty()) {  // Remove
+        if (cache_data.dataWrapperByKey.empty()) {  // Remove
           ok_rm_meta = gstaichi::remove(metadata_file);
           gstaichi::remove(debugging_metadata_file);
           Utils::remove_other_files(config);
@@ -285,7 +285,7 @@ class CacheCleaner {
 
     // 2. Remove cache files
     if (ok_rm_meta) {
-      if (!cache_data.wrappedDataByKey.empty()) {
+      if (!cache_data.dataWrapperByKey.empty()) {
         // For debugging (Not safe: without locking)
         Utils::save_debugging_metadata(config, cache_data);
       }
