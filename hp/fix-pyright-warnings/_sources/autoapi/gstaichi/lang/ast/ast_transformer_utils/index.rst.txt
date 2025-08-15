@@ -151,11 +151,9 @@ Module Contents
 
 
 
-.. py:class:: ASTTransformerContext(excluded_parameters=(), is_kernel: bool = True, func: Func | Kernel | None = None, arg_features: list[tuple[Any, Ellipsis]] | None = None, global_vars: dict[str, Any] | None = None, argument_data=None, file: str | None = None, src: list[str] | None = None, start_lineno: int | None = None, ast_builder: gstaichi._lib.core.gstaichi_python.ASTBuilder | None = None, is_real_function: bool = False)
+.. py:class:: ASTTransformerContext(excluded_parameters, end_lineno: int, is_kernel: bool, func: Func | Kernel, arg_features: list[tuple[Any, Ellipsis]] | None, global_vars: dict[str, Any], argument_data, file: str, src: list[str], start_lineno: int, ast_builder: gstaichi._lib.core.gstaichi_python.ASTBuilder | None, is_real_function: bool)
 
    .. py:attribute:: func
-      :value: None
-
 
 
    .. py:attribute:: local_scopes
@@ -171,18 +169,12 @@ Module Contents
 
 
    .. py:attribute:: excluded_parameters
-      :value: ()
-
 
 
    .. py:attribute:: is_kernel
-      :value: True
-
 
 
    .. py:attribute:: arg_features
-      :value: None
-
 
 
    .. py:attribute:: returns
@@ -191,28 +183,21 @@ Module Contents
 
 
    .. py:attribute:: global_vars
-      :value: None
-
 
 
    .. py:attribute:: argument_data
-      :value: None
-
 
 
    .. py:attribute:: return_data
+      :type:  tuple[Any, Ellipsis] | Any | None
       :value: None
 
 
 
    .. py:attribute:: file
-      :value: None
-
 
 
    .. py:attribute:: src
-      :value: None
-
 
 
    .. py:attribute:: indent
@@ -221,6 +206,12 @@ Module Contents
 
 
    .. py:attribute:: lineno_offset
+
+
+   .. py:attribute:: start_lineno
+
+
+   .. py:attribute:: end_lineno
 
 
    .. py:attribute:: raised
@@ -238,8 +229,6 @@ Module Contents
 
 
    .. py:attribute:: ast_builder
-      :value: None
-
 
 
    .. py:attribute:: visited_funcdef
@@ -248,13 +237,17 @@ Module Contents
 
 
    .. py:attribute:: is_real_function
-      :value: False
-
 
 
    .. py:attribute:: kernel_args
       :type:  list
       :value: []
+
+
+
+   .. py:attribute:: only_parse_function_def
+      :type:  bool
+      :value: False
 
 
 

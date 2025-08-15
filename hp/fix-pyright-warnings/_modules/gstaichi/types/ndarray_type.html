@@ -344,7 +344,8 @@
         <span class="c1"># Check dim consistency. The matrix dtype will be cooked later.</span>
         <span class="k">if</span> <span class="n">element_shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">element_shape</span><span class="p">)</span> <span class="o">!=</span> <span class="n">element_dim</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Both element_shape and element_dim are specified, but shape doesn&#39;t match specified dim: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">element_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">!=</span><span class="si">{</span><span class="n">element_dim</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Both element_shape and element_dim are specified, but shape doesn&#39;t match specified dim: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">element_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">!=</span><span class="si">{</span><span class="n">element_dim</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
         <span class="n">mat_dtype</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">primitive_dtype</span><span class="p">)</span> <span class="k">if</span> <span class="n">element_dim</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">matrix</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">primitive_dtype</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">element_shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -362,14 +363,24 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Type annotation for arbitrary arrays, including external arrays (numpy ndarrays and torch tensors) and GsTaichi ndarrays.</span>
 
 <span class="sd">    For external arrays, we treat it as a GsTaichi data container with Scalar, Vector or Matrix elements.</span>
-<span class="sd">    For GsTaichi vector/matrix ndarrays, we will automatically identify element dimension and their corresponding axis by the dimension of datatype, say scalars, matrices or vectors.</span>
-<span class="sd">    For example, given type annotation `ti.types.ndarray(dtype=ti.math.vec3)`, a numpy array `np.zeros(10, 10, 3)` will be recognized as a 10x10 matrix composed of vec3 elements.</span>
+<span class="sd">    For GsTaichi vector/matrix ndarrays, we will automatically identify element dimension and their corresponding axis by the</span>
+<span class="sd">    dimension of datatype, say scalars, matrices or vectors.</span>
+<span class="sd">    For example, given type annotation `ti.types.ndarray(dtype=ti.math.vec3)`, a numpy array `np.zeros(10, 10, 3)` will be</span>
+<span class="sd">    recognized as a 10x10 matrix composed of vec3 elements.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dtype (Union[PrimitiveType, VectorType, MatrixType, NoneType], optional): None if not speicified.</span>
-<span class="sd">        ndim (Union[Int, NoneType]): None if not specified, number of field dimensions. This argument is ignored for external arrays for now.</span>
-<span class="sd">        element_dim (Union[Int, NoneType], optional): None if not specified (will be treated as 0 for external arrays), 0 if scalar elements, 1 if vector elements, and 2 if matrix elements.</span>
-<span class="sd">        element_shape (Union[Tuple[Int], NoneType]): None if not specified, shapes of each element. For example, element_shape must be 1d for vector and 2d tuple for matrix. This argument is ignored for external arrays for now.</span>
+<span class="sd">        ndim (Union[Int, NoneType]): None if not specified, number of field dimensions. This argument is ignored for externa</span>
+<span class="sd">        arrays for now.</span>
+<span class="sd">        element_dim (Union[Int, NoneType], optional):</span>
+<span class="sd">          None if not specified (will be treated as 0 for external arrays),</span>
+<span class="sd">          0 if scalar elements,</span>
+<span class="sd">          1 if vector elements, and</span>
+<span class="sd">          2 if matrix elements.</span>
+<span class="sd">        element_shape (Union[Tuple[Int], NoneType]):</span>
+<span class="sd">          None if not specified, shapes of each element.</span>
+<span class="sd">          For example, element_shape must be 1d for vector and 2d tuple for matrix.</span>
+<span class="sd">          This argument is ignored for external arrays for now.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -431,8 +442,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">needs_grad</span> <span class="o">&gt;</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">needs_grad</span><span class="p">:</span>
             <span class="c1"># It&#39;s okay to pass a needs_grad=True ndarray at runtime to a need_grad=False arg but not vice versa.</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Invalid value for argument </span><span class="si">{</span><span class="n">arg_name</span><span class="si">}</span><span class="s2"> - required needs_grad=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">needs_grad</span><span class="si">}</span><span class="s2">, but </span><span class="si">{</span><span class="n">ndarray_type</span><span class="o">.</span><span class="n">needs_grad</span><span class="si">}</span><span class="s2"> &quot;</span>
-                <span class="s2">&quot;is provided&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid value for argument </span><span class="si">{</span><span class="n">arg_name</span><span class="si">}</span><span class="s2"> - required needs_grad=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">needs_grad</span><span class="si">}</span><span class="s2">, but &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ndarray_type</span><span class="o">.</span><span class="n">needs_grad</span><span class="si">}</span><span class="s2"> is provided&quot;</span>
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

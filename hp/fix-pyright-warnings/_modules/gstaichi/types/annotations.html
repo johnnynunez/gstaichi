@@ -310,12 +310,14 @@
                 <article class="bd-article">
                   
   <h1>Source code for gstaichi.types.annotations</h1><div class="highlight"><pre>
-<span></span><span class="c1"># type: ignore</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Template">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/types/annotations/index.html#gstaichi.types.annotations.Template">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Template</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Template</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Type annotation for template kernel parameter.</span>
 <span class="sd">    Useful for passing parameters to kernels by reference.</span>
 
@@ -344,15 +346,18 @@
 <span class="sd">        &gt;&gt;&gt; test_template(a)  # will print 2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<div class="viewcode-block" id="Template.tensor">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/types/annotations/index.html#gstaichi.types.annotations.Template.tensor">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tensor</span> <span class="o">=</span> <span class="n">tensor</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="p">,</span> <span class="n">ndim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Template.element_type">
+<a class="viewcode-back" href="../../../autoapi/gstaichi/types/annotations/index.html#gstaichi.types.annotations.Template.element_type">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_type</span> <span class="o">=</span> <span class="n">element_type</span></div>
 
-<div class="viewcode-block" id="Template.dim">
-<a class="viewcode-back" href="../../../autoapi/gstaichi/types/annotations/index.html#gstaichi.types.annotations.Template.dim">[docs]</a>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span></div>
-</div>
+<div class="viewcode-block" id="Template.ndim">
+<a class="viewcode-back" href="../../../autoapi/gstaichi/types/annotations/index.html#gstaichi.types.annotations.Template.ndim">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">=</span> <span class="n">ndim</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="bp">NotImplemented</span></div>
 
 
 

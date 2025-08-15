@@ -443,8 +443,9 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="gstaichi.types.annotations.Template">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gstaichi.types.annotations.</span></span><span class="sig-name descname"><span class="pre">Template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/gstaichi/types/annotations.html#Template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.types.annotations.Template" title="Link to this definition">#</a></dt>
-<dd><p>Type annotation for template kernel parameter.
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gstaichi.types.annotations.</span></span><span class="sig-name descname"><span class="pre">Template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/gstaichi/types/annotations.html#Template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.types.annotations.Template" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code>]</p>
+<p>Type annotation for template kernel parameter.
 Useful for passing parameters to kernels by reference.</p>
 <p>See also <a class="reference external" href="https://docs.taichi-lang.org/docs/meta">https://docs.taichi-lang.org/docs/meta</a>.</p>
 <dl class="field-list simple">
@@ -474,13 +475,13 @@ Useful for passing parameters to kernels by reference.</p>
 </pre></div>
 </div>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="gstaichi.types.annotations.Template.tensor">
-<span class="sig-name descname"><span class="pre">tensor</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/gstaichi/types/annotations.html#Template.tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.types.annotations.Template.tensor" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="gstaichi.types.annotations.Template.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><a class="reference internal" href="../../../../_modules/gstaichi/types/annotations.html#Template.element_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.types.annotations.Template.element_type" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="gstaichi.types.annotations.Template.dim">
-<span class="sig-name descname"><span class="pre">dim</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/gstaichi/types/annotations.html#Template.dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.types.annotations.Template.dim" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="gstaichi.types.annotations.Template.ndim">
+<span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/gstaichi/types/annotations.html#Template.ndim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gstaichi.types.annotations.Template.ndim" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -550,8 +551,8 @@ Useful for passing parameters to kernels by reference.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.types.annotations.Template"><code class="docutils literal notranslate"><span class="pre">Template</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.types.annotations.Template.tensor"><code class="docutils literal notranslate"><span class="pre">Template.tensor</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.types.annotations.Template.dim"><code class="docutils literal notranslate"><span class="pre">Template.dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.types.annotations.Template.element_type"><code class="docutils literal notranslate"><span class="pre">Template.element_type</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.types.annotations.Template.ndim"><code class="docutils literal notranslate"><span class="pre">Template.ndim</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gstaichi.types.annotations.template"><code class="docutils literal notranslate"><span class="pre">template</span></code></a></li>
