@@ -244,11 +244,13 @@ class ScalarNdarray(Ndarray):
         shape (Tuple[int]): Shape of the ndarray.
     """
 
-    def __init__(self, dtype, arr_shape):
+    def __init__(self, dtype, dtype_cxx, arr_shape):
         super().__init__()
-        self.dtype = cook_dtype(dtype)
+        # self.dtype = cook_dtype(dtype)
+        self.dtype = dtype
+        self.dtype_cxx = dtype_cxx
         self.arr = impl.get_runtime().prog.create_ndarray(
-            self.dtype, arr_shape, layout=Layout.NULL, zero_fill=True, dbg_info=_ti_core.DebugInfo(get_traceback())
+            self.dtype_cxx, arr_shape, layout=Layout.NULL, zero_fill=True, dbg_info=_ti_core.DebugInfo(get_traceback())
         )
         self.shape = tuple(self.arr.shape)
         self.element_type = dtype
@@ -270,6 +272,7 @@ class ScalarNdarray(Ndarray):
 
     @python_scope
     def __getitem__(self, key):
+        print('ndarray getitem ', key)
         self._initialize_host_accessor()
         return self.host_accessor.getter(*self._pad_key(key))
 

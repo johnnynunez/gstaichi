@@ -45,6 +45,7 @@ def _test_scalar_ndarray(dtype, shape):
         assert x.shape == (shape,)
     assert x.element_shape == ()
 
+    print('x', x, type(x))
     assert x.dtype == dtype
 
 
@@ -64,6 +65,8 @@ def _test_vector_ndarray(n, dtype, shape):
         assert x.shape == (shape,)
     assert x.element_shape == (n,)
 
+    print('x', x, type(x))
+    print('dir(x)', dir(x))
     assert x.dtype == dtype
     assert x.n == n
 
@@ -598,13 +601,17 @@ def test_size_in_bytes():
     _test_size_in_bytes()
 
 
+class TI32:
+    ...
+
+
 @test_utils.test(arch=supported_archs_gstaichi_ndarray)
 def test_different_shape():
     n1 = 4
     x = ti.ndarray(dtype=ti.f32, shape=(n1, n1))
 
     @ti.kernel
-    def init(d: ti.i32, arr: ti.types.ndarray()):
+    def init(d: TI32, arr: ti.types.ndarray()):
         for i, j in arr:
             arr[i, j] = d
 
@@ -846,6 +853,7 @@ def test_matrix_ndarray_oob():
                 index_vec[j] = index
             dummy[i] = index_vec
 
+    print("ti.math.mat2", ti.math.mat2, type(ti.math.mat2), dir(ti.math.mat2))
     input = ti.ndarray(dtype=ti.math.mat2, shape=(4, 5))
 
     indices = ti.ndarray(dtype=ivec3, shape=(10))

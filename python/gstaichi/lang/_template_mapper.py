@@ -119,6 +119,9 @@ class TemplateMapper:
                 annotation.check_matched(arg.get_type(), arg_name)
                 needs_grad = (arg.grad is not None) if annotation.needs_grad is None else annotation.needs_grad
                 assert arg.shape is not None
+                element_type = arg.element_type
+                if element_type is gstaichi.types.i32:
+                    element_type = element_type.cxx
                 return arg.element_type, len(arg.shape), needs_grad, annotation.boundary
             if isinstance(arg, AnyArray):
                 ty = arg.get_type()

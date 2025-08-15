@@ -24,6 +24,7 @@ from gstaichi.types.primitive_types import (
     u16,
     u32,
     u64,
+    i32_cxx,
 )
 
 
@@ -183,7 +184,7 @@ def to_gstaichi_type(dt):
     if dt == np.float64:
         return f64
     if dt == np.int32:
-        return i32
+        return i32_cxx
     if dt == np.int64:
         return i64
     if dt == np.int8:
@@ -250,6 +251,8 @@ def cook_dtype(dtype):
         return impl.get_runtime().default_ip
     if dtype is bool:
         return u1
+    if dtype is i32:
+        return i32_cxx
     raise ValueError(f"Invalid data type {dtype}")
 
 

@@ -869,21 +869,25 @@ def ndarray(dtype, shape, needs_grad=False):
     if not all((isinstance(x, int) or isinstance(x, np.integer)) and x > 0 and x <= 2**31 - 1 for x in shape):
         raise GsTaichiRuntimeError(f"{shape} is not a valid shape for ndarray")
     if dtype in all_types:
-        dt = cook_dtype(dtype)
-        x = ScalarNdarray(dt, shape)
+        # dt = dtype
+        dtype_cxx = cook_dtype(dtype)
+        print("ndarray dt", dtype_cxx, type(dtype_cxx))
+        x = ScalarNdarray(dtype, dtype_cxx, shape)
     elif isinstance(dtype, MatrixType):
         if dtype.ndim == 1:
             x = VectorNdarray(dtype.n, dtype.dtype, shape)
         else:
             x = MatrixNdarray(dtype.n, dtype.m, dtype.dtype, shape)
-        dt = dtype.dtype
+        print("impl.ndarray dtype", dtype, type(dtype), dir(dtype))
+        dtype_cxx = dtype.dtype_cxx
+        dtype = dtype.dtype
     else:
         raise GsTaichiRuntimeError(f"{dtype} is not supported as ndarray element type")
     if needs_grad:
-        assert isinstance(dt, DataTypeCxx)
-        if not _ti_core.is_real(dt):
+        assert isinstance(dtype_cxx, DataTypeCxx)
+        if not _ti_core.is_real(dtype_cxx):
             raise GsTaichiRuntimeError(
-                f"{dt} is not supported for ndarray with `needs_grad=True` or `needs_dual=True`."
+                f"{dtype} is not supported for ndarray with `needs_grad=True` or `needs_dual=True`."
             )
         x_grad = ndarray(dtype, shape, needs_grad=False)
         x._set_grad(x_grad)

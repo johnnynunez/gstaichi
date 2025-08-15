@@ -28,6 +28,10 @@ def matrix(n=None, m=None, dtype=None):
         >>> mat2x2 = ti.types.matrix(2, 2, ti.f32)  # 2x2 matrix type
         >>> M = mat2x2([[1., 2.], [3., 4.]])  # an instance of this type
     """
+    print("CompoundType.matrix dtype", dtype, type(dtype))
+    # if dtype and hasattr(dtype, 'cxx'):
+    #     dtype = dtype.cxx
+    print("updated dtype", dtype, type(dtype))
     return gstaichi.lang.matrix.MatrixType(n, m, 2, dtype)
 
 

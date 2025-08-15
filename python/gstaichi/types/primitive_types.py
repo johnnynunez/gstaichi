@@ -71,13 +71,13 @@ i16 = int16
 
 # ----------------------------------------
 
-int32 = ti_python_core.DataType_i32
+int32_cxx = ti_python_core.DataType_i32
 """32-bit signed integer data type.
 """
 
 # ----------------------------------------
 
-i32 = int32
+i32_cxx = int32_cxx
 """Alias for :const:`~gstaichi.types.primitive_types.int32`
 """
 
@@ -165,6 +165,11 @@ def ref(tp):
     return RefType(tp)
 
 
+class i32:
+    cxx = i32_cxx
+
+int32 = i32
+
 real_types = [f16, f32, f64, float]
 real_type_ids = [id(t) for t in real_types]
 
@@ -203,4 +208,5 @@ __all__ = [
     "u64",
     "ref",
     "_python_primitive_types",
+    # "I32",
 ]

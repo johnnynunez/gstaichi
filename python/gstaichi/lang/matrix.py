@@ -964,6 +964,9 @@ class Matrix(GsTaichiOperations):
 
                 >>> x = ti.Matrix.ndarray(4, 5, ti.f32, shape=(16, 8))
         """
+        # if hasattr(dtype, "cxx"):
+        #     dtype = dtype.cxx
+        #     print("ndarray updated dtype", dtype, type(dtype))
         if isinstance(shape, numbers.Number):
             shape = (shape,)
         return MatrixNdarray(n, m, dtype, shape)
@@ -1625,11 +1628,12 @@ class MatrixNdarray(Ndarray):
         self.m = m
         super().__init__()
         # TODO(zhanlue): remove self.dtype and migrate its usages to element_type
-        self.dtype = cook_dtype(dtype)
+        self.dtype = dtype
+        self.dtype_cxx = cook_dtype(dtype)
 
         self.layout = Layout.AOS
         self.shape = tuple(shape)
-        self.element_type = _type_factory.get_tensor_type((self.n, self.m), self.dtype)
+        self.element_type = _type_factory.get_tensor_type((self.n, self.m), self.dtype_cxx)
         # TODO: we should pass in element_type, shape, layout instead.
         self.arr = impl.get_runtime().prog.create_ndarray(
             cook_dtype(self.element_type),
@@ -1740,11 +1744,12 @@ class VectorNdarray(Ndarray):
         self.n = n
         super().__init__()
         # TODO(zhanlue): remove self.dtype and migrate its usages to element_type
-        self.dtype = cook_dtype(dtype)
+        self.dtype = dtype
+        self.dtype_cxx = cook_dtype(dtype)
 
         self.layout = Layout.AOS
         self.shape = tuple(shape)
-        self.element_type = _type_factory.get_tensor_type((n,), self.dtype)
+        self.element_type = _type_factory.get_tensor_type((n,), self.dtype_cxx)
         self.arr = impl.get_runtime().prog.create_ndarray(
             cook_dtype(self.element_type),
             shape,

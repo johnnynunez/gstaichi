@@ -6,6 +6,10 @@ from gstaichi.types.enums import Layout, to_boundary_enum
 
 class NdarrayTypeMetadata:
     def __init__(self, element_type, shape=None, needs_grad=False):
+        # print("NdarrayTypeMetadata element type", element_type, type(element_type))
+        # if hasattr(element_type, "cxx"):
+        #     element_type = element_type.cxx
+        #     print("updated elemn type", element_type, type(element_type))
         self.element_type = element_type
         self.shape = shape
         self.layout = Layout.AOS

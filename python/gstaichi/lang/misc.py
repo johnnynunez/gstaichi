@@ -347,8 +347,11 @@ def init(
     # Make a deepcopy in case these args reference to items from ti.cfg, which are
     # actually references. If no copy is made and the args are indeed references,
     # ti.reset() could override the args to their default values.
-    default_fp = _deepcopy(default_fp)
-    default_ip = _deepcopy(default_ip)
+    default_fp, default_ip = None, None
+    if default_fp:
+        default_fp = _deepcopy(default_fp.cxx)
+    if default_ip:
+        default_ip = _deepcopy(default_ip.cxx)
     kwargs = _deepcopy(kwargs)
     reset()
 

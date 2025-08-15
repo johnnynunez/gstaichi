@@ -357,6 +357,10 @@ def _process_args(self: "Func | Kernel", is_func: bool, args: tuple[Any, ...], k
                 raise GsTaichiSyntaxError(
                     f"Parameter `{self.arg_metas[i].name} : {self.arg_metas[i].annotation}` missing."
                 )
+    
+    for arg_meta in self.arg_metas:
+        if arg_meta.annotation is gstaichi.types.i32:
+            arg_meta.annotation = arg_meta.annotation.cxx
 
     return tuple(fused_args)
 
@@ -532,6 +536,8 @@ class Func:
                     pass
                 elif isinstance(annotation, StructType):
                     pass
+                elif annotation is primitive_types.i32:
+                    annotation = annotation.cxx
                 elif id(annotation) in primitive_types.type_ids:
                     pass
                 elif type(annotation) == gstaichi.types.annotations.Template:
@@ -667,6 +673,8 @@ class Kernel:
                     ),
                 ):
                     pass
+                elif annotation is primitive_types.i32:
+                    annotation = annotation.cxx
                 elif id(annotation) in primitive_types.type_ids:
                     pass
                 elif isinstance(annotation, sparse_matrix_builder):
@@ -970,6 +978,14 @@ class Kernel:
             if id(needed_arg_type) in primitive_types.integer_type_ids:
                 if not isinstance(v, (int, np.integer)):
                     raise GsTaichiRuntimeTypeError.get(indices, needed_arg_type.to_string(), provided_arg_type)
+                if is_signed(cook_dtype(needed_arg_type)):
+                    launch_ctx.set_arg_int(indices, int(v))
+                else:
+                    launch_ctx.set_arg_uint(indices, int(v))
+                return 1
+            if needed_arg_type is primitive_types.i32:
+                if not isinstance(v, (int, np.integer)):
+                    raise GsTaichiRuntimeTypeError.get(indices, needed_arg_type, provided_arg_type)
                 if is_signed(cook_dtype(needed_arg_type)):
                     launch_ctx.set_arg_int(indices, int(v))
                 else:

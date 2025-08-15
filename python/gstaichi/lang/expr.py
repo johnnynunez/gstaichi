@@ -94,7 +94,11 @@ class Expr(GsTaichiOperations):
 
 def _check_in_range(npty, val):
     iif = np.iinfo(npty)
-    return iif.min <= val <= iif.max
+    print("npty", npty)
+    print("iif", iif, type(iif), 'min', iif.min, 'max', iif.max, 'val', val)
+    in_range = iif.min <= val <= iif.max
+    print('in_range', in_range)
+    return in_range
 
 
 def _clamp_unsigned_to_range(npty, val: np.integer | int) -> np.integer | int:
@@ -109,6 +113,7 @@ def _clamp_unsigned_to_range(npty, val: np.integer | int) -> np.integer | int:
 
 
 def make_constant_expr(val, dtype):
+    print("make_constant_expr val", val, type(val), "dtype", dtype, type(dtype))
     if isinstance(val, (bool, np.bool_)):
         constant_dtype = primitive_types.u1
         return Expr(_ti_core.make_const_expr_bool(constant_dtype, val))
@@ -127,8 +132,13 @@ def make_constant_expr(val, dtype):
             raise GsTaichiTypeError(
                 "Integer literals must be annotated with a integer type. For type casting, use `ti.cast`."
             )
+        print("constant_dtype", constant_dtype, "val", val)
+        np_type = to_numpy_type(constant_dtype)
+        print('np_type', np_type, type(np_type))
         if _check_in_range(to_numpy_type(constant_dtype), val):
-            return Expr(_ti_core.make_const_expr_int(constant_dtype, _clamp_unsigned_to_range(np.int64, val)))
+            print("is in range")
+            return Expr(_ti_core.make_const_expr_int(constant_dtype.cxx, _clamp_unsigned_to_range(np.int64, val)))
+        print('not in range')
         if dtype is None:
             raise GsTaichiTypeError(
                 f"Integer literal {val} exceeded the range of default_ip: {impl.get_runtime().default_ip}, please specify the dtype via e.g. `ti.u64({val})` or set a different `default_ip` in `ti.init()`"

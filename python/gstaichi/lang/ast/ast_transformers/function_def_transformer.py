@@ -60,6 +60,7 @@ class FunctionDefTransformer:
             needs_grad: bool
             boundary: BoundaryMode
             raw_element_type, ndim, needs_grad, boundary = this_arg_features
+            print("raw_element_type", raw_element_type, type(raw_element_type))
             return False, (
                 kernel_arguments.decl_ndarray_arg,
                 (
@@ -119,6 +120,7 @@ class FunctionDefTransformer:
                         obj = decl_type_func(*type_args)
                         ctx.create_variable(flat_name, obj)
         else:
+            print("calling FunctionDefTransformer._decl_and_create_variable argument_type", argument_type, "argument_name", argument_name, "features", ctx.arg_features)
             result, obj = FunctionDefTransformer._decl_and_create_variable(
                 ctx,
                 argument_type,
