@@ -477,7 +477,7 @@
                 <span class="s2">&quot;GsTaichi does not support variables in slice now, please use constant instead of it.&quot;</span>
             <span class="p">)</span>
 
-    <span class="n">check_validity</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">check_validity</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">check_validity</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">check_validity</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">check_validity</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">check_validity</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)]</span>
 
 
@@ -658,7 +658,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">target_tape</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fwd_mode_manager</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grad_replaced</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span> <span class="o">=</span> <span class="n">kernels</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Kernel</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernels</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_signal_handler_registry</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unfinalized_fields_builder</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -680,7 +680,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">current_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Kernel</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_kernel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">GsTaichiRuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;_pr_current_kernelog attribute not initialized. Maybe you forgot to call `ti.init()` first?&quot;</span>
+                <span class="s2">&quot;_current_kernel attribute not initialized. Maybe you forgot to call `ti.init()` first?&quot;</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_kernel</span>
 
@@ -689,7 +689,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">clear_compiled_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">:</span>
-            <span class="n">k</span><span class="o">.</span><span class="n">compiled_kernels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">k</span><span class="o">.</span><span class="n">materialized_kernels</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">finalize_fields_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">builder</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unfinalized_fields_builder</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
@@ -706,7 +706,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_num_compiled_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">:</span>
-            <span class="n">count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">compiled_kernels</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">materialized_kernels</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">count</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">src_info_guard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>

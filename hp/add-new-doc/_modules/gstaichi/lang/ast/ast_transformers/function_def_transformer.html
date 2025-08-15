@@ -603,7 +603,10 @@
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">is_kernel</span><span class="p">:</span>  <span class="c1"># ti.kernel</span>
             <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_as_kernel</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># ti.func</span>
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">only_parse_function_def</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">is_kernel</span><span class="p">:</span>  <span class="c1"># ti.func</span>
             <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">argument_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">assert</span> <span class="n">ctx</span><span class="o">.</span><span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">is_real_function</span><span class="p">:</span>
@@ -612,7 +615,9 @@
                 <span class="n">FunctionDefTransformer</span><span class="o">.</span><span class="n">_transform_as_func</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">ctx</span><span class="o">.</span><span class="n">variable_scope_guard</span><span class="p">():</span>
-            <span class="n">build_stmts</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
+            <span class="n">build_stmts</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
 </div>
 
 </pre></div>
