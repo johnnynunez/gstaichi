@@ -278,11 +278,11 @@ void KernelCompilationManager::store_fast_cache(
   TI_INFO("Store fast cache for kernel '{}' (key='{}')", kernel.get_name(),
           checksum);
   KernelCacheData k;
-  k.kernel_key = checksum;
-  k.created_at = k.last_used_at = std::time(nullptr);
+  k.metadata.kernel_key = checksum;
+  k.metadata.created_at = k.metadata.last_used_at = std::time(nullptr);
   k.compiled_kernel_data = ckd.clone();
-  k.size = 0;
-  k.cache_mode = cache_mode;
+  k.metadata.size = 0;
+  k.metadata.cache_mode = cache_mode;
   caching_kernels_[checksum] = std::move(k);
 }
 
