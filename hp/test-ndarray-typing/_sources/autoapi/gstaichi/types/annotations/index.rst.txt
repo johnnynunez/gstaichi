@@ -24,7 +24,10 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: Template(tensor=None, dim=None)
+.. py:class:: Template(element_type: type[T] = object, ndim: int | None = None)
+
+   Bases: :py:obj:`Generic`\ [\ :py:obj:`T`\ ]
+
 
    Type annotation for template kernel parameter.
    Useful for passing parameters to kernels by reference.
@@ -55,12 +58,10 @@ Module Contents
        >>> test_template(a)  # will print 2
 
 
-   .. py:attribute:: tensor
-      :value: None
+   .. py:attribute:: element_type
 
 
-
-   .. py:attribute:: dim
+   .. py:attribute:: ndim
       :value: None
 
 
