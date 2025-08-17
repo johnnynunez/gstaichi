@@ -9,7 +9,8 @@ from gstaichi._lib.core.gstaichi_python import (
     DataTypeCxx,
     Function,
     KernelCxx,
-    Program,
+    ProgramCxx,
+    CompileConfigCxx,
 )
 from gstaichi._snode.fields_builder import FieldsBuilder
 from gstaichi.lang._ndarray import ScalarNdarray
@@ -66,6 +67,10 @@ from gstaichi.types.primitive_types import (
     u8,
     u32,
     u64,
+    i32_cxx,
+    i64_cxx,
+    f32_cxx,
+    f64_cxx,
 )
 
 
@@ -327,6 +332,51 @@ class SrcInfoGuard:
         self.info_stack.pop()
 
 
+class CompileConfig:
+    def __init__(self, config_cxx: CompileConfigCxx) -> None:
+        self.config_cxx = config_cxx
+
+    @property
+    def default_ip(self):
+        dtype_cxx = self.config_cxx.default_ip
+        print("dtype_cxx", dtype_cxx == i32_cxx)
+        # print("dtype_cxx.element_type", dtype_cxx.element_type)
+        if dtype_cxx == i32_cxx:
+            return i32
+        if dtype_cxx == i64_cxx:
+            return i64
+        raise Exception("unknown dtype_cxx", dtype_cxx)
+
+    @property
+    def default_fp(self):
+        dtype_cxx = self.config_cxx.default_fp
+        print("dtype_cxx", dtype_cxx == i32_cxx)
+        # print("dtype_cxx.element_type", dtype_cxx.element_type)
+        if dtype_cxx == f32_cxx:
+            return f32
+        if dtype_cxx == f64_cxx:
+            return f64
+        raise Exception("unknown dtype_cxx", dtype_cxx)
+
+    def __getattr__(self, name) -> Any:
+        print(name)
+        return getattr(self.config_cxx, name)
+
+
+class Program:
+    def __init__(self, prog: ProgramCxx) -> None:
+        super().__init__()
+        self.prog = prog
+    
+    def config(self):
+        print('Program.config')
+        return CompileConfig(self.prog.config())
+
+    def __getattr__(self, name) -> Any:
+        print(name)
+        return getattr(self.prog, name)
+
+
 class PyGsTaichi:
     def __init__(self, kernels=None):
         self.materialized = False
@@ -406,18 +456,20 @@ class PyGsTaichi:
     def set_default_fp(self, fp):
         assert fp in [f16, f32, f64]
         self.default_fp = fp
-        default_cfg().default_fp = self.default_fp
+        default_cfg().default_fp = self.default_fp.cxx
 
     def set_default_ip(self, ip):
+        print("set_default_ip", ip, type(ip))
         assert ip in [i32, i64]
         self.default_ip = ip
         self.default_up = u32 if ip == i32 else u64
-        default_cfg().default_ip = self.default_ip
-        default_cfg().default_up = self.default_up
+        default_cfg().default_ip = self.default_ip.cxx
+        default_cfg().default_up = self.default_up.cxx
 
     def create_program(self):
         if self._prog is None:
-            self._prog = _ti_core.Program()
+            self._prog_cxx = _ti_core.ProgramCxx()
+            self._prog = Program(self._prog_cxx)
 
     @staticmethod
     def materialize_root_fb(is_first_call):
@@ -1205,6 +1257,7 @@ def stop_grad(x):
 
 
 def current_cfg():
+    print("current_cfg()")
     return get_runtime().prog.config()
 
 

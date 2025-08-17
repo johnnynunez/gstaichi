@@ -25,6 +25,7 @@ from gstaichi.types.primitive_types import (
     u32,
     u64,
     i32_cxx,
+    u1_cxx
 )
 
 
@@ -250,7 +251,7 @@ def cook_dtype(dtype):
     if dtype is int:
         return impl.get_runtime().default_ip
     if dtype is bool:
-        return u1
+        return u1_cxx
     if dtype is i32:
         return i32_cxx
     raise ValueError(f"Invalid data type {dtype}")

@@ -153,7 +153,7 @@ void export_lang(py::module &m) {
       .def_readwrite("tb", &DebugInfo::tb)
       .def_readwrite("src_loc", &DebugInfo::src_loc);
 
-  py::class_<CompileConfig>(m, "CompileConfig")
+  py::class_<CompileConfig>(m, "CompileConfigCxx")
       .def(py::init<>())
       .def_readwrite("arch", &CompileConfig::arch)
       .def_readwrite("opt_level", &CompileConfig::opt_level)
@@ -353,7 +353,7 @@ void export_lang(py::module &m) {
   auto compiled_kernel_data =
       py::class_<CompiledKernelData>(m, "CompiledKernelData");
 
-  py::class_<Program>(m, "Program")
+  py::class_<Program>(m, "ProgramCxx")
       .def(py::init<>())
       .def("config", &Program::compile_config,
            py::return_value_policy::reference)

@@ -349,9 +349,9 @@ def init(
     # ti.reset() could override the args to their default values.
     default_fp, default_ip = None, None
     if default_fp:
-        default_fp = _deepcopy(default_fp.cxx)
+        default_fp = _deepcopy(default_fp)
     if default_ip:
-        default_ip = _deepcopy(default_ip.cxx)
+        default_ip = _deepcopy(default_ip)
     kwargs = _deepcopy(kwargs)
     reset()
 
