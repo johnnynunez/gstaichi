@@ -1,10 +1,11 @@
-# type: ignore
-
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
 from gstaichi._lib import core as _ti_core
+from gstaichi._lib.core.gstaichi_python import (
+    DataTypeCxx,
+)
 from gstaichi.lang import impl
 from gstaichi.lang.exception import GsTaichiIndexError
 from gstaichi.lang.util import cook_dtype, get_traceback, python_scope, to_numpy_type
@@ -29,8 +30,8 @@ class Ndarray:
 
     def __init__(self):
         self.host_accessor = None
-        self.shape = None
-        self.element_type = None
+        self.shape: tuple[int, ...] | None = None
+        self.element_type: DataTypeCxx | None = None
         self.dtype = None
         self.arr = None
         self.layout = Layout.AOS
@@ -77,16 +78,17 @@ class Ndarray:
         Args:
             val (Union[int, float]): Value to fill.
         """
+        prog = impl.get_runtime().prog
         if impl.current_cfg().arch != _ti_core.Arch.cuda and impl.current_cfg().arch != _ti_core.Arch.x64:
             self._fill_by_kernel(val)
-        elif _ti_core.is_tensor(self.element_type):
+        elif self.element_type and _ti_core.is_tensor(self.element_type):
             self._fill_by_kernel(val)
         elif self.dtype == primitive_types.f32:
-            impl.get_runtime().prog.fill_float(self.arr, val)
+            prog.fill_float(self.arr, val)
         elif self.dtype == primitive_types.i32:
-            impl.get_runtime().prog.fill_int(self.arr, val)
+            prog.fill_int(self.arr, val)
         elif self.dtype == primitive_types.u32:
-            impl.get_runtime().prog.fill_uint(self.arr, val)
+            prog.fill_uint(self.arr, val)
         else:
             self._fill_by_kernel(val)
 
@@ -97,6 +99,7 @@ class Ndarray:
         Returns:
             numpy.ndarray: The result numpy array.
         """
+        assert self.arr
         arr = np.zeros(shape=self.arr.total_shape(), dtype=to_numpy_type(self.dtype))
         from gstaichi._kernels import ndarray_to_ext_arr  # pylint: disable=C0415
 
@@ -111,6 +114,7 @@ class Ndarray:
         Returns:
             numpy.ndarray: The result numpy array.
         """
+        assert self.arr
         arr = np.zeros(shape=self.arr.total_shape(), dtype=to_numpy_type(self.dtype))
         from gstaichi._kernels import ndarray_matrix_to_ext_arr  # pylint: disable=C0415
 
@@ -128,6 +132,7 @@ class Ndarray:
         """
         if not isinstance(arr, np.ndarray):
             raise TypeError(f"{np.ndarray} expected, but {type(arr)} provided")
+        assert self.arr
         if tuple(self.arr.total_shape()) != tuple(arr.shape):
             raise ValueError(f"Mismatch shape: {tuple(self.arr.shape)} expected, but {tuple(arr.shape)} provided")
         if not arr.flags.c_contiguous:
@@ -145,6 +150,7 @@ class Ndarray:
         Args:
             arr (numpy.ndarray): The source numpy array.
         """
+        assert self.arr
         if not isinstance(arr, np.ndarray):
             raise TypeError(f"{np.ndarray} expected, but {type(arr)} provided")
         if tuple(self.arr.total_shape()) != tuple(arr.shape):
@@ -161,25 +167,27 @@ class Ndarray:
         impl.get_runtime().sync()
 
     @python_scope
-    def _get_element_size(self):
+    def _get_element_size(self) -> int:
         """Returns the size of one element in bytes.
 
         Returns:
             Size in bytes.
         """
+        assert self.arr
         return self.arr.element_size()
 
     @python_scope
-    def _get_nelement(self):
+    def _get_nelement(self) -> int:
         """Returns the total number of elements.
 
         Returns:
             Total number of elements.
         """
+        assert self.arr
         return self.arr.nelement()
 
     @python_scope
-    def copy_from(self, other):
+    def copy_from(self, other: "Ndarray") -> None:
         """Copies all elements from another ndarray.
 
         The shape of the other ndarray needs to be the same as `self`.
@@ -188,13 +196,15 @@ class Ndarray:
             other (Ndarray): The source ndarray.
         """
         assert isinstance(other, Ndarray)
+        assert self.arr
+        assert other.arr
         assert tuple(self.arr.shape) == tuple(other.arr.shape)
         from gstaichi._kernels import ndarray_to_ndarray  # pylint: disable=C0415
 
         ndarray_to_ndarray(self, other)
         impl.get_runtime().sync()
 
-    def _set_grad(self, grad: "TensorNdarray"):
+    def _set_grad(self, grad: "TensorNdarray") -> None:
         """Sets the gradient ndarray.
 
         Args:
@@ -202,7 +212,7 @@ class Ndarray:
         """
         self.grad = grad
 
-    def __deepcopy__(self, memo=None):
+    def __deepcopy__(self, memo=None) -> "Ndarray":
         """Copies all elements to a new ndarray.
 
         Returns:
@@ -210,7 +220,7 @@ class Ndarray:
         """
         raise NotImplementedError()
 
-    def _fill_by_kernel(self, val):
+    def _fill_by_kernel(self, val: int | float) -> None:
         """Fills ndarray with a specific scalar value using a ti.kernel.
 
         Args:
@@ -224,6 +234,7 @@ class Ndarray:
             key = ()
         if not isinstance(key, (tuple, list)):
             key = (key,)
+        assert self.arr
         if len(key) != len(self.arr.total_shape()):
             raise GsTaichiIndexError(f"{len(self.arr.total_shape())}d ndarray indexed with {len(key)}d indices: {key}")
         return key
@@ -268,12 +279,14 @@ class ScalarNdarray(Ndarray):
     @python_scope
     def __setitem__(self, key, value):
         self._initialize_host_accessor()
+        assert self.host_accessor
         self.host_accessor.setter(value, *self._pad_key(key))
 
     @python_scope
     def __getitem__(self, key):
         print('ndarray getitem ', key)
         self._initialize_host_accessor()
+        assert self.host_accessor
         return self.host_accessor.getter(*self._pad_key(key))
 
     @python_scope
@@ -285,7 +298,7 @@ class ScalarNdarray(Ndarray):
         self._ndarray_from_numpy(arr)
 
     def __deepcopy__(self, memo=None):
-        ret_arr = ScalarNdarray(self.dtype, self.shape)
+        ret_arr = ScalarNdarray(self.dtype, self.dtype_cxx, self.shape)
         ret_arr.copy_from(self)
         return ret_arr
 
@@ -335,17 +348,24 @@ class NdarrayHostAccess:
         indices_second (Tuple[Int]): Indices of second-level access (indices in the vector/matrix).
     """
 
-    def __init__(self, arr, indices_first, indices_second):
+    def __init__(
+        self,
+        arr: VectorNdarray | MatrixNdarray,
+        indices_first: tuple[int, ...],
+        indices_second: tuple[int, ...],
+    ) -> None:
         self.ndarr = arr
         self.arr = arr.arr
         self.indices = indices_first + indices_second
 
         def getter():
             self.ndarr._initialize_host_accessor()
+            assert self.ndarr.host_accessor
             return self.ndarr.host_accessor.getter(*self.ndarr._pad_key(self.indices))
 
         def setter(value):
             self.ndarr._initialize_host_accessor()
+            assert self.ndarr.host_accessor
             self.ndarr.host_accessor.setter(value, *self.ndarr._pad_key(self.indices))
 
         self.getter = getter
