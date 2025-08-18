@@ -698,6 +698,8 @@ class Kernel:
             self.fast_checksum = src_hasher.create_cache_key(kernel_source_info, args)
             if self.fast_checksum:
                 self.src_ll_cache_observations.cache_key_generated = True
+            else:
+                print("could not create fast checksum for", self.func.__name__)
             if self.fast_checksum and src_hasher.validate_cache_key(self.fast_checksum):
                 self.src_ll_cache_observations.cache_validated = True
                 prog = impl.get_runtime().prog
@@ -1099,7 +1101,6 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
-        print("kernel.__call__", self.func.__name__)
         args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
@@ -1128,7 +1129,6 @@ class Kernel:
         key = self.ensure_compiled(*args)
         kernel_cpp = self.materialized_kernels[key]
         res = self.launch_kernel(kernel_cpp, *args)
-        print("finished kernel.__call__", self.func.__name__)
         return res
 
 
