@@ -71,6 +71,7 @@ def stringify_obj_type(obj: Any) -> str | None:
         return str(arg_type)
     if isinstance(obj, enum.Enum):
         return f"enum-{obj.name}-{obj.value}"
+    print("Warning: arg hashing unhandled type", obj, type(obj))
     return None
 
 
