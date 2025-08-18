@@ -29,6 +29,7 @@ from gstaichi.lang.util import (
     to_numpy_type,
     to_pytorch_type,
     warning,
+    to_gstaichi_python_type,
 )
 from gstaichi.types import primitive_types
 from gstaichi.types.compound_types import CompoundType
@@ -1744,7 +1745,7 @@ class VectorNdarray(Ndarray):
         self.n = n
         super().__init__()
         # TODO(zhanlue): remove self.dtype and migrate its usages to element_type
-        self.dtype = dtype
+        self.dtype = to_gstaichi_python_type(dtype)
         print("dtype", dtype, type(dtype))
         self.dtype_cxx = cook_dtype(dtype)
 

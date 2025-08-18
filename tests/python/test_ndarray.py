@@ -110,6 +110,8 @@ def test_default_fp_ndarray(dtype):
 
     x = ti.Vector.ndarray(2, float, ())
 
+    print("x.dtype", x.dtype, type(x.dtype))
+    print("impl.get_runtime().default_fp", impl.get_runtime().default_fp, type(impl.get_runtime().default_fp))
     assert x.dtype == impl.get_runtime().default_fp
 
 

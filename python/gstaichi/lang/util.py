@@ -245,6 +245,17 @@ def to_gstaichi_type(dt: Type[PrimitiveBase] | _ti_core.DataTypeCxx | Any):
     raise AssertionError(f"Unknown type {dt}")
 
 
+def to_gstaichi_python_type(dtype: Type[float] | Type[int] | Type[PrimitiveBase]) -> Type[PrimitiveBase]:
+    if isinstance(dtype, type) and issubclass(dtype, PrimitiveBase):
+        return dtype
+    if dtype is float:
+        return impl.get_runtime().default_fp
+    if dtype is int:
+        return impl.get_runtime().default_ip
+    print("dtype", dtype, type(dtype))
+    raise ValueError(f"Unhandled data type {dtype}")
+
+
 def cook_dtype(dtype: Type[PrimitiveBase] | _ti_core.DataTypeCxx | _ti_core.Type | float | int):
     if isinstance(dtype, _ti_core.DataTypeCxx):
         return dtype
