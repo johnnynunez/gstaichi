@@ -1099,6 +1099,7 @@ class Kernel:
     # Thus this part needs to be fast. (i.e. < 3us on a 4 GHz x64 CPU)
     @_shell_pop_print
     def __call__(self, *args, **kwargs) -> Any:
+        print("kernel.__call__", self.func.__name__)
         args = _process_args(self, is_func=False, args=args, kwargs=kwargs)
 
         # Transform the primal kernel to forward mode grad kernel
@@ -1126,7 +1127,9 @@ class Kernel:
             impl.current_cfg().opt_level = 1
         key = self.ensure_compiled(*args)
         kernel_cpp = self.materialized_kernels[key]
-        return self.launch_kernel(kernel_cpp, *args)
+        res = self.launch_kernel(kernel_cpp, *args)
+        print("finished kernel.__call__", self.func.__name__)
+        return res
 
 
 # For a GsTaichi class definition like below:
