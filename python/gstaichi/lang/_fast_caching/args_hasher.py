@@ -67,8 +67,10 @@ def stringify_obj_type(obj: Any) -> str | None:
                 return None
             child_repr_l.append(f"{k}: {_child_repr}")
         return ", ".join(child_repr_l)
-    if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64, bool, np.bool]:
+    if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64, bool]:
         return str(arg_type)
+    if arg_type is np.bool:
+        return "np.bool"
     if isinstance(obj, enum.Enum):
         return f"enum-{obj.name}-{obj.value}"
     return None
