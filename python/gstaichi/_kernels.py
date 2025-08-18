@@ -20,7 +20,6 @@ from gstaichi.lang._fast_caching.function_hasher import pure
 
 
 # A set of helper (meta)functions
-@pure
 @kernel
 def fill_field(field: template(), val: template()):
     value = ops.cast(val, field.dtype)
@@ -28,21 +27,18 @@ def fill_field(field: template(), val: template()):
         field[I] = value
 
 
-@pure
 @kernel
 def fill_ndarray(ndarray: ndarray_type.ndarray(), val: template()):
     for I in grouped(ndarray):
         ndarray[I] = val
 
 
-@pure
 @kernel
 def fill_ndarray_matrix(ndarray: ndarray_type.ndarray(), val: template()):
     for I in grouped(ndarray):
         ndarray[I] = val
 
 
-@pure
 @kernel
 def tensor_to_ext_arr(tensor: template(), arr: ndarray_type.ndarray()):
     # default value of offset is [], replace it with [0] * len
@@ -52,14 +48,12 @@ def tensor_to_ext_arr(tensor: template(), arr: ndarray_type.ndarray()):
         arr[I - offset] = tensor[I]
 
 
-@pure
 @kernel
 def ndarray_to_ext_arr(ndarray: ndarray_type.ndarray(), arr: ndarray_type.ndarray()):
     for I in grouped(ndarray):
         arr[I] = ndarray[I]
 
 
-@pure
 @kernel
 def ndarray_matrix_to_ext_arr(
     ndarray: ndarray_type.ndarray(),
@@ -82,7 +76,6 @@ def ndarray_matrix_to_ext_arr(
                         arr[p, q, I] = ndarray[I][p, q]
 
 
-@pure
 @kernel
 def vector_to_fast_image(img: template(), out: ndarray_type.ndarray()):
     static_assert(len(img.shape) == 2)
@@ -114,7 +107,6 @@ def vector_to_fast_image(img: template(), out: ndarray_type.ndarray()):
             out[idx] = (b << 16) + (g << 8) + r + alpha
 
 
-@pure
 @kernel
 def tensor_to_image(tensor: template(), arr: ndarray_type.ndarray()):
     # default value of offset is [], replace it with [0] * len
@@ -126,7 +118,6 @@ def tensor_to_image(tensor: template(), arr: ndarray_type.ndarray()):
         arr[I - offset, 2] = t
 
 
-@pure
 @kernel
 def vector_to_image(mat: template(), arr: ndarray_type.ndarray()):
     # default value of offset is [], replace it with [0] * len
@@ -138,7 +129,6 @@ def vector_to_image(mat: template(), arr: ndarray_type.ndarray()):
                 arr[I - offset, 2] = 0
 
 
-@pure
 @kernel
 def tensor_to_tensor(tensor: template(), other: template()):
     static_assert(tensor.shape == other.shape)
@@ -150,7 +140,6 @@ def tensor_to_tensor(tensor: template(), other: template()):
         tensor[I + tensor_offset] = other[I + other_offset]
 
 
-@pure
 @kernel
 def ext_arr_to_tensor(arr: ndarray_type.ndarray(), tensor: template()):
     # default value of offset is [], replace it with [0] * len
@@ -159,21 +148,18 @@ def ext_arr_to_tensor(arr: ndarray_type.ndarray(), tensor: template()):
         tensor[I] = arr[I - offset]
 
 
-@pure
 @kernel
 def ndarray_to_ndarray(ndarray: ndarray_type.ndarray(), other: ndarray_type.ndarray()):
     for I in grouped(ndarray):
         ndarray[I] = other[I]
 
 
-@pure
 @kernel
 def ext_arr_to_ndarray(arr: ndarray_type.ndarray(), ndarray: ndarray_type.ndarray()):
     for I in grouped(ndarray):
         ndarray[I] = arr[I]
 
 
-@pure
 @kernel
 def ext_arr_to_ndarray_matrix(
     arr: ndarray_type.ndarray(),
@@ -196,7 +182,6 @@ def ext_arr_to_ndarray_matrix(
                         ndarray[I][p, q] = arr[p, q, I]
 
 
-@pure
 @kernel
 def matrix_to_ext_arr(mat: template(), arr: ndarray_type.ndarray(), as_vector: template()):
     # default value of offset is [], replace it with [0] * len
@@ -217,7 +202,6 @@ def matrix_to_ext_arr(mat: template(), arr: ndarray_type.ndarray(), as_vector: t
                         arr[I - offset, p, q] = mat[I][p, q]
 
 
-@pure
 @kernel
 def ext_arr_to_matrix(arr: ndarray_type.ndarray(), mat: template(), as_vector: template()):
     # default value of offset is [], replace it with [0] * len
@@ -243,7 +227,6 @@ def ext_arr_to_matrix(arr: ndarray_type.ndarray(), mat: template(), as_vector: t
 # darray's shape[1] which is the height-axis(So use [size // h, size %
 #  h]). And the height-order of vulkan layout is flip up-down.(So take
 # [size = (h - 1 - j) * w + i] to get the index)
-@pure
 @kernel
 def arr_vulkan_layout_to_arr_normal_layout(vk_arr: ndarray_type.ndarray(), normal_arr: ndarray_type.ndarray()):
     static_assert(len(normal_arr.shape) == 2)
@@ -255,7 +238,6 @@ def arr_vulkan_layout_to_arr_normal_layout(vk_arr: ndarray_type.ndarray(), norma
 
 # extract ndarray of raw vulkan memory layout into a gstaichi-field data
 # structure with normal memory layout.
-@pure
 @kernel
 def arr_vulkan_layout_to_field_normal_layout(vk_arr: ndarray_type.ndarray(), normal_field: template()):
     static_assert(len(normal_field.shape) == 2)
@@ -315,7 +297,6 @@ def save_texture_to_numpy(
 
 
 # Odd-even merge sort
-@pure
 @kernel
 def sort_stage(
     keys: template(),
@@ -375,7 +356,6 @@ def warp_shfl_up_i32(val: template()):
     return val
 
 
-@pure
 @kernel
 def scan_add_inclusive(
     arr_in: template(),
@@ -424,7 +404,6 @@ def scan_add_inclusive(
             arr_in[in_end + block_id] = val
 
 
-@pure
 @kernel
 def uniform_add(arr_in: template(), in_beg: i32, in_end: i32):
     BLOCK_SZ = 64
@@ -434,7 +413,6 @@ def uniform_add(arr_in: template(), in_beg: i32, in_end: i32):
         arr_in[i] += arr_in[in_end + block_id - 1]
 
 
-@pure
 @kernel
 def blit_from_field_to_field(dst: template(), src: template(), offset: i32, size: i32):
     dst_offset = static(dst.snode.ptr.offset if len(dst.snode.ptr.offset) != 0 else 0)
