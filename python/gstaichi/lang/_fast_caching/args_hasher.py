@@ -33,7 +33,7 @@ def dataclass_to_repr(arg: Any) -> str:
     return "[" + ",".join(repr_l) + "]"
 
 
-def stringify_obj_type(obj: Any) -> str | None:
+def stringify_obj_type(path: tuple[str, ...], obj: Any) -> str | None:
     """
     stringify the type of obj
 
@@ -61,17 +61,21 @@ def stringify_obj_type(obj: Any) -> str | None:
     if is_data_oriented(obj):
         child_repr_l = []
         for k, v in obj.__dict__.items():
-            _child_repr = stringify_obj_type(v)
+            _child_repr = stringify_obj_type(path + (k,), v)
             if _child_repr is None:
-                print("not representable child", k, type(v))
+                print("not representable child", k, type(v), 'path', path)
                 return None
             child_repr_l.append(f"{k}: {_child_repr}")
         return ", ".join(child_repr_l)
     if arg_type in [int, float, np.float32, np.float64, np.int32, np.int64, bool]:
         return str(arg_type)
+    if arg_type is np.bool_:
+        # print("is dtypelike", )
+        # cant be a bool, because that's in the prevous if
+        return "np.bool_"
     if isinstance(obj, enum.Enum):
         return f"enum-{obj.name}-{obj.value}"
-    print("Warning: arg hashing unhandled type", obj, type(obj))
+    print("Warning: arg hashing unhandled type", obj, type(obj), 'path', path)
     return None
 
 
@@ -80,9 +84,9 @@ def hash_args(args: Sequence[Any]) -> str | None:
     g_num_calls += 1
     g_num_args += len(args)
     hash_l = []
-    for arg in args:
+    for arg_i, arg in enumerate(args):
         start = time.time()
-        _hash = stringify_obj_type(arg)
+        _hash = stringify_obj_type((str(arg_i), ), arg)
         g_repr_time += time.time() - start
         if not _hash:
             g_num_ignored_calls += 1
