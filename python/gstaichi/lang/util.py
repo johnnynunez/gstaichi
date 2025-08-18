@@ -2,7 +2,7 @@ import functools
 import os
 import traceback
 import warnings
-from typing import Any
+from typing import Any, Type
 
 import numpy as np
 from colorama import Fore, Style
@@ -25,7 +25,8 @@ from gstaichi.types.primitive_types import (
     u32,
     u64,
     i32_cxx,
-    u1_cxx
+    u1_cxx,
+    PrimitiveBase,
 )
 
 
@@ -167,7 +168,7 @@ def to_pytorch_type(dt):
     raise RuntimeError(f"PyTorch doesn't support {dt.to_string()} data type.")
 
 
-def to_gstaichi_type(dt):
+def to_gstaichi_type(dt: Type[PrimitiveBase] | _ti_core.DataTypeCxx | Any):
     """Convert numpy or torch data type to its counterpart in gstaichi.
 
     Args:
@@ -178,6 +179,9 @@ def to_gstaichi_type(dt):
 
     """
     if type(dt) == _ti_core.DataTypeCxx:
+        return dt
+    
+    if isinstance(dt, type) and issubclass(dt, PrimitiveBase):
         return dt
 
     if dt == np.float32:
@@ -236,24 +240,28 @@ def to_gstaichi_type(dt):
             if dt == torch.uint64:
                 return u64
 
-        raise RuntimeError(f"PyTorch doesn't support {dt.to_string()} data type before version 2.3.0.")
+        # raise RuntimeError(f"PyTorch doesn't support {dt.to_string()} data type before version 2.3.0.")
 
     raise AssertionError(f"Unknown type {dt}")
 
 
-def cook_dtype(dtype):
+def cook_dtype(dtype: Type[PrimitiveBase] | _ti_core.DataTypeCxx | _ti_core.Type | float | int):
     if isinstance(dtype, _ti_core.DataTypeCxx):
         return dtype
     if isinstance(dtype, _ti_core.Type):
         return _ti_core.DataTypeCxx(dtype)
     if dtype is float:
-        return impl.get_runtime().default_fp
+        return impl.get_runtime().default_fp.cxx
     if dtype is int:
-        return impl.get_runtime().default_ip
-    if dtype is bool:
-        return u1_cxx
-    if dtype is i32:
-        return i32_cxx
+        return impl.get_runtime().default_ip.cxx
+    # if isinstance(dtype, PrimitiveBase):
+    if isinstance(dtype, type) and issubclass(dtype, PrimitiveBase):
+        return dtype.cxx
+    # if dtype is bool:
+    #     return u1_cxx
+    # if dtype is i32:
+    #     return i32_cxx
+    print("dtype", dtype, type(dtype))
     raise ValueError(f"Invalid data type {dtype}")
 
 

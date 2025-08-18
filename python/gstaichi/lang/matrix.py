@@ -1745,10 +1745,12 @@ class VectorNdarray(Ndarray):
         super().__init__()
         # TODO(zhanlue): remove self.dtype and migrate its usages to element_type
         self.dtype = dtype
+        print("dtype", dtype, type(dtype))
         self.dtype_cxx = cook_dtype(dtype)
 
         self.layout = Layout.AOS
         self.shape = tuple(shape)
+        print("self.dtype_cxx", self.dtype_cxx, type(self.dtype_cxx))
         self.element_type = _type_factory.get_tensor_type((n,), self.dtype_cxx)
         self.arr = impl.get_runtime().prog.create_ndarray(
             cook_dtype(self.element_type),

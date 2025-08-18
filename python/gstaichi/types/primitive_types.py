@@ -166,7 +166,7 @@ def ref(tp):
 
 
 class PrimitiveBase:
-    pass
+    cxx: ti_python_core.DataTypeCxx
 
 
 class i32(PrimitiveBase):
@@ -259,5 +259,6 @@ __all__ = [
     "u64",
     "ref",
     "_python_primitive_types",
+    "PrimitiveBase",
     # "I32",
 ]

@@ -124,7 +124,8 @@ def make_constant_expr(val, dtype):
             raise GsTaichiTypeError(
                 "Floating-point literals must be annotated with a floating-point type. For type casting, use `ti.cast`."
             )
-        return Expr(_ti_core.make_const_expr_fp(constant_dtype, val))
+        print("contant_type", constant_dtype, type(constant_dtype), "val", val, type(val))
+        return Expr(_ti_core.make_const_expr_fp(constant_dtype.cxx, val))
 
     if isinstance(val, (int, np.integer)):
         constant_dtype = impl.get_runtime().default_ip if dtype is None else dtype
