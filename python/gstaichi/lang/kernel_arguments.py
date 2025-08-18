@@ -16,7 +16,7 @@ from gstaichi.lang.matrix import MatrixType
 from gstaichi.lang.struct import StructType
 from gstaichi.lang.util import cook_dtype
 from gstaichi.types.compound_types import CompoundType
-from gstaichi.types.primitive_types import RefType, u64
+from gstaichi.types.primitive_types import RefType, u64, PrimitiveBase
 
 
 class ArgMetadata:
@@ -125,8 +125,10 @@ def decl_sparse_matrix(dtype, name):
 def decl_ndarray_arg(
     element_type: DataTypeCxx, ndim: int, name: str, needs_grad: bool, boundary: BoundaryMode
 ) -> AnyArray:
-    arg_id = impl.get_runtime().compiling_callable.insert_ndarray_param(element_type.cxx, ndim, name, needs_grad)
-    return AnyArray(_ti_core.make_external_tensor_expr(element_type.cxx, ndim, arg_id, needs_grad, boundary))
+    if isinstance(element_type, type) and issubclass(element_type, PrimitiveBase):
+        element_type = element_type.cxx
+    arg_id = impl.get_runtime().compiling_callable.insert_ndarray_param(element_type, ndim, name, needs_grad)
+    return AnyArray(_ti_core.make_external_tensor_expr(element_type, ndim, arg_id, needs_grad, boundary))
 
 
 def decl_texture_arg(num_dimensions, name):
