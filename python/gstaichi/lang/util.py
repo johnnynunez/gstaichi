@@ -8,6 +8,9 @@ import numpy as np
 from colorama import Fore, Style
 
 from gstaichi._lib import core as _ti_core
+from gstaichi._lib.core.gstaichi_python import(
+    DataTypeCxx,
+)
 from gstaichi._logging import is_logging_effective
 from gstaichi.lang import impl
 from gstaichi.types import Template
@@ -163,12 +166,16 @@ def to_pytorch_type(dt):
                 return torch.uint32
             if dt == u64:
                 return torch.uint64
-        raise RuntimeError(f"PyTorch doesn't support {dt.to_string()} data type before version 2.3.0.")
+        raise RuntimeError(f"PyTorch doesn't support {dt} data type before version 2.3.0.")
 
     raise RuntimeError(f"PyTorch doesn't support {dt.to_string()} data type.")
 
 
-def to_gstaichi_type(dt: Type[PrimitiveBase] | _ti_core.DataTypeCxx | Any):
+def datatype_cxx_to_py_type(dtype_cxx: DataTypeCxx) -> PrimitiveBase:
+
+
+
+def to_gstaichi_type(dt: Type[PrimitiveBase] | DataTypeCxx | Any):
     """Convert numpy or torch data type to its counterpart in gstaichi.
 
     Args:

@@ -1,9 +1,8 @@
-# type: ignore
-
 import functools
 import numbers
 from collections.abc import Iterable
 from itertools import product
+from typing import Sequence
 
 import numpy as np
 
@@ -79,7 +78,7 @@ def _gen_swizzles(cls):
         cls._keygroup_to_checker[key_group] = make_valid_attribs_checker(key_group)
         for index, attr in enumerate(key_group):
 
-            def gen_property(attr, attr_idx, key_group):
+            def gen_property1(attr, attr_idx, key_group):
                 checker = cls._keygroup_to_checker[key_group]
 
                 def prop_getter(instance):
@@ -93,7 +92,7 @@ def _gen_swizzles(cls):
 
                 return property(prop_getter, prop_setter)
 
-            prop = gen_property(attr, index, key_group)
+            prop = gen_property1(attr, index, key_group)
             setattr(cls, attr, prop)
             cls._swizzle_to_keygroup[attr] = key_group
 
@@ -103,7 +102,7 @@ def _gen_swizzles(cls):
         sw_patterns = filter(lambda p: len(p) > 1, sw_patterns)
         for prop_key in sw_patterns:
             # Create a function for value capturing
-            def gen_property(pattern, key_group):
+            def gen_property2(pattern, key_group):
                 checker = cls._keygroup_to_checker[key_group]
 
                 def prop_getter(instance):
@@ -124,7 +123,7 @@ def _gen_swizzles(cls):
                 prop = property(prop_getter, prop_setter)
                 return prop
 
-            prop = gen_property(prop_key, key_group)
+            prop = gen_property2(prop_key, key_group)
             setattr(cls, prop_key, prop)
             cls._swizzle_to_keygroup[prop_key] = key_group
     return cls
@@ -143,7 +142,7 @@ def _infer_entry_dt(entry):
     raise GsTaichiTypeError("Element type of the matrix is invalid.")
 
 
-def _infer_array_dt(arr):
+def _infer_array_dt(arr: Sequence):
     assert len(arr) > 0
     return functools.reduce(ti_python_core.promoted_type, map(_infer_entry_dt, arr))
 
@@ -165,7 +164,7 @@ def make_matrix(arr, dt=None):
     if len(arr) == 0:
         # the only usage of an empty vector is to serve as field indices
         shape = [0]
-        dt = primitive_types.i32
+        dt_cxx = primitive_types.i32.cxx
     else:
         if isinstance(arr[0], Iterable):  # matrix
             shape = [len(arr), len(arr[0])]
@@ -174,14 +173,15 @@ def make_matrix(arr, dt=None):
             shape = [len(arr)]
         if dt is None:
             dt = _infer_array_dt(arr)
+            dt_cxx = dt.
         else:
-            dt = cook_dtype(dt)
+            dt_cxx = cook_dtype(dt)
     return expr.Expr(
         impl.get_runtime()
         .compiling_callable.ast_builder()
         .make_matrix_expr(
-            shape,
-            dt,
+            tuple(shape),
+            dt_cxx,
             [expr.Expr(elt).ptr for elt in arr],
             ti_python_core.DebugInfo(impl.get_runtime().get_current_src_info()),
         )
@@ -1361,11 +1361,13 @@ class MatrixType(CompoundType):
         # FIXME(haidong): dtypes should not be left empty for ndarray.
         #                 Remove the None dtype when we are ready to break legacy code.
         if dtype is not None:
-            self.dtype = cook_dtype(dtype)
+            self.dtype = dtype
+            self.dtype_cxx = cook_dtype(dtype)
             shape = (n, m) if ndim == 2 else (n,)
             self.tensor_type = _type_factory.create_tensor_type(shape, self.dtype_cxx)
         else:
             self.dtype = None
+            self.dtype_cxx = None
             self.tensor_type = None
 
     def __call__(self, *args):
@@ -1754,7 +1756,7 @@ class VectorNdarray(Ndarray):
         print("self.dtype_cxx", self.dtype_cxx, type(self.dtype_cxx))
         self.element_type_cxx = _type_factory.create_tensor_type((n,), self.dtype_cxx)
         self.arr = impl.get_runtime().prog.create_ndarray(
-            cook_dtype(self.element_type),
+            cook_dtype(self.element_type_cxx),
             shape,
             Layout.AOS,
             zero_fill=True,

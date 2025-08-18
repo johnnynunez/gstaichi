@@ -184,9 +184,13 @@ def test_ndarray_compound_element():
     a = ti.ndarray(ti.i32, shape=(n,))
 
     vec3 = ti.types.vector(3, ti.i32)
+    print("vec3.dtype", vec3.dtype, type(vec3.dtype))
+    print("=============")
     b = ti.ndarray(vec3, shape=(n, n))
     assert isinstance(b, ti.VectorNdarray)
     assert b.shape == (n, n)
+    print("b.element_type", b.element_type, type(b.element_type))
+    print("b.element_type.element_type()", b.element_type.element_type(), type(b.element_type.element_type()))
     assert b.element_type.element_type() == ti.i32
     assert b.element_type.shape() == [3]
 

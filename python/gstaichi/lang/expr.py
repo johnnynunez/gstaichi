@@ -17,7 +17,8 @@ if TYPE_CHECKING:
 
 # Scalar, basic data type
 class Expr(GsTaichiOperations):
-    """A Python-side Expr wrapper, whose member variable `ptr` is an instance of C++ Expr class. A C++ Expr object contains member variable `expr` which holds an instance of C++ Expression class."""
+    """A Python-side Expr wrapper, whose member variable `ptr` is an instance of C++ ExprCxx class.
+    """
 
     def __init__(self, *args, dbg_info=None, dtype=None):
         self.dbg_info = dbg_info
@@ -49,7 +50,7 @@ class Expr(GsTaichiOperations):
         if self.dbg_info:
             self.ptr.set_dbg_info(self.dbg_info)
         if not self.ptr_type_checked:
-            self.ptr.type_check(impl.get_runtime().prog.config())
+            self.ptr.type_check(impl.get_runtime().prog.config().config_cxx)
             self.ptr_type_checked = True
 
     def is_tensor(self):

@@ -926,7 +926,9 @@ def ndarray(dtype, shape, needs_grad=False):
         print("ndarray dt", dtype_cxx, type(dtype_cxx))
         x = ScalarNdarray(dtype, dtype_cxx, shape)
     elif isinstance(dtype, MatrixType):
+        print("dtype is MatrixType dtype.ndim", dtype.ndim)
         if dtype.ndim == 1:
+            print("dtype.n", dtype.n, "dtype.dtype", dtype.dtype)
             x = VectorNdarray(dtype.n, dtype.dtype, shape)
         else:
             x = MatrixNdarray(dtype.n, dtype.m, dtype.dtype, shape)
