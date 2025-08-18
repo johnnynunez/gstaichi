@@ -1363,7 +1363,7 @@ class MatrixType(CompoundType):
         if dtype is not None:
             self.dtype = cook_dtype(dtype)
             shape = (n, m) if ndim == 2 else (n,)
-            self.tensor_type = _type_factory.get_tensor_type(shape, self.dtype)
+            self.tensor_type = _type_factory.create_tensor_type(shape, self.dtype_cxx)
         else:
             self.dtype = None
             self.tensor_type = None
@@ -1634,7 +1634,7 @@ class MatrixNdarray(Ndarray):
 
         self.layout = Layout.AOS
         self.shape = tuple(shape)
-        self.element_type = _type_factory.get_tensor_type((self.n, self.m), self.dtype_cxx)
+        self.element_type = _type_factory.create_tensor_type((self.n, self.m), self.dtype_cxx)
         # TODO: we should pass in element_type, shape, layout instead.
         self.arr = impl.get_runtime().prog.create_ndarray(
             cook_dtype(self.element_type),
@@ -1752,7 +1752,7 @@ class VectorNdarray(Ndarray):
         self.layout = Layout.AOS
         self.shape = tuple(shape)
         print("self.dtype_cxx", self.dtype_cxx, type(self.dtype_cxx))
-        self.element_type = _type_factory.get_tensor_type((n,), self.dtype_cxx)
+        self.element_type_cxx = _type_factory.create_tensor_type((n,), self.dtype_cxx)
         self.arr = impl.get_runtime().prog.create_ndarray(
             cook_dtype(self.element_type),
             shape,

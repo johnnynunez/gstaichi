@@ -171,7 +171,7 @@ class TemplateMapper:
                 getattr(arg, "requires_grad", False) if annotation.needs_grad is None else annotation.needs_grad
             )
             element_type = (
-                _ti_core.get_type_factory_instance().get_tensor_type(element_shape, dtype)
+                _ti_core.get_type_factory_instance().create_tensor_type(element_shape, dtype)
                 if len(element_shape) != 0
                 else arg.dtype
             )

@@ -1089,7 +1089,7 @@ void export_lang(py::module &m) {
            py::arg("digits_type"), py::arg("exponent_type"),
            py::arg("compute_type"), py::return_value_policy::reference)
       .def(
-          "get_tensor_type",
+          "create_tensor_type",
           [&](TypeFactory *factory, std::vector<int> shape,
               const DataType &element_type) {
             return factory->create_tensor_type(shape, element_type);
