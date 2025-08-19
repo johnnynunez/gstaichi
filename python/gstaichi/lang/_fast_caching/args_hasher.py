@@ -21,11 +21,11 @@ g_num_ignored_calls = 0
 FIELD_METADATA_CACHE_VALUE = "add_value_to_cache_key"
 
 
-def dataclass_to_repr(arg: Any) -> str:
+def dataclass_to_repr(path: tuple[str, ...], arg: Any) -> str:
     repr_l = []
     for field in dataclasses.fields(arg):
         child_value = getattr(arg, field.name)
-        _repr = stringify_obj_type(child_value)
+        _repr = stringify_obj_type(path + (field.name,), child_value)
         full_repr = f"{field.name}: ({_repr})"
         if field.metadata.get(FIELD_METADATA_CACHE_VALUE, False):
             full_repr += f" = {child_value}"
@@ -60,7 +60,7 @@ def stringify_obj_type(path: tuple[str, ...], obj: Any) -> str | None:
     if isinstance(obj, MatrixField):
         return f"[fm-{obj.m}-{obj.n}-{obj.snode._id}-{obj.dtype}-{obj.shape}]"
     if dataclasses.is_dataclass(obj):
-        return dataclass_to_repr(obj)
+        return dataclass_to_repr(path, obj)
     if is_data_oriented(obj):
         child_repr_l = []
         for k, v in obj.__dict__.items():
