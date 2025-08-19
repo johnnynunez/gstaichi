@@ -56,8 +56,8 @@ jobs:
       - name: run tests
         run: |
           ls -lh
-          chmod +x gstaichi_cpp_test
+          chmod +x gstaichi_cpp_tests
           ls -lh
           export TI_LIB_DIR="$(python -c 'import gstaichi as ti; print(ti.__path__[0])' | tail -n 1)/_lib/runtime"
-          ./gstaichi_cpp_test
+          ./gstaichi_cpp_tests
           python tests/run_tests.py -r 3 -v
