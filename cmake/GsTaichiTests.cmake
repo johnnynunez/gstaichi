@@ -18,7 +18,6 @@ file(GLOB_RECURSE GSTAICHI_TESTS_SOURCE
         "tests/cpp/ir/*.cpp"
         "tests/cpp/program/*.cpp"
         "tests/cpp/rhi/common/*.cpp"
-        "tests/cpp/runtime/cuda/*.cpp"
         "tests/cpp/struct/*.cpp"
         "tests/cpp/transforms/*.cpp"
         "tests/cpp/offline_cache/*.cpp")
@@ -26,6 +25,11 @@ file(GLOB_RECURSE GSTAICHI_TESTS_SOURCE
 if(TI_WITH_LLVM)
   file(GLOB GSTAICHI_TESTS_LLVM_SOURCE "tests/cpp/llvm/*.cpp")
   list(APPEND GSTAICHI_TESTS_SOURCE ${GSTAICHI_TESTS_LLVM_SOURCE})
+endif()
+
+if(TI_WITH_CUDA)
+  file(GLOB GSTAICHI_TESTS_CUDA_SOURCE "tests/cpp/runtime/cuda/*.cpp")
+  list(APPEND GSTAICHI_TESTS_SOURCE ${GSTAICHI_TESTS_CUDA_SOURCE})
 endif()
 
 add_executable(${TESTS_NAME} ${GSTAICHI_TESTS_SOURCE})
