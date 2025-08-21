@@ -7,5 +7,3 @@
 user_guide/troubleshooting
 ```
 [Under construction]
-
-
