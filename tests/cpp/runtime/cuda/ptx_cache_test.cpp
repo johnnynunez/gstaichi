@@ -1,6 +1,4 @@
 #include <filesystem>
-#include <chrono>
-#include <random>
 
 #include "gtest/gtest.h"
 
@@ -9,17 +7,7 @@
 namespace gstaichi::lang {
 
 TEST(PtxCache, TestBasic) {
-  // char temp_dir[] = "/tmp/test_cache_path_XXXXXX";
-  // if (!mkdtemp(temp_dir)) {
-  //   FAIL() << "Failed to create temporary directory";
-  // }
-
-  auto temp_base = std::filesystem::temp_directory_path();
-  auto now = std::chrono::system_clock::now().time_since_epoch().count();
-  std::mt19937_64 rng(now);
-  std::uniform_int_distribution<uint64_t> dist;
-  std::string unique_name = "test_cache_path_" + std::to_string(dist(rng));
-  auto temp_dir = temp_base / unique_name;
+  auto temp_dir = std::filesystem::temp_directory_path() / "PtxCache.TestBasic";
 
   if (!std::filesystem::create_directory(temp_dir)) {
     FAIL() << "Failed to create temporary directory";
