@@ -14,7 +14,7 @@ import gstaichi as ti
 from tests import test_utils
 
 OFFLINE_CACHE_TEMP_DIR = pathlib.Path(mkdtemp())
-atexit.register(lambda: os.rmdir(OFFLINE_CACHE_TEMP_DIR))
+atexit.register(lambda: shutil.rmtree(OFFLINE_CACHE_TEMP_DIR))
 
 supported_llvm_archs = {ti.cpu, ti.cuda, ti.amdgpu}
 supported_gfx_archs = {ti.vulkan, ti.metal}
@@ -37,14 +37,18 @@ def expected_num_cache_files(num_kernels: int = 0) -> int:
     return num_kernels + 1
 
 
-def tmp_offline_cache_file_path() -> pathlib.Path:
+def tmp_offline_cache_file_path_base() -> pathlib.Path:
     return OFFLINE_CACHE_TEMP_DIR / str(threading.current_thread().ident)
+
+
+def tmp_offline_cache_file_path() -> pathlib.Path:
+    return tmp_offline_cache_file_path_base() / "kernel_compilation_manager"
 
 
 def current_thread_ext_options():
     return {
         "offline_cache": True,
-        "offline_cache_file_path": str(tmp_offline_cache_file_path()),
+        "offline_cache_file_path": str(tmp_offline_cache_file_path_base()),
         "cuda_stack_limit": 1024,
         "device_memory_GB": 0.2,
     }
@@ -218,7 +222,7 @@ def _test_closing_offline_cache_for_a_kernel(curr_arch, kernel, args, result):
             arch=curr_arch,
             enable_fallback=False,
             offline_cache=False,
-            offline_cache_file_path=str(tmp_offline_cache_file_path()),
+            offline_cache_file_path=str(tmp_offline_cache_file_path_base()),
             cuda_stack_limit=1024,
             device_memory_GB=0.1,
         )
