@@ -20,7 +20,7 @@ class TypeFactory {
 
   PrimitiveType *get_primitive_real_type(int bits);
 
-  Type *get_tensor_type(std::vector<int> shape, Type *element);
+  Type *get_tensor_type(Type *element);
 
   const Type *get_struct_type(
       const std::vector<AbstractDictionaryMember> &elements,
@@ -55,7 +55,7 @@ class TypeFactory {
                              Type *element_type,
                              int num_elements);
 
-  static DataType create_tensor_type(std::vector<int> shape, DataType element);
+  static DataType create_tensor_type(DataType element);
 
   constexpr static int SHAPE_POS_IN_NDARRAY = 0;
   constexpr static int DATA_PTR_POS_IN_NDARRAY = 1;
@@ -69,7 +69,7 @@ class TypeFactory {
 
   std::unordered_map<std::pair<std::string, Type *>,
                      std::unique_ptr<Type>,
-                     hashing::Hasher<std::pair<std::string, Type *>>>
+                     hashing::Hasher<Type *>>
       tensor_types_;
   std::mutex tensor_mut_;
 

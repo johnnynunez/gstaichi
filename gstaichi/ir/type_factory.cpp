@@ -22,7 +22,7 @@ Type *TypeFactory::get_primitive_type(PrimitiveTypeID id) {
   return primitive_types_[id].get();
 }
 
-Type *TypeFactory::get_tensor_type(std::vector<int> shape, Type *element) {
+Type *TypeFactory::get_tensor_type(Type *element) {
   std::lock_guard<std::mutex> _(tensor_mut_);
 
   auto encode = [](const std::vector<int> &shape) -> std::string {
@@ -31,9 +31,9 @@ Type *TypeFactory::get_tensor_type(std::vector<int> shape, Type *element) {
       s += fmt::format(i == 0 ? "{}" : "_{}", std::to_string(shape[i]));
     return s;
   };
-  auto key = std::make_pair(encode(shape), element);
+  auto key = element;
   if (tensor_types_.find(key) == tensor_types_.end()) {
-    tensor_types_[key] = std::make_unique<TensorType>(shape, element);
+    tensor_types_[key] = std::make_unique<TensorType>(element);
   }
   return tensor_types_[key].get();
 }
@@ -164,9 +164,8 @@ PrimitiveType *TypeFactory::get_primitive_real_type(int bits) {
   return real_type->cast<PrimitiveType>();
 }
 
-DataType TypeFactory::create_tensor_type(std::vector<int> shape,
-                                         DataType element) {
-  return TypeFactory::get_instance().get_tensor_type(shape, element);
+DataType TypeFactory::create_tensor_type(DataType element) {
+  return TypeFactory::get_instance().get_tensor_type(element);
 }
 
 const Type *TypeFactory::get_ndarray_struct_type(DataType dt,

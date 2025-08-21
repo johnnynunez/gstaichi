@@ -211,27 +211,12 @@ class TI_DLL_EXPORT PointerType : public Type {
 class TI_DLL_EXPORT TensorType : public Type {
  public:
   TensorType() : Type(TypeKind::Tensor) {};
-  TensorType(std::vector<int> shape, Type *element)
-      : Type(TypeKind::Tensor), shape_(std::move(shape)), element_(element) {
+  TensorType(Type *element)
+      : Type(TypeKind::Tensor), element_(element) {
   }
 
   Type *get_element_type() const {
     return element_;
-  }
-
-  int get_num_elements() const {
-    int num_elements = 1;
-    for (int i = 0; i < (int)shape_.size(); ++i)
-      num_elements *= shape_[i];
-    return num_elements;
-  }
-
-  std::vector<int> get_shape() const {
-    return shape_;
-  }
-
-  void set_shape(const std::vector<int> &shape) {
-    shape_ = shape;
   }
 
   Type *get_compute_type() override {
@@ -244,10 +229,9 @@ class TI_DLL_EXPORT TensorType : public Type {
 
   const Type *get_type() const override;
 
-  TI_IO_DEF(shape_, element_);
+  TI_IO_DEF(element_);
 
  private:
-  std::vector<int> shape_;
   Type *element_{nullptr};
 };
 
