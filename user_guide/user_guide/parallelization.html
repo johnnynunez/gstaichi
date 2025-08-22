@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Troublshooting &#8212; GsTaichi 0.1.0 documentation</title>
+    <title>Parallelization &#8212; GsTaichi 0.1.0 documentation</title>
   
   
   
@@ -55,11 +55,9 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/user_guide/troubleshooting';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/user_guide/parallelization';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="API Reference" href="../../autoapi/index.html" />
-    <link rel="prev" title="Quirks" href="quirks.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -138,7 +136,7 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../index.html">
     User guide
   </a>
@@ -208,8 +206,10 @@
       
       
       
+        
+      
       <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -224,7 +224,7 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../index.html">
     User guide
   </a>
@@ -258,37 +258,6 @@
       </div>
     
   </div>
-  
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting started</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
-
-
-<li class="toctree-l1"><a class="reference internal" href="supported_systems.html">Supported systems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tensor_types.html">Tensor types</a></li>
-
-
-
-<li class="toctree-l1"><a class="reference internal" href="static.html">ti.static</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sub_functions.html">Sub-functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scalar_tensors.html">Scalar tensors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
-
-
-<li class="toctree-l1"><a class="reference internal" href="compound_types.html">Compound types</a></li>
-
-
-<li class="toctree-l1"><a class="reference internal" href="quirks.html">Quirks</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Troublshooting</a></li>
-</ul>
-</div>
-</nav></div>
-    </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
@@ -325,10 +294,7 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User guide</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Troublshooting</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Parallelization</span></li>
   </ul>
 </nav>
 </div>
@@ -345,29 +311,80 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="troublshooting">
-<h1>Troublshooting<a class="headerlink" href="#troublshooting" title="Link to this heading">#</a></h1>
-<section id="in-case-of-crash-seg-fault">
-<h2>In case of crash/seg fault<a class="headerlink" href="#in-case-of-crash-seg-fault" title="Link to this heading">#</a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="parallelization">
+<h1>Parallelization<a class="headerlink" href="#parallelization" title="Link to this heading">#</a></h1>
+<p>Each top-level for-loop will be parallelized, within a kernel</p>
 <ul class="simple">
-<li><p>run without cache - or clear cache - to see if this resolves the issue</p></li>
-<li><p>if running without cache solves the seg fault, then clear the cache</p></li>
+<li><p>adding a non-static <code class="docutils literal notranslate"><span class="pre">if</span></code> over the top of a for-loop will lead to the for-loop not being parallelized</p></li>
+<li><p>a for-loop inside one or more inlined &#64;ti.func, and/or static <code class="docutils literal notranslate"><span class="pre">if</span></code> will be still be parallelized however</p></li>
 </ul>
-<p>To run without cache:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ti</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">offline_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<p>Each top-level for-loop will be launched as a separate GPU kernel, under the hood.</p>
+<p>The top-level for-loop can be encapsulated in one or more of the following, and still be parallelized:</p>
+<ul class="simple">
+<li><p>if statements where the conditional is <code class="docutils literal notranslate"><span class="pre">ti.static</span></code></p></li>
+<li><p>inline functions (<code class="docutils literal notranslate"><span class="pre">&#64;ti.func</span></code>)</p></li>
+</ul>
+<section id="does-gpu-kernel-launch-latency-matter">
+<h2>Does GPU kernel launch latency matter?<a class="headerlink" href="#does-gpu-kernel-launch-latency-matter" title="Link to this heading">#</a></h2>
+<p>Kernel launch can be done in parallel whilst the previously launched kernel is still running. This means that if the previously launched kernel takes longer to run than the launch time for the new kernel, then the kernel launch latency will be perfectly hidden.</p>
+<p>It’s important to try to make sure that the work done by each kernel is sufficient to hide the kernel launch latency, otherwise the launch latency will be a bottleneck to maximum performance.</p>
+<p>If kernel launch latency is a bottleneck, then you can look into:</p>
+<ul class="simple">
+<li><p>getting each kernel to do more work, to increase the relative runtime of the kernel relative to launch time</p></li>
+<li><p>reducing kernel launch time</p></li>
+</ul>
+<p>To reduce kernel launch time, the following options are available:</p>
+<ul class="simple">
+<li><p>field args launch more quickly than ndarray args</p></li>
+<li><p>global fields incur no launch latency</p></li>
+<li><p>reducing the number and complexity kernel parameters reduces the kernel launch latency</p></li>
+</ul>
+</section>
+<section id="global-memory">
+<h2>Global memory<a class="headerlink" href="#global-memory" title="Link to this heading">#</a></h2>
+<p>In CUDA, there are 3 main types of memory:</p>
+<ul class="simple">
+<li><p>registers: fast, but limited in storage capacity</p></li>
+<li><p>shared memory: slower than registers, but faster than global. Less limited than registers, but still limited compared to global memory</p></li>
+<li><p>global memory: slowest of all. High latency. But massive, typically ~10s of gigabytes at the time of writing</p></li>
+</ul>
+<p>There are some additional types, but these are variations on global memory:</p>
+<ul class="simple">
+<li><p>constant memory: global memory, but which can be stored easily in cache</p></li>
+<li><p>local memory: storage which is private to each specific thread, but, unintuitively, is stored off-chip, and is as slow as global memory</p></li>
+</ul>
+<p>GsTaichi gives access to shared memory, using <code class="docutils literal notranslate"><span class="pre">ti.stmt.SharedArray()</span></code>, but typically GsTaichi kernels use only global memory and register memory. You cannot directly request to use registers, but registers will be used to hold any local variables, within the limits of available registers. Fields, ndarrays, and other data, are stored in global memory. This holds some implications for synchronization.</p>
+</section>
+<section id="thread-synchronization">
+<h2>Thread synchronization<a class="headerlink" href="#thread-synchronization" title="Link to this heading">#</a></h2>
+<p>Typically, GsTaichi kernels use <code class="docutils literal notranslate"><span class="pre">atomic_</span></code> operations for synchronization. This is relatively easy and intuitive, and it works perfectly with global memory. The main downside is that <code class="docutils literal notranslate"><span class="pre">atomic</span></code> operations are slow, because they involve both global memory and thread synchronization, both of which are intrinsically slow, and combining them is slower still.</p>
+<p>When using shared memory, there are various barriers and fences that can be used, to ensure that writes from all threads so far have completed, and now threads are free to read from memory written by other threads.</p>
+<p>However, these fences and barriers do not work for global memory, at least, not across all thread blocks.</p>
+<p>To synchronize writes across all threads in a kernel, you’ll need to finish the current kernel, and launch a new kernel.</p>
+</section>
+<section id="avoiding-synchronization">
+<h2>Avoiding synchronization<a class="headerlink" href="#avoiding-synchronization" title="Link to this heading">#</a></h2>
+<p>If there is a way of partitioning data such that no thread ever needs to read data written by another thread, then there is no need for synchronization, and the kernels will run quickly.</p>
+</section>
+<section id="maximizing-gpu-core-utilization">
+<h2>Maximizing GPU core utilization<a class="headerlink" href="#maximizing-gpu-core-utilization" title="Link to this heading">#</a></h2>
+<p>A 4090 GPU has ~16,000 cores. A 5090 GPU has ~20,000 cores (a bit more in each case, but 16k and 20k is easier to remember). In GsTaichi, the top level for loop is parallelized over gpu threads:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">k1</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i_b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">B</span><span class="p">):</span>  <span class="c1"># parallelized across B GPU threads</span>
+        <span class="c1"># work done by each thread</span>
 </pre></div>
 </div>
-<p>To clear cache:</p>
-<ul class="simple">
-<li><p>the cache is located by default on linux and mac at <code class="docutils literal notranslate"><span class="pre">~/.cache/gstaichi</span></code></p></li>
-<li><p>simply remove this entire folder:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rm</span> <span class="o">-</span><span class="n">Rf</span> <span class="o">~/.</span><span class="n">cache</span><span class="o">/</span><span class="n">gstaichi</span>
-</pre></div>
-</div>
-<p>If this doesn’t solve the problem, then you’ll likely need to log a github issue, providing
-as much information as possible, and crucially a minimum reproducible example, to reproduce
-the seg fault.</p>
+<p>In order to maximize the efficient usage of the GPU we want to ensure that as many cores are being used as possible. This means that ideally <code class="docutils literal notranslate"><span class="pre">B</span></code> should be at least the number of cores in the GPU.</p>
+</section>
+<section id="is-it-better-to-put-everything-in-one-single-for-loop-or-to-split-into-multiple-top-level-loops">
+<h2>Is it better to put everything in one single for-loop, or to split into multiple top-level loops?<a class="headerlink" href="#is-it-better-to-put-everything-in-one-single-for-loop-or-to-split-into-multiple-top-level-loops" title="Link to this heading">#</a></h2>
+<p>In order to ensure that the kernel runtime is longer than the kernel launch time, we want to do as much work as possible in each kernel launch. This implies fewer kernel launches, that each do more.</p>
+<p>However, we might need to break into multiple launches in order to synchronize writes to global memory.</p>
+</section>
+<section id="compromise">
+<h2>Compromise<a class="headerlink" href="#compromise" title="Link to this heading">#</a></h2>
+<p>The recommendations above often are self-conflicting. For example, maximizing the number of cores being used might require using atomics for synchronization, which might make the kernels slower. Reducing kerenl launches similarly might require using atomics, which would make the kernels run more slowly. So it will not in general be possible to satisfy all the above guidelines. But, it’s useful to be aware of the design choices above, and strive to achieve them. Exact choices for best performance will often be an empirical question.</p>
 </section>
 </section>
 
@@ -381,24 +398,6 @@ the seg fault.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="quirks.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Quirks</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="../../autoapi/index.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API Reference</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -418,7 +417,13 @@ the seg fault.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#in-case-of-crash-seg-fault">In case of crash/seg fault</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#does-gpu-kernel-launch-latency-matter">Does GPU kernel launch latency matter?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-memory">Global memory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#thread-synchronization">Thread synchronization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#avoiding-synchronization">Avoiding synchronization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#maximizing-gpu-core-utilization">Maximizing GPU core utilization</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#is-it-better-to-put-everything-in-one-single-for-loop-or-to-split-into-multiple-top-level-loops">Is it better to put everything in one single for-loop, or to split into multiple top-level loops?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compromise">Compromise</a></li>
 </ul>
   </nav></div>
 
@@ -426,7 +431,7 @@ the seg fault.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../../_sources/user_guide/user_guide/troubleshooting.md.txt"
+      <li><a href="../../_sources/user_guide/user_guide/parallelization.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
