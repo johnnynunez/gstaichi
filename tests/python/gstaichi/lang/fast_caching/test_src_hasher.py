@@ -164,7 +164,7 @@ def test_src_ll_cache_print_non_pure(tmp_path: pathlib.Path, print_non_pure: boo
 
     k1_pure()
     out, _err = capfd.readouterr()
-    output_contains_not_pure = "FASTCACHE_NOT_PURE" in out
+    output_contains_not_pure = "[FASTCACHE][NOT_PURE]" in out
     assert not output_contains_not_pure
 
     @ti.kernel
@@ -173,7 +173,7 @@ def test_src_ll_cache_print_non_pure(tmp_path: pathlib.Path, print_non_pure: boo
 
     not_pure_k1()
     out, _err = capfd.readouterr()
-    output_contains_not_pure = "FASTCACHE_NOT_PURE" in out
+    output_contains_not_pure = "[FASTCACHE][NOT_PURE]" in out
     if output_contains_not_pure:
         assert not_pure_k1.__name__ in out
     if print_non_pure is None:

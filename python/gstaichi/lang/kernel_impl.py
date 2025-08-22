@@ -712,7 +712,7 @@ class Kernel:
         elif self.gstaichi_callable and not self.gstaichi_callable.is_pure and self.runtime.src_ll_cache_print_non_pure:
             # bit in caps should not be modified without updating corresponding test
             # freetext can be freely modified
-            print(f"FASTCACHE_NOT_PURE Not pure: {self.func.__name__}")
+            print(f"[FASTCACHE][NOT_PURE] Not pure: {self.func.__name__}")
 
         kernel_name = f"{self.func.__name__}_c{self.kernel_counter}_{key[1]}"
         _logging.trace(f"Materializing kernel {kernel_name} in {self.autodiff_mode}...")
