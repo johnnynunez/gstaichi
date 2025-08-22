@@ -284,6 +284,7 @@
 
 
 <li class="toctree-l1"><a class="reference internal" href="quirks.html">Quirks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troublshooting</a></li>
 </ul>
 </div>
 </nav></div>
@@ -351,7 +352,7 @@
 <section class="tex2jax_ignore mathjax_ignore" id="why-is-this-an-issue">
 <h1>Why is this an issue?<a class="headerlink" href="#why-is-this-an-issue" title="Link to this heading">#</a></h1>
 <ul class="simple">
-<li><p>when one thread writes to global memory, the write doesn’t take place immediately. It takes a long time (at computer speeds) for the data to work its way across to global memory, which is not on the GPU die itself, but in other chips, albeit on the same GPU card.</p>
+<li><p>when one thread writes to global memory, the write doesn’t take place immediately. It takes 10-150ns for the data to work its way across to global memory, which is not on the GPU die itself, but in other chips, albeit on the same GPU card.</p>
 <ul>
 <li><p>think of it like sending a snail mail letter, whilst you work on other things, and lead your life</p></li>
 </ul>

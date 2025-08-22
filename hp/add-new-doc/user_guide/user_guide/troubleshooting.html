@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Scalar tensors &#8212; GsTaichi 0.1.0 documentation</title>
+    <title>Troublshooting &#8212; GsTaichi 0.1.0 documentation</title>
   
   
   
@@ -55,11 +55,11 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/user_guide/scalar_tensors';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/user_guide/troubleshooting';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Synchronization" href="synchronization.html" />
-    <link rel="prev" title="Sub-functions" href="sub_functions.html" />
+    <link rel="next" title="API Reference" href="../../autoapi/index.html" />
+    <link rel="prev" title="Quirks" href="quirks.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -276,7 +276,7 @@
 
 <li class="toctree-l1"><a class="reference internal" href="static.html">ti.static</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sub_functions.html">Sub-functions</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Scalar tensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scalar_tensors.html">Scalar tensors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 
 
@@ -284,7 +284,7 @@
 
 
 <li class="toctree-l1"><a class="reference internal" href="quirks.html">Quirks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troublshooting</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Troublshooting</a></li>
 </ul>
 </div>
 </nav></div>
@@ -328,7 +328,7 @@
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Scalar tensors</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Troublshooting</span></li>
   </ul>
 </nav>
 </div>
@@ -345,15 +345,30 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="scalar-tensors">
-<h1>Scalar tensors<a class="headerlink" href="#scalar-tensors" title="Link to this heading">#</a></h1>
-<p>To create a scalar tensor, use a shape of <code class="docutils literal notranslate"><span class="pre">()</span></code>. Note that this only works for fields, not ndarrays. (An NDArray needs to have at least one dimension).</p>
-<p>You can access the value in a scalar tensor by indexing with <code class="docutils literal notranslate"><span class="pre">[None]</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ti</span><span class="o">.</span><span class="n">kernel</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">f1</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">ti</span><span class="o">.</span><span class="n">Template</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">a</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="troublshooting">
+<h1>Troublshooting<a class="headerlink" href="#troublshooting" title="Link to this heading">#</a></h1>
+<section id="in-case-of-crash-seg-fault">
+<h2>In case of crash/seg fault<a class="headerlink" href="#in-case-of-crash-seg-fault" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>run without cache - or clear cache - to see if this resolves the issue</p></li>
+<li><p>if running without cache solves the seg fault, then clear the cache</p></li>
+</ul>
+<p>To run without cache:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ti</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">offline_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>To clear cache:</p>
+<ul class="simple">
+<li><p>the cache is located by default on linux and mac at <code class="docutils literal notranslate"><span class="pre">~/.cache/gstaichi</span></code></p></li>
+<li><p>simply remove this entire folder:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rm</span> <span class="o">-</span><span class="n">Rf</span> <span class="o">~/.</span><span class="n">cache</span><span class="o">/</span><span class="n">gstaichi</span>
+</pre></div>
+</div>
+<p>If this doesn’t solve the problem, then you’ll likely need to log a github issue, providing
+as much information as possible, and crucially a minimum reproducible example, to reproduce
+the seg fault.</p>
+</section>
 </section>
 
 
@@ -367,20 +382,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="sub_functions.html"
+       href="quirks.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sub-functions</p>
+        <p class="prev-next-title">Quirks</p>
       </div>
     </a>
     <a class="right-next"
-       href="synchronization.html"
+       href="../../autoapi/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Synchronization</p>
+        <p class="prev-next-title">API Reference</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -396,10 +411,22 @@
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#in-case-of-crash-seg-fault">In case of crash/seg fault</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../../_sources/user_guide/user_guide/scalar_tensors.md.txt"
+      <li><a href="../../_sources/user_guide/user_guide/troubleshooting.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
