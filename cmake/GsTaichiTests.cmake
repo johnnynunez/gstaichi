@@ -27,6 +27,11 @@ if(TI_WITH_LLVM)
   list(APPEND GSTAICHI_TESTS_SOURCE ${GSTAICHI_TESTS_LLVM_SOURCE})
 endif()
 
+if(TI_WITH_CUDA)
+  file(GLOB GSTAICHI_TESTS_CUDA_SOURCE "tests/cpp/runtime/cuda/*.cpp")
+  list(APPEND GSTAICHI_TESTS_SOURCE ${GSTAICHI_TESTS_CUDA_SOURCE})
+endif()
+
 add_executable(${TESTS_NAME} ${GSTAICHI_TESTS_SOURCE})
 if (WIN32)
     # Output the executable to build/ instead of build/Debug/...
