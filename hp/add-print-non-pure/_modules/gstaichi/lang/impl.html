@@ -661,7 +661,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Kernel</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernels</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_signal_handler_registry</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unfinalized_fields_builder</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">src_ll_cache_print_non_pure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_non_pure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compiling_callable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KernelCxx</span> <span class="o">|</span> <span class="n">Kernel</span> <span class="o">|</span> <span class="n">Function</span><span class="p">:</span>
@@ -1630,7 +1630,7 @@
 
   <p class="copyright">
     
-      © Copyright 2023 GsTaichi Graphics Inc; 2025 Genesis AI Inc.
+      © Copyright 2025 Genesis AI Inc.
       <br/>
     
   </p>

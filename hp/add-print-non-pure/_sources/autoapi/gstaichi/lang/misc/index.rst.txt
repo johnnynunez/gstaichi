@@ -186,7 +186,7 @@ Module Contents
        # will raise error because a is unavailable after reset.
 
 
-.. py:function:: init(arch=None, default_fp=None, default_ip=None, _test_mode=False, enable_fallback=True, require_version=None, src_ll_cache_print_non_pure: bool = False, **kwargs)
+.. py:function:: init(arch=None, default_fp=None, default_ip=None, _test_mode=False, enable_fallback=True, require_version=None, print_non_pure: bool = False, **kwargs)
 
    Initializes the GsTaichi runtime.
 
