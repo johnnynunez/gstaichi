@@ -146,13 +146,13 @@ def test_src_hasher_store_validate(monkeypatch: pytest.MonkeyPatch, tmp_path: pa
         True,
     ],
 )
-def test_src_ll_cache_print_non_pure(tmp_path: pathlib.Path, print_non_pure: bool | None, capfd) -> None:
+def test_src_hasher_print_non_pure(tmp_path: pathlib.Path, print_non_pure: bool | None, capfd) -> None:
     """
-    Test ti.init parameter src_ll_cache_print_non_pure, which should print non pure functions when enabled
+    Test ti.init parameter print_non_pure, which should print non pure functions when enabled
     """
     if print_non_pure:
         ti_init_same_arch(
-            offline_cache_file_path=str(tmp_path), offline_cache=True, src_ll_cache_print_non_pure=print_non_pure
+            offline_cache_file_path=str(tmp_path), offline_cache=True, print_non_pure=print_non_pure
         )
     else:
         ti_init_same_arch(offline_cache_file_path=str(tmp_path), offline_cache=True)
@@ -164,7 +164,7 @@ def test_src_ll_cache_print_non_pure(tmp_path: pathlib.Path, print_non_pure: boo
 
     k1_pure()
     out, _err = capfd.readouterr()
-    output_contains_not_pure = "[FASTCACHE][NOT_PURE]" in out
+    output_contains_not_pure = "[NOT_PURE]" in out
     assert not output_contains_not_pure
 
     @ti.kernel
@@ -173,7 +173,7 @@ def test_src_ll_cache_print_non_pure(tmp_path: pathlib.Path, print_non_pure: boo
 
     not_pure_k1()
     out, _err = capfd.readouterr()
-    output_contains_not_pure = "[FASTCACHE][NOT_PURE]" in out
+    output_contains_not_pure = "[NOT_PURE]" in out
     if output_contains_not_pure:
         assert not_pure_k1.__name__ in out
     if print_non_pure is None:
