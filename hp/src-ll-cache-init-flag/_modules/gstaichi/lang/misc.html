@@ -696,9 +696,9 @@
     <span class="n">arch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">default_fp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">default_ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">_test_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">enable_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">require_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">_test_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">enable_fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">require_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">src_ll_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
@@ -711,7 +711,9 @@
 <span class="sd">        arch: Backend to use. This is usually :const:`~gstaichi.lang.cpu` or :const:`~gstaichi.lang.gpu`.</span>
 <span class="sd">        default_fp (Optional[type]): Default floating-point type.</span>
 <span class="sd">        default_ip (Optional[type]): Default integral type.</span>
-<span class="sd">        require_version (Optional[string]): A version string.</span>
+<span class="sd">        require_version: A version string.</span>
+<span class="sd">        src_ll_cache: enable SRC-LL-CACHE, which will accelerate loading from cache, across all architectures,</span>
+<span class="sd">                      for pure kernels (i.e. kernels declared as @ti.pure)</span>
 <span class="sd">        **kwargs: GsTaichi provides highly customizable compilation through</span>
 <span class="sd">            ``kwargs``, which allows for fine grained control of GsTaichi compiler</span>
 <span class="sd">            behavior. Below we list some of the most frequently used ones. For a</span>
@@ -1236,7 +1238,7 @@
 
   <p class="copyright">
     
-      © Copyright 2023 GsTaichi Graphics Inc; 2025 Genesis AI Inc.
+      © Copyright 2025 Genesis AI Inc.
       <br/>
     
   </p>
