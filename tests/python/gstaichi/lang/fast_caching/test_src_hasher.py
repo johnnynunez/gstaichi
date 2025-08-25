@@ -151,9 +151,7 @@ def test_src_hasher_print_non_pure(tmp_path: pathlib.Path, print_non_pure: bool 
     Test ti.init parameter print_non_pure, which should print non pure functions when enabled
     """
     if print_non_pure:
-        ti_init_same_arch(
-            offline_cache_file_path=str(tmp_path), offline_cache=True, print_non_pure=print_non_pure
-        )
+        ti_init_same_arch(offline_cache_file_path=str(tmp_path), offline_cache=True, print_non_pure=print_non_pure)
     else:
         ti_init_same_arch(offline_cache_file_path=str(tmp_path), offline_cache=True)
 
