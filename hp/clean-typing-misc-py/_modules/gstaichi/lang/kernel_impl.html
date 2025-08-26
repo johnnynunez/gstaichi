@@ -988,6 +988,9 @@
                     <span class="p">),</span>
                 <span class="p">):</span>
                     <span class="k">pass</span>
+                <span class="k">elif</span> <span class="n">annotation</span> <span class="ow">is</span> <span class="n">ndarray_type</span><span class="o">.</span><span class="n">NdarrayType</span><span class="p">:</span>
+                    <span class="c1"># convert from ti.types.NDArray into ti.types.NDArray()</span>
+                    <span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="nb">id</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span> <span class="ow">in</span> <span class="n">primitive_types</span><span class="o">.</span><span class="n">type_ids</span><span class="p">:</span>
                     <span class="k">pass</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="n">sparse_matrix_builder</span><span class="p">):</span>
@@ -1702,7 +1705,7 @@
 
   <p class="copyright">
     
-      © Copyright 2023 GsTaichi Graphics Inc; 2025 Genesis AI Inc.
+      © Copyright 2025 Genesis AI Inc.
       <br/>
     
   </p>
