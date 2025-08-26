@@ -782,7 +782,7 @@ class Kernel:
                     )
                 struct_locals = _kernel_impl_dataclass.extract_struct_locals_from_context(ctx)
                 tree = _kernel_impl_dataclass.unpack_ast_struct_expressions(tree, struct_locals=struct_locals)
-                ctx.only_parse_function_def = self.compiled_kernel_data_by_key[key] is not None
+                ctx.only_parse_function_def = self.compiled_kernel_data_by_key.get(key, None) is not None
                 transform_tree(tree, ctx)
                 if not ctx.is_real_function:
                     if self.return_type and ctx.returned != ReturnStatus.ReturnedValue:
