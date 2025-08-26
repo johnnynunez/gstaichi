@@ -49,14 +49,14 @@ def test_src_ll_cache_repeat_after_load(tmp_path: pathlib.Path) -> None:
         a[0] += 1
 
     ti_init_same_arch(offline_cache_file_path=str(tmp_path), offline_cache=True)
-    a = ti.ndarray(ti.i32, (10, ))
+    a = ti.ndarray(ti.i32, (10,))
     a[0] = 5
     for i in range(3):
         has_pure(a)
         assert a[0] == 6 + i
 
     ti_init_same_arch(offline_cache_file_path=str(tmp_path), offline_cache=True)
-    a = ti.ndarray(ti.i32, (10, ))
+    a = ti.ndarray(ti.i32, (10,))
     a[0] = 5
     for i in range(3):
         has_pure(a)

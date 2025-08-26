@@ -25,10 +25,10 @@ from gstaichi import _logging
 from gstaichi._lib import core as _ti_core
 from gstaichi._lib.core.gstaichi_python import (
     ASTBuilder,
+    CompiledKernelData,
     FunctionKey,
     KernelCxx,
     KernelLaunchContext,
-    CompiledKernelData,
 )
 from gstaichi.lang import _kernel_impl_dataclass, impl, ops, runtime_ops
 from gstaichi.lang._fast_caching import src_hasher
