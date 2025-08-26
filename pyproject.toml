@@ -9,10 +9,17 @@ requires = [
     "scikit-build",
     "ninja; platform_system != 'Windows'",
     "psutil",
-    "setuptools>=68.0.0",
+    "setuptools_scm>=8",
     "cffi>=1.16.0",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["version"]
+
+[tool.setuptools_scm]
+# Optional: Customize version file or scheme
+write_to = "package/_version.py"
 
 [tool.pytest.ini_options]
 filterwarnings = [

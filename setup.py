@@ -284,7 +284,7 @@ setup(
     author="GsTaichi developers",
     url="https://github.com/Genesis-Embedded-AI/gstaichi",
     python_requires=">=3.10,<4.0",
-    setup_requires=["setuptools_scm>=6.0"],
+    setup_requires=["setuptools_scm>=8.0"],
     use_scm_version={
         "write_to": "python/gstaichi/_version.py",
         "write_to_template": "__version__ = '{version}'\n",
