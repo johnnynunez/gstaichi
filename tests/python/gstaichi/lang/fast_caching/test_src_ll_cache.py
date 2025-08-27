@@ -73,6 +73,7 @@ def test_src_ll_cache_repeat_after_load(tmp_path: pathlib.Path) -> None:
         True,
     ],
 )
+@test_utils.test()
 def test_src_ll_cache_flag(tmp_path: pathlib.Path, flag_value: bool) -> None:
     """
     Test ti.init(src_ll_cache) flag
