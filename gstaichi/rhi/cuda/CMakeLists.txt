@@ -19,4 +19,13 @@ target_include_directories(${CUDA_RHI}
     ${PROJECT_SOURCE_DIR}/external/glfw/include
   )
 
+if(TI_WITH_CUDA)
+  # TODO: remove hardcoded path...
+  # TODO: make work on Windows
+  target_include_directories(${CUDA_RHI}
+    PRIVATE
+      /usr/local/cuda/include 
+  )
+endif()
+
 target_link_libraries(${CUDA_RHI} PRIVATE interop_rhi)

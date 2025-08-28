@@ -19,4 +19,14 @@ target_include_directories(gfx_runtime
     ${PROJECT_SOURCE_DIR}/external/spdlog/include
         ${LLVM_INCLUDE_DIRS}
   )
+
+if(TI_WITH_CUDA)
+  # TODO: remove hardcoded path...
+  # TODO: make work on Windows
+  target_include_directories(cuda_runtime
+    PRIVATE
+      /usr/local/cuda/include 
+  )
+endif()
+
 target_link_libraries(gfx_runtime PRIVATE gstaichi_common)

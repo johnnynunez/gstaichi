@@ -16,3 +16,12 @@ target_include_directories(cuda_runtime
     ${PROJECT_SOURCE_DIR}/external/spdlog/include
     ${LLVM_INCLUDE_DIRS}
   )
+
+if(TI_WITH_CUDA)
+  # TODO: remove hardcoded path...
+  # TODO: make work on Windows
+  target_include_directories(cuda_runtime
+    PRIVATE
+      /usr/local/cuda/include 
+  )
+endif()
