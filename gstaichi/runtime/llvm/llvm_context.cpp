@@ -194,7 +194,7 @@ std::string get_runtime_fn(Arch arch) {
 std::string libdevice_path() {
   std::string folder;
   folder = runtime_lib_dir();
-  auto cuda_version_string = get_cuda_version_string();
+  auto cuda_version_string = std::string("10.0");
   auto cuda_version_major = int(std::atof(cuda_version_string.c_str()));
   return fmt::format("{}/slim_libdevice.{}.bc", folder, cuda_version_major);
 }
