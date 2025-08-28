@@ -191,14 +191,6 @@ std::string get_runtime_fn(Arch arch) {
   return fmt::format("runtime_{}.bc", arch_name(arch));
 }
 
-std::string libdevice_path() {
-  std::string folder;
-  folder = runtime_lib_dir();
-  auto cuda_version_string = std::string("10.0");
-  auto cuda_version_major = int(std::atof(cuda_version_string.c_str()));
-  return fmt::format("{}/slim_libdevice.{}.bc", folder, cuda_version_major);
-}
-
 std::unique_ptr<llvm::Module> GsTaichiLLVMContext::clone_module_to_context(
     llvm::Module *module,
     llvm::LLVMContext *target_context) {
@@ -899,23 +891,6 @@ template llvm::Value *GsTaichiLLVMContext::get_constant(uint64 t);
 template llvm::Value *GsTaichiLLVMContext::get_constant(unsigned long t);
 #endif
 
-auto make_slim_libdevice = [](const std::vector<std::string> &args) {
-  TI_ASSERT_INFO(args.size() == 1,
-                 "Usage: ti task make_slim_libdevice [libdevice.X.bc file]");
-
-  auto ctx = std::make_unique<llvm::LLVMContext>();
-  auto libdevice_module = module_from_bitcode_file(args[0], ctx.get());
-
-  remove_useless_cuda_libdevice_functions(libdevice_module.get());
-
-  std::error_code ec;
-  auto output_fn = "slim_" + args[0];
-  llvm::raw_fd_ostream os(output_fn, ec, llvm::sys::fs::OF_None);
-  llvm::WriteBitcodeToFile(*libdevice_module, os);
-  os.flush();
-  TI_INFO("Slimmed libdevice written to {}", output_fn);
-};
-
 void GsTaichiLLVMContext::init_runtime_module(llvm::Module *runtime_module) {
   if (config_.arch == Arch::cuda) {
     for (auto &f : *runtime_module) {
@@ -1145,7 +1120,5 @@ GsTaichiLLVMContext::get_struct_type_with_data_layout(
               ->cast<StructType>(),
           struct_size};
 }
-
-TI_REGISTER_TASK(make_slim_libdevice);
 
 }  // namespace gstaichi::lang

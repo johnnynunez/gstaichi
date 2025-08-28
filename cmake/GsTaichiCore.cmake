@@ -346,11 +346,6 @@ if(TI_WITH_PYTHON)
             LIBRARY DESTINATION ${INSTALL_LIB_DIR}/core)
 endif()
 
-if (NOT APPLE)
-    install(FILES ${CMAKE_SOURCE_DIR}/external/cuda_libdevice/slim_libdevice.10.bc
-            DESTINATION ${INSTALL_LIB_DIR}/runtime)
-endif()
-
 if (TI_WITH_AMDGPU)
     file(GLOB AMDGPU_BC_FILES ${CMAKE_SOURCE_DIR}/external/amdgpu_libdevice/*.bc)
     install(FILES ${AMDGPU_BC_FILES}
