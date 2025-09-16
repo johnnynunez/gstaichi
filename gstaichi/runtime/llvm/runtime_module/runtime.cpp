@@ -54,6 +54,35 @@ __asm__(".symver powf,powf@GLIBC_2.2.5");
 __asm__(".symver expf,expf@GLIBC_2.2.5");
 #endif
 
+#if (defined(__aarch64__) || defined(__arm64__)) && defined(__clang__)
+// JIT session error: Symbols not found: [ __aarch64_ldadd4_acq_rel, ... ]
+// This is an issue with newer clang versions (>13) on aarch64, where
+// atomics are outlined by default. The JIT environment does not
+// automatically link libatomic/libgcc. We provide the implementations here
+// using inline assembly to fix this.
+// See: https://github.com/taichi-dev/taichi/issues/4952
+__asm__(
+    ".globl __aarch64_swp4_acq_rel\n"
+    "__aarch64_swp4_acq_rel:\n"
+    "  swpal w1, w0, [x0]\n"
+    "  ret\n"
+
+    ".globl __aarch64_swp8_acq_rel\n"
+    "__aarch64_swp8_acq_rel:\n"
+    "  swpal x1, x0, [x0]\n"
+    "  ret\n"
+
+    ".globl __aarch64_ldadd4_acq_rel\n"
+    "__aarch64_ldadd4_acq_rel:\n"
+    "  ldaddal w1, w0, [x0]\n"
+    "  ret\n"
+
+    ".globl __aarch64_ldadd8_acq_rel\n"
+    "__aarch64_ldadd8_acq_rel:\n"
+    "  ldaddal x1, x0, [x0]\n"
+    "  ret\n");
+#endif
+
 // For accessing struct fields
 #define STRUCT_FIELD(S, F)                              \
   extern "C" decltype(S::F) S##_get_##F(S *s) {         \
