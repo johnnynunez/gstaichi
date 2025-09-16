@@ -19,13 +19,17 @@ def setup_llvm() -> None:
     Download and install LLVM.
     """
     u = platform.uname()
-    if u.system == "Linux":
+    if (u.system, u.machine) == ("Linux", "x86_64"):
         if cmake_args.get_effective("TI_WITH_AMDGPU"):
             out = get_cache_home() / "llvm15-amdgpu-005"
             url = "https://github.com/GaleSeLee/assets/releases/download/v0.0.5/taichi-llvm-15.0.0-linux.zip"
         else:
-            out = get_cache_home() / "llvm15"
-            url = "https://github.com/taichi-dev/taichi_assets/releases/download/llvm15/taichi-llvm-15-linux.zip"
+            out = get_cache_home() / "llvm15.0.7-x86"
+            url = "https://github.com/Genesis-Embodied-AI/gstaichi-sdk-builds/releases/download/llvm-15.0.7-hp-johnny-minus-mlir-202509152023/taichi-llvm-15.0.7-linux-x86_64.zip"
+        download_dep(url, out, strip=1)
+    elif (u.system, u.machine) in (("Linux", "arm64"), ("Linux", "aarch64")):
+        out = get_cache_home() / "llvm-arm-15.0.7"
+        url = "https://github.com/Genesis-Embodied-AI/gstaichi-sdk-builds/releases/download/llvm-15.0.7-hp-johnny-minus-mlir-202509152023/taichi-llvm-15.0.7-linux-aarch64.zip"
         download_dep(url, out, strip=1)
     elif (u.system, u.machine) == ("Darwin", "arm64"):
         out = get_cache_home() / "llvm15-m1-nozstd"
