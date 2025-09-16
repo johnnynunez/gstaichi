@@ -17,7 +17,7 @@ from .alter import handle_alternate_actions
 from .cmake import cmake_args
 from .compiler import setup_clang, setup_msvc
 from .llvm import setup_llvm
-from .misc import banner, is_manylinux2014
+from .misc import banner
 from .ospkg import setup_os_pkgs
 from .python import get_desired_python_version, setup_python
 from .sccache import setup_sccache
