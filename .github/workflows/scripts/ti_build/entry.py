@@ -17,7 +17,7 @@ from .alter import handle_alternate_actions
 from .cmake import cmake_args
 from .compiler import setup_clang, setup_msvc
 from .llvm import setup_llvm
-from .misc import banner
+from .misc import banner, is_manylinux2014
 from .ospkg import setup_os_pkgs
 from .python import get_desired_python_version, setup_python
 from .sccache import setup_sccache
@@ -55,9 +55,15 @@ def build_wheel(python: Command, pip: Command) -> None:
 
     u = platform.uname()
     if (u.system, u.machine) == ("Linux", "x86_64"):
-        extra.extend(["-p", "manylinux_2_27_x86_64"])
+        if is_manylinux2014():
+            extra.extend(["-p", "manylinux2014_x86_64"])
+        else:
+            extra.extend(["-p", "manylinux_2_27_x86_64"])
     elif (u.system, u.machine) in (("Linux", "arm64"), ("Linux", "aarch64")):
-        extra.extend(["-p", "manylinux_2_27_aarch64"])
+        if is_manylinux2014():
+            extra.extend(["-p", "manylinux2014_aarch64"])
+        else:
+            extra.extend(["-p", "manylinux_2_27_aarch64"])
     if platform.system() == "Darwin":
         extra.extend(["-p", "macosx-11.0-arm64"])
 
