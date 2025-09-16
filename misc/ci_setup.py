@@ -221,9 +221,7 @@ class Installer:
                     if self.build_type == "ci":
                         execute_command("sudo apt-get install -y python3-dev")
                     else:
-                        execute_command(
-                            "sudo apt-get install -y python3-dev git build-essential cmake make g++"
-                        )
+                        execute_command("sudo apt-get install -y python3-dev git build-essential cmake make g++")
             elif dist == "arch":
                 execute_command("sudo pacman --needed -S git cmake make gcc")
             elif dist == "fedora":
