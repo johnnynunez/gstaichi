@@ -33,15 +33,11 @@ def setup_llvm() -> None:
         download_dep(url, out, strip=1)
     elif (u.system, u.machine) == ("Darwin", "arm64"):
         out = get_cache_home() / "llvm15-m1-nozstd"
-        url = "https://github.com/taichi-dev/taichi_assets/releases/download/llvm15/taichi-llvm-15-m1-nozstd.zip"
-        download_dep(url, out, strip=1)
-    elif (u.system, u.machine) == ("Darwin", "x86_64"):
-        out = get_cache_home() / "llvm15-mac"
-        url = "https://github.com/taichi-dev/taichi_assets/releases/download/llvm15/llvm-15-mac10.15.zip"
+        url = "https://github.com/Genesis-Embodied-AI/gstaichi-sdk-builds/releases/download/llvm-15.0.7-hp-johnny-minus-mlir-202509152023/taichi-llvm-15.0.7-macos-arm64.zip"
         download_dep(url, out, strip=1)
     elif (u.system, u.machine) == ("Windows", "AMD64"):
         out = get_cache_home() / "llvm15"
-        url = "https://github.com/python3kgae/taichi_assets/releases/download/llvm15_vs2019_clang/taichi-llvm-15.0.0-msvc2019.zip"
+        url = "https://github.com/Genesis-Embodied-AI/gstaichi-sdk-builds/releases/download/llvm-15.0.7-hp-johnny-minus-mlir-202509152023/taichi-llvm-15.0.7-windows-amd64.zip"
         download_dep(url, out, strip=0)
     else:
         raise RuntimeError(f"Unsupported platform: {u.system} {u.machine}")
