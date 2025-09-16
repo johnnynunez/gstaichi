@@ -60,10 +60,10 @@ __asm__(".symver expf,expf@GLIBC_2.2.5");
 // atomics are outlined by default. The JIT environment does not
 // automatically link libatomic/libgcc.
 //
-// We provide the implementations here using inline assembly. The implementations
-// use a load-exclusive/store-exclusive loop to be compatible with all ARMv8-A
-// processors, including those that do not support the LSE (Large System
-// Extensions) instructions.
+// We provide the implementations here using inline assembly. The
+// implementations use a load-exclusive/store-exclusive loop to be compatible
+// with all ARMv8-A processors, including those that do not support the LSE
+// (Large System Extensions) instructions.
 __asm__(
     // Atomic swap for 4 bytes (32-bit integer)
     // Arguments: x0 = pointer, w1 = new value
@@ -71,10 +71,10 @@ __asm__(
     ".globl __aarch64_swp4_acq_rel\n"
     "__aarch64_swp4_acq_rel:\n"
     "1:\n"
-    "  ldaxr w2, [x0]\n"          // Load-acquire exclusive
-    "  stlxr w3, w1, [x0]\n"      // Store-release exclusive
-    "  cbnz w3, 1b\n"             // Retry if store failed
-    "  mov w0, w2\n"              // Return original value
+    "  ldaxr w2, [x0]\n"      // Load-acquire exclusive
+    "  stlxr w3, w1, [x0]\n"  // Store-release exclusive
+    "  cbnz w3, 1b\n"         // Retry if store failed
+    "  mov w0, w2\n"          // Return original value
     "  ret\n"
 
     // Atomic swap for 8 bytes (64-bit integer)
@@ -115,7 +115,6 @@ __asm__(
     "  mov x0, x2\n"
     "  ret\n");
 #endif
-
 
 // For accessing struct fields
 #define STRUCT_FIELD(S, F)                              \
