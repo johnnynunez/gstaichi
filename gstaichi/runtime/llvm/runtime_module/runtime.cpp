@@ -1145,9 +1145,17 @@ uint32 cuda_match_any_sync_i32(u32 mask, i32 value) {
 u32 cuda_match_all_sync_i32(u32 mask, i32 value) {
 #if ARCH_cuda
   u32 ret;
+#if defined(__aarch64__) || defined(__arm64__)
+  asm volatile("match.all.sync.b32  %0, %1, %2;"
+               : "=w"(ret)
+               : "w"(value), "w"(mask));
+#elif defined(__x86_64__)
   asm volatile("match.all.sync.b32  %0, %1, %2;"
                : "=r"(ret)
                : "r"(value), "r"(mask));
+#else
+#error "Unsupported architecture: this code requires ARM64 or x86_64"
+#endif
   return ret;
 #else
   return 0;
@@ -1157,9 +1165,17 @@ u32 cuda_match_all_sync_i32(u32 mask, i32 value) {
 uint32 cuda_match_any_sync_i64(u32 mask, i64 value) {
 #if ARCH_cuda
   u32 ret;
+#if defined(__aarch64__) || defined(__arm64__)
+  asm volatile("match.any.sync.b64  %0, %1, %2;"
+               : "=w"(ret)
+               : "r"(value), "w"(mask));
+#elif defined(__x86_64__)
   asm volatile("match.any.sync.b64  %0, %1, %2;"
                : "=r"(ret)
                : "l"(value), "r"(mask));
+#else
+#error "Unsupported architecture: this code requires ARM64 or x86_64"
+#endif
   return ret;
 #else
   return 0;
@@ -1169,7 +1185,13 @@ uint32 cuda_match_any_sync_i64(u32 mask, i64 value) {
 #if ARCH_cuda
 uint32 cuda_active_mask() {
   unsigned int mask;
+#if defined(__aarch64__) || defined(__arm64__)
+  asm volatile("activemask.b32 %0;" : "=w"(mask));
+#elif defined(__x86_64__)
   asm volatile("activemask.b32 %0;" : "=r"(mask));
+#else
+#error "Unsupported architecture: this code requires ARM64 or x86_64"
+#endif
   return mask;
 }
 #else
