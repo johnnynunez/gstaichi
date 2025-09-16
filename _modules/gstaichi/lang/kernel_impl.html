@@ -325,7 +325,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Type</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">overload</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -338,6 +338,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">gstaichi._lib.core.gstaichi_python</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ASTBuilder</span><span class="p">,</span>
     <span class="n">CompiledKernelData</span><span class="p">,</span>
+    <span class="n">CompileResult</span><span class="p">,</span>
     <span class="n">FunctionKey</span><span class="p">,</span>
     <span class="n">KernelCxx</span><span class="p">,</span>
     <span class="n">KernelLaunchContext</span><span class="p">,</span>
@@ -655,8 +656,15 @@
     <span class="k">if</span> <span class="n">len_args</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">fused_args</span><span class="p">):</span>
         <span class="n">arg_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
         <span class="n">expected_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">annotation</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">)</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Too many arguments. Expected (</span><span class="si">{</span><span class="n">expected_str</span><span class="si">}</span><span class="s2">), got (</span><span class="si">{</span><span class="n">arg_str</span><span class="si">}</span><span class="s2">).&quot;</span>
-        <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">msg_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Too many arguments. Expected (</span><span class="si">{</span><span class="n">expected_str</span><span class="si">}</span><span class="s2">), got (</span><span class="si">{</span><span class="n">arg_str</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">len_args</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">):</span>
+                <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> arg meta: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> arg type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> arg meta: &lt;out of arg metas&gt; arg type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;In function: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_l</span><span class="p">))</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
         <span class="n">fused_args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg</span>
@@ -671,14 +679,28 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected argument &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
 
+    <span class="n">missing_parameters</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fused_args</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">arg</span> <span class="ow">is</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">annotation</span> <span class="ow">is</span> <span class="n">inspect</span><span class="o">.</span><span class="n">_empty</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` missing.&quot;</span><span class="p">)</span>
+                <span class="n">missing_parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` missing.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span>
+                <span class="n">missing_parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">annotation</span><span class="si">}</span><span class="s2">` missing.&quot;</span>
                 <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">msg_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Error: missing parameters.&quot;</span><span class="p">)</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">missing_parameters</span><span class="p">)</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Debug info follows.&quot;</span><span class="p">)</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;fused args:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fused_args</span><span class="p">):</span>
+            <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;arg metas:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">):</span>
+            <span class="n">msg_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_l</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fused_args</span><span class="p">)</span>
 
@@ -894,6 +916,11 @@
     <span class="n">cache_stored</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
 
+<span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FeLlCacheObservations</span><span class="p">:</span>
+    <span class="n">cache_hit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+
 <span class="k">class</span><span class="w"> </span><span class="nc">Kernel</span><span class="p">:</span>
     <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -930,8 +957,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">visited_functions</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">FunctionSourceInfo</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernel_function_info</span><span class="p">:</span> <span class="n">FunctionSourceInfo</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernel_data_by_key</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">CompiledKernelKeyType</span><span class="p">,</span> <span class="n">CompiledKernelData</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_compiled_kernel_data</span><span class="p">:</span> <span class="n">CompiledKernelData</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># for dev/debug</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">src_ll_cache_observations</span><span class="p">:</span> <span class="n">SrcLlCacheObservations</span> <span class="o">=</span> <span class="n">SrcLlCacheObservations</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fe_ll_cache_observations</span><span class="p">:</span> <span class="n">FeLlCacheObservations</span> <span class="o">=</span> <span class="n">FeLlCacheObservations</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ast_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ASTBuilder</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_cpp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1020,7 +1049,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">src_ll_cache</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">gstaichi_callable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">gstaichi_callable</span><span class="o">.</span><span class="n">is_pure</span><span class="p">:</span>
             <span class="n">kernel_source_info</span><span class="p">,</span> <span class="n">_src</span> <span class="o">=</span> <span class="n">get_source_info_and_src</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span> <span class="o">=</span> <span class="n">src_hasher</span><span class="o">.</span><span class="n">create_cache_key</span><span class="p">(</span><span class="n">kernel_source_info</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span> <span class="o">=</span> <span class="n">src_hasher</span><span class="o">.</span><span class="n">create_cache_key</span><span class="p">(</span><span class="n">kernel_source_info</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_metas</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">src_ll_cache_observations</span><span class="o">.</span><span class="n">cache_key_generated</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span> <span class="ow">and</span> <span class="n">src_hasher</span><span class="o">.</span><span class="n">validate_cache_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span><span class="p">):</span>
@@ -1034,6 +1063,13 @@
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernel_data_by_key</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">src_ll_cache_observations</span><span class="o">.</span><span class="n">cache_loaded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">gstaichi_callable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gstaichi_callable</span><span class="o">.</span><span class="n">is_pure</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">print_non_pure</span><span class="p">:</span>
+            <span class="c1"># The bit in caps should not be modified without updating corresponding test</span>
+            <span class="c1"># freetext can be freely modified.</span>
+            <span class="c1"># As for why we are using `print` rather than eg logger.info, it is because</span>
+            <span class="c1"># this is only printed when ti.init(print_non_pure=..) is True. And it is</span>
+            <span class="c1"># confusing to set that to True, and see nothing printed.</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[NOT_PURE] Debug information: not pure: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">kernel_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">_c</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_counter</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">_logging</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Materializing kernel </span><span class="si">{</span><span class="n">kernel_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">autodiff_mode</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
@@ -1105,7 +1141,7 @@
                 <span class="n">tree</span> <span class="o">=</span> <span class="n">_kernel_impl_dataclass</span><span class="o">.</span><span class="n">unpack_ast_struct_expressions</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">struct_locals</span><span class="o">=</span><span class="n">struct_locals</span><span class="p">)</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">only_parse_function_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiled_kernel_data_by_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="n">transform_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">is_real_function</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">is_real_function</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">only_parse_function_def</span><span class="p">:</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="ow">and</span> <span class="n">ctx</span><span class="o">.</span><span class="n">returned</span> <span class="o">!=</span> <span class="n">ReturnStatus</span><span class="o">.</span><span class="n">ReturnedValue</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="n">GsTaichiSyntaxError</span><span class="p">(</span><span class="s2">&quot;Kernel has a return type but does not have a return statement&quot;</span><span class="p">)</span>
             <span class="k">finally</span><span class="p">:</span>
@@ -1304,6 +1340,8 @@
                 <span class="n">set_arg_sparse_matrix_builder</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">provided_arg_type</span> <span class="o">!=</span> <span class="n">needed_arg_type</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">GsTaichiRuntimeError</span><span class="p">(</span><span class="s2">&quot;needed&quot;</span><span class="p">,</span> <span class="n">needed_arg_type</span><span class="p">,</span> <span class="s2">&quot;!= provided&quot;</span><span class="p">,</span> <span class="n">provided_arg_type</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">provided_arg_type</span> <span class="o">==</span> <span class="n">needed_arg_type</span>
                 <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">needed_arg_type</span><span class="p">)):</span>
@@ -1364,7 +1402,10 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">prog</span> <span class="o">=</span> <span class="n">impl</span><span class="o">.</span><span class="n">get_runtime</span><span class="p">()</span><span class="o">.</span><span class="n">prog</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">compiled_kernel_data</span><span class="p">:</span>
-                <span class="n">compiled_kernel_data</span> <span class="o">=</span> <span class="n">prog</span><span class="o">.</span><span class="n">compile_kernel</span><span class="p">(</span><span class="n">prog</span><span class="o">.</span><span class="n">config</span><span class="p">(),</span> <span class="n">prog</span><span class="o">.</span><span class="n">get_device_caps</span><span class="p">(),</span> <span class="n">t_kernel</span><span class="p">)</span>
+                <span class="n">compile_result</span><span class="p">:</span> <span class="n">CompileResult</span> <span class="o">=</span> <span class="n">prog</span><span class="o">.</span><span class="n">compile_kernel</span><span class="p">(</span><span class="n">prog</span><span class="o">.</span><span class="n">config</span><span class="p">(),</span> <span class="n">prog</span><span class="o">.</span><span class="n">get_device_caps</span><span class="p">(),</span> <span class="n">t_kernel</span><span class="p">)</span>
+                <span class="n">compiled_kernel_data</span> <span class="o">=</span> <span class="n">compile_result</span><span class="o">.</span><span class="n">compiled_kernel_data</span>
+                <span class="k">if</span> <span class="n">compile_result</span><span class="o">.</span><span class="n">cache_hit</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fe_ll_cache_observations</span><span class="o">.</span><span class="n">cache_hit</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span><span class="p">:</span>
                     <span class="n">src_hasher</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fast_checksum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visited_functions</span><span class="p">)</span>
                     <span class="n">prog</span><span class="o">.</span><span class="n">store_fast_cache</span><span class="p">(</span>
@@ -1375,6 +1416,7 @@
                         <span class="n">compiled_kernel_data</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">src_ll_cache_observations</span><span class="o">.</span><span class="n">cache_stored</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_compiled_kernel_data</span> <span class="o">=</span> <span class="n">compiled_kernel_data</span>
             <span class="n">prog</span><span class="o">.</span><span class="n">launch_kernel</span><span class="p">(</span><span class="n">compiled_kernel_data</span><span class="p">,</span> <span class="n">launch_ctx</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">e</span> <span class="o">=</span> <span class="n">handle_exception_from_cpp</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -1413,7 +1455,10 @@
         <span class="k">raise</span> <span class="n">GsTaichiRuntimeTypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid return type on index=</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ensure_compiled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">AutodiffMode</span><span class="p">]:</span>
-        <span class="n">instance_id</span><span class="p">,</span> <span class="n">arg_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">instance_id</span><span class="p">,</span> <span class="n">arg_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)(</span><span class="sa">f</span><span class="s2">&quot;exception while trying to ensure compiled </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="si">}</span><span class="s2">:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">instance_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">autodiff_mode</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">materialize</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">arg_features</span><span class="o">=</span><span class="n">arg_features</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">key</span>
@@ -1539,10 +1584,31 @@
     <span class="k">return</span> <span class="n">wrapped</span>
 
 
+<span class="n">F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">])</span>
+
+
+<span class="nd">@overload</span>
 <div class="viewcode-block" id="kernel">
 <a class="viewcode-back" href="../../../autoapi/gstaichi/lang/kernel_impl/index.html#gstaichi.lang.kernel_impl.kernel">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Marks a function as a GsTaichi kernel.</span>
+<span class="c1"># TODO: This callable should be Callable[[F], F].</span>
+<span class="c1"># See comments below.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span><span class="n">_fn</span><span class="p">:</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span> <span class="o">...</span></div>
+
+
+
+<span class="c1"># TODO: This next overload should return F, but currently that will cause issues</span>
+<span class="c1"># with ndarray type. We need to migrate ndarray type to be basically</span>
+<span class="c1"># the actual Ndarray, with Generic types, rather than some other</span>
+<span class="c1"># NdarrayType class. The _fn should also be F by the way.</span>
+<span class="c1"># However, by making it return Any, we can make the pure parameter</span>
+<span class="c1"># change now, without breaking pyright.</span>
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span><span class="n">_fn</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span> <span class="o">...</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span><span class="n">_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Marks a function as a GsTaichi kernel.</span>
 
 <span class="sd">    A GsTaichi kernel is a function written in Python, and gets JIT compiled by</span>
 <span class="sd">    GsTaichi into native CPU/GPU instructions (e.g. a series of CUDA kernels).</span>
@@ -1550,14 +1616,6 @@
 <span class="sd">    to either a CPU thread pool or massively parallel GPUs.</span>
 
 <span class="sd">    Kernel&#39;s gradient kernel would be generated automatically by the AutoDiff system.</span>
-
-<span class="sd">    See also https://docs.taichi-lang.org/docs/syntax#kernel.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        fn (Callable): the Python function to be decorated</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Callable: The decorated function</span>
 
 <span class="sd">    Example::</span>
 
@@ -1569,8 +1627,25 @@
 <span class="sd">        &gt;&gt;&gt;     for i in x:</span>
 <span class="sd">        &gt;&gt;&gt;         x[i] = i</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_kernel_impl</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">level_of_class_stackframe</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></div>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">F</span><span class="p">,</span> <span class="n">has_kernel_params</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
+        <span class="c1"># Adjust stack frame: +1 if called via decorator factory (@kernel()), else as-is (@kernel)</span>
+        <span class="k">if</span> <span class="n">has_kernel_params</span><span class="p">:</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="mi">4</span>
+
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="n">_kernel_impl</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">level_of_class_stackframe</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">wrapped</span><span class="o">.</span><span class="n">is_pure</span> <span class="o">=</span> <span class="n">pure</span>
+
+        <span class="n">functools</span><span class="o">.</span><span class="n">update_wrapper</span><span class="p">(</span><span class="n">wrapped</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">wrapped</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Called with @kernel() or @kernel(foo=&quot;bar&quot;)</span>
+        <span class="k">return</span> <span class="n">decorator</span>
+
+    <span class="k">return</span> <span class="n">decorator</span><span class="p">(</span><span class="n">_fn</span><span class="p">,</span> <span class="n">has_kernel_params</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_BoundedDifferentiableMethod</span><span class="p">:</span>
