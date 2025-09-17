@@ -15,7 +15,7 @@ jobs:
   build_wheel:
     name: Manylinux wheel Build
     runs-on: ubuntu-22.04
-    container: quay.io/pypa/manylinux_2_28_x86_64:latest
+    container: quay.io/pypa/manylinux_2_34_x86_64:latest
     concurrency:
       # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-build
       group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-build
