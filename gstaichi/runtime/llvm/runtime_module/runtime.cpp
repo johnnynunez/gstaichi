@@ -54,7 +54,7 @@ __asm__(".symver powf,powf@GLIBC_2.2.5");
 __asm__(".symver expf,expf@GLIBC_2.2.5");
 #endif
 
-#if (defined(__aarch64__) || defined(__arm64__)) && defined(__clang__)
+#if (defined(__aarch64__) || defined(__arm64__)) && defined(__clang__) && !defined(__APPLE__)
 // JIT session error: Symbols not found: [ __aarch64_ldadd4_acq_rel, ... ]
 // This is an issue with newer clang versions (>13) on aarch64, where
 // atomics are outlined by default. The JIT environment does not
