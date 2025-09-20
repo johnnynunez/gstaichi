@@ -20,7 +20,7 @@ def setup_llvm() -> None:
     """
     u = platform.uname()
 
-    release_url_template = "https://github.com/Genesis-Embodied-AI/gstaichi-sdk-builds/releases/download/llvm-15.0.7-hp-llvm-u18-container-202509171733/taichi-llvm-15.0.7-{platform}.zip"
+    release_url_template = "https://github.com/Genesis-Embodied-AI/gstaichi-sdk-builds/releases/download/llvm-15.0.7-hp-llvm-u18-container-202509201548/taichi-llvm-15.0.7-{platform}.zip"
 
     if (u.system, u.machine) == ("Linux", "x86_64"):
         if cmake_args.get_effective("TI_WITH_AMDGPU"):
