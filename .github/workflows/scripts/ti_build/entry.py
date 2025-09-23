@@ -102,9 +102,12 @@ def action_wheel():
         sccache("--start-server")
 
     import os
-    os.environ["LDFLAGS"] = os.environ.get("LDFLAGS", "") + " -latomic"
-    os.environ["CMAKE_EXE_LINKER_FLAGS"] = os.environ.get("CMAKE_EXE_LINKER_FLAGS", "") + " -latomic"
-    os.environ["CMAKE_SHARED_LINKER_FLAGS"] = os.environ.get("CMAKE_SHARED_LINKER_FLAGS", "") + " -latomic"
+    inc_base = "/opt/rh/gcc-toolset-14/root/usr/include/c++/14"
+    extra = ":".join([inc_base, f"{inc_base}/aarch64-redhat-linux", f"{inc_base}/backward"])
+    os.environ["CPLUS_INCLUDE_PATH"] = os.environ.get("CPLUS_INCLUDE_PATH", "")
+    os.environ["CPLUS_INCLUDE_PATH"] += (":" if os.environ["CPLUS_INCLUDE_PATH"] else "") + extra
+    os.environ["CPATH"] = os.environ.get("CPATH", "")
+    os.environ["CPATH"] += (":" if os.environ["CPATH"] else "") + "/opt/rh/gcc-toolset-14/root/usr/include"
 
     install_build_wheel_deps(python, pip)
     handle_alternate_actions()
