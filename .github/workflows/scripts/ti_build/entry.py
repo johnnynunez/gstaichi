@@ -101,6 +101,11 @@ def action_wheel():
     else:
         sccache("--start-server")
 
+    import os
+    os.environ["LDFLAGS"] = os.environ.get("LDFLAGS", "") + " -latomic"
+    os.environ["CMAKE_EXE_LINKER_FLAGS"] = os.environ.get("CMAKE_EXE_LINKER_FLAGS", "") + " -latomic"
+    os.environ["CMAKE_SHARED_LINKER_FLAGS"] = os.environ.get("CMAKE_SHARED_LINKER_FLAGS", "") + " -latomic"
+
     install_build_wheel_deps(python, pip)
     handle_alternate_actions()
     build_wheel(python, pip)
