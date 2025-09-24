@@ -101,14 +101,6 @@ def action_wheel():
     else:
         sccache("--start-server")
 
-    import os
-    inc_base = "/opt/rh/gcc-toolset-14/root/usr/include/c++/14"
-    extra = ":".join([inc_base, f"{inc_base}/aarch64-redhat-linux", f"{inc_base}/backward"])
-    os.environ["CPLUS_INCLUDE_PATH"] = os.environ.get("CPLUS_INCLUDE_PATH", "")
-    os.environ["CPLUS_INCLUDE_PATH"] += (":" if os.environ["CPLUS_INCLUDE_PATH"] else "") + extra
-    os.environ["CPATH"] = os.environ.get("CPATH", "")
-    os.environ["CPATH"] += (":" if os.environ["CPATH"] else "") + "/opt/rh/gcc-toolset-14/root/usr/include"
-
     install_build_wheel_deps(python, pip)
     handle_alternate_actions()
     build_wheel(python, pip)
