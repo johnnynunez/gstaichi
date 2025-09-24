@@ -24,6 +24,5 @@ inc_base="/opt/rh/gcc-toolset-14/root/usr/include/c++/14"
 extra="$inc_base:$inc_base/${PLATFORM}-redhat-linux:$inc_base/backward"
 
 export CPLUS_INCLUDE_PATH="${CPLUS_INCLUDE_PATH:+$CPLUS_INCLUDE_PATH:}$extra"
-export CPATH="${CPATH:+$CPATH:}/opt/rh/gcc-toolset-14/root/usr/include"
 
 ./build.py wheel
