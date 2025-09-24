@@ -15,7 +15,7 @@ jobs:
   build_wheel:
     name: Manylinux wheel Build
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.os == 'ubuntu-22.04' && 'quay.io/pypa/manylinux_2_28_x86_64:latest' || 'quay.io/pypa/manylinux_2_28_aarch64:latest' }}
+    container: ${{ matrix.os == 'ubuntu-22.04' && 'quay.io/pypa/manylinux_2_28_x86_64:latest' || matrix.os == 'ubuntu-22.04-arm' && 'quay.io/pypa/manylinux_2_28_aarch64:latest' }}
     concurrency:
       # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-build
       group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{matrix.os}}-build
@@ -55,7 +55,7 @@ jobs:
 
   upload_to_storage:
     name: Manylinux wheel upload
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     needs: build_wheel
     concurrency:
       # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-upload
@@ -86,7 +86,7 @@ jobs:
           aws s3 sync dist/ s3://genesis-ai-compiler/ci/gstaichi/${GITHUB_SHA:0:7}/${{ matrix.PYTHON_CP_VERSION }}-${{matrix.os}}/
   test_wheel:
     name: Manylinux wheel Test
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     needs: build_wheel
     concurrency:
       # group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}-${{ matrix.PYTHON_CP_VERSION }}-${{ matrix.PYTHON_CP_VERSION != 'cp310' && 'all' || github.sha }}-test
