@@ -67,7 +67,7 @@ std::pair<JITTargetMachineBuilder, llvm::DataLayout> get_host_target_info() {
   if (!expected_jtmb)
     TI_ERROR("LLVM TargetMachineBuilder has failed.");
   auto jtmb = *expected_jtmb;
-  
+
   // Add ARM64-specific flags to disable outlined atomics
 #if defined(__aarch64__) || defined(__arm64__)
   // Get the target triple and add the no-outline-atomics flag
@@ -76,7 +76,7 @@ std::pair<JITTargetMachineBuilder, llvm::DataLayout> get_host_target_info() {
     jtmb.addTargetOptions("-mno-outline-atomics");
   }
 #endif
-  
+
   auto expected_data_layout = jtmb.getDefaultDataLayoutForTarget();
   if (!expected_data_layout) {
     TI_ERROR("LLVM TargetMachineBuilder has failed when getting data layout.");
@@ -179,17 +179,18 @@ class JITSessionCPU : public JITSession {
     dylib.addGenerator(
         cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
             dl_.getGlobalPrefix())));
-    
+
     // Alternative solution: Link against libatomic for ARM64 outlined atomics
     // This is commented out since we're using -mno-outline-atomics instead
     // #if defined(__aarch64__) || defined(__arm64__)
     //   // Try to load libatomic for outlined atomic operations
-    //   if (auto libatomic_generator = llvm::orc::DynamicLibrarySearchGenerator::Load(
+    //   if (auto libatomic_generator =
+    //   llvm::orc::DynamicLibrarySearchGenerator::Load(
     //           "libatomic.so.1", dl_.getGlobalPrefix())) {
     //     dylib.addGenerator(std::move(*libatomic_generator));
     //   }
     // #endif
-    
+
     auto *thread_safe_context =
         this->tlctx_->get_this_thread_thread_safe_context();
     cantFail(compile_layer_.add(

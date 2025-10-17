@@ -2,13 +2,13 @@
 
 function(COMPILE_LLVM_RUNTIME rtm_arch)
     message(STATUS "Compiling LLVM byte code file for arch ${rtm_arch}")
-    
+
     # Add ARM64-specific flags to disable outlined atomics
     set(ARM64_FLAGS "")
     if(rtm_arch STREQUAL "aarch64" OR rtm_arch STREQUAL "arm64")
         set(ARM64_FLAGS "-mno-outline-atomics")
     endif()
-    
+
     # Keep this for now, as .bc need to be generated.
     add_custom_target(
         "generate_llvm_runtime_${rtm_arch}"
