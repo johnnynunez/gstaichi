@@ -358,9 +358,10 @@ user_api[ti.MatrixNdarray] = [
     "fill",
     "from_numpy",
     "get_type",
+    "to_dlpack",
     "to_numpy",
 ]
-user_api[ti.Ndarray] = ["copy_from", "element_shape", "fill", "get_type"]
+user_api[ti.Ndarray] = ["copy_from", "element_shape", "fill", "get_type", "to_dlpack"]
 user_api[ti.SNode] = [
     "bitmasked",
     "deactivate_all",
@@ -392,6 +393,7 @@ user_api[ti.ScalarNdarray] = [
     "fill",
     "from_numpy",
     "get_type",
+    "to_dlpack",
     "to_numpy",
 ]
 user_api[ti.Struct] = ["entries", "field", "items", "keys", "methods", "to_dict"]
@@ -415,6 +417,7 @@ user_api[ti.VectorNdarray] = [
     "fill",
     "from_numpy",
     "get_type",
+    "to_dlpack",
     "to_numpy",
 ]
 user_api[ti.sparse] = ["grid", "usage"]
