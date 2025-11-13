@@ -16,6 +16,7 @@ def ti_to_torch(ti_tensor: ti.types.NDArray) -> torch.Tensor:
 
 
 @test_utils.test(arch=dlpack_arch)
+@pytest.mark.parametrize("tensor_type", [ti.ndarray, ti.field])
 @pytest.mark.parametrize("dtype", [ti.i32, ti.i64, ti.f32, ti.f64, ti.u1])
 @pytest.mark.parametrize(
     "shape,poses",
@@ -26,11 +27,11 @@ def ti_to_torch(ti_tensor: ti.types.NDArray) -> torch.Tensor:
         ((3, 1, 2), [(2, 0, 1), (0, 0, 1)]),
     ],
 )
-def test_dlpack_ndarray_types(dtype, shape: tuple[int], poses: list[tuple[int, ...]]) -> None:
-    ndarray = ti.ndarray(dtype, shape)
+def test_dlpack_types(tensor_type, dtype, shape: tuple[int], poses: list[tuple[int, ...]]) -> None:
+    ti_tensor = tensor_type(dtype, shape)
     for i, pos in enumerate(poses):
-        ndarray[pos] = i * 10 + 10
-    dlpack = ndarray.to_dlpack()
+        ti_tensor[pos] = i * 10 + 10
+    dlpack = ti_tensor.to_dlpack()
     tt = torch.utils.dlpack.from_dlpack(dlpack)
     assert tuple(tt.shape) == shape
     expected_torch_type = {
@@ -42,12 +43,17 @@ def test_dlpack_ndarray_types(dtype, shape: tuple[int], poses: list[tuple[int, .
     }[dtype]
     assert tt.dtype == expected_torch_type
     for i, pos in enumerate(poses):
-        assert tt[pos] == ndarray[pos]
+        assert tt[pos] == ti_tensor[pos]
         assert tt[pos] != 0
 
 
 @test_utils.test(arch=dlpack_arch)
 def test_dlpack_ndarray_mem_stays_alloced() -> None:
+    """
+    On fields, memory always stays allocated till ti.reset(), so we
+    don't need to check. Not true with ndarrays.
+    """
+
     def create_tensor(shape, dtype):
         nd = ti.ndarray(dtype, shape)
         tt = torch.utils.dlpack.from_dlpack(nd.to_dlpack())
@@ -59,9 +65,10 @@ def test_dlpack_ndarray_mem_stays_alloced() -> None:
 
 
 @test_utils.test(arch=dlpack_ineligible_arch)
-def test_refuses_ineligible_arch() -> None:
+@pytest.mark.parametrize("tensor_type", [ti.ndarray, ti.field])
+def test_dlpack_refuses_ineligible_arch(tensor_type) -> None:
     def create_tensor(shape, dtype):
-        nd = ti.ndarray(dtype, shape)
+        nd = tensor_type(dtype, shape)
         tt = torch.utils.dlpack.from_dlpack(nd.to_dlpack())
         return tt
 
@@ -71,9 +78,10 @@ def test_refuses_ineligible_arch() -> None:
 
 
 @test_utils.test(arch=dlpack_arch)
-def test_dlpack_ndarray_vec3():
+@pytest.mark.parametrize("tensor_type", [ti.ndarray, ti.field])
+def test_dlpack_vec3(tensor_type):
     vec3 = ti.types.vector(3, ti.f32)
-    a = ti.ndarray(vec3, shape=(10, 3))
+    a = tensor_type(vec3, shape=(10, 3))
     a[0, 0] = (5, 4, 3)
     a[0, 1] = (7, 8, 9)
     a[1, 0] = (11, 12, 13)
@@ -92,9 +100,10 @@ def test_dlpack_ndarray_vec3():
 
 
 @test_utils.test(arch=dlpack_arch)
-def test_dlpack_ndarray_mat2x3():
+@pytest.mark.parametrize("tensor_type", [ti.ndarray, ti.field])
+def test_dlpack_mat2x3(tensor_type):
     vec3 = ti.types.matrix(2, 3, ti.f32)
-    a = ti.ndarray(vec3, shape=(10, 3))
+    a = tensor_type(vec3, shape=(10, 3))
     a[0, 0] = ((5, 4, 1), (3, 2, 20))
     a[0, 1] = ((7, 8, 21), (9, 10, 22))
     a[1, 0] = ((11, 12, 23), (13, 14, 23))
@@ -108,3 +117,75 @@ def test_dlpack_ndarray_mat2x3():
     assert tt[0, 0, 1, 1] == 2
     assert tt[0, 0, 1, 2] == 20
     assert tt[0, 1, 1, 1] == 10
+
+
+@test_utils.test(arch=dlpack_arch)
+@pytest.mark.parametrize("tensor_type", [ti.ndarray, ti.field])
+def test_dlpack_2_arrays(tensor_type):
+    """
+    Just in case we need to handle offset
+    """
+    a = tensor_type(ti.i32, (100,))
+    b = tensor_type(ti.i32, (100,))
+    a[0] = 123
+    b[0] = 222
+    a_t = ti_to_torch(a)
+    b_t = ti_to_torch(b)
+    assert a_t[0] == 123
+    assert b_t[0] == 222
+
+
+@test_utils.test(arch=dlpack_arch)
+def test_dlpack_non_sequenced_axes():
+    field_ikj = ti.field(ti.f32)
+    ti.root.dense(ti.i, 3).dense(ti.k, 2).dense(ti.j, 4).place(field_ikj)
+    # create the field (since we arent initializing its value in any way, which would implicilty
+    # call ti.sync())
+    ti.sync()
+    with pytest.raises(RuntimeError):
+        tt = ti_to_torch(field_ikj)
+
+
+@test_utils.test(arch=dlpack_arch)
+def test_dlpack_field_multiple_tree_nodes():
+    """
+    each ti.sync causes the fields to be written to a new snode tree node
+    each tree node has its own memory block, so we want to test:
+    - multiple snodes within same tree node
+    - different tree nodes
+    ... just to check we aren't aliasing somehow in the to_dlpack function
+    """
+    tensor_type = ti.field
+    a = tensor_type(ti.i32, (100,))
+    b = tensor_type(ti.i32, (100,))
+    ti.sync()
+    c = tensor_type(ti.i32, (100,))
+    ti.sync()
+    d = tensor_type(ti.i32, (100,))
+    e = tensor_type(ti.i32, (100,))
+    ti.sync()
+
+    # check the tree node ids
+    assert a.snode._snode_tree_id == 0
+    assert b.snode._snode_tree_id == 0
+    assert c.snode._snode_tree_id == 1
+    assert d.snode._snode_tree_id == 2
+    assert e.snode._snode_tree_id == 2
+
+    a[0] = 123
+    b[0] = 222
+    c[0] = 333
+    d[0] = 444
+    e[0] = 555
+
+    a_t = ti_to_torch(a)
+    b_t = ti_to_torch(b)
+    c_t = ti_to_torch(c)
+    d_t = ti_to_torch(d)
+    e_t = ti_to_torch(e)
+
+    assert a_t[0] == 123
+    assert b_t[0] == 222
+    assert c_t[0] == 333
+    assert d_t[0] == 444
+    assert e_t[0] == 555

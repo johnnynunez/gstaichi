@@ -366,6 +366,10 @@ void export_lang(py::module &m) {
            [](Program *program, pybind11::object owner, Ndarray *ndarray) {
              return ndarray_to_dlpack(program, owner, ndarray);
            })
+      .def("field_to_dlpack",
+           [](Program *program, SNode *snode, int element_ndim, int n, int m) {
+             return field_to_dlpack(program, snode, element_ndim, n, m);
+           })
       .def("config", &Program::compile_config,
            py::return_value_policy::reference)
       .def("sync_kernel_profiler",
