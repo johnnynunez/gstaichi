@@ -258,6 +258,11 @@ def test_offline_cache_per_kernel(curr_arch):
 def test_multiple_ib_with_offline_cache(curr_arch):
     count_of_cache_file = cache_files_cnt()
 
+    assert ti.lang is not None
+    arch_supported = ti.lang.misc.is_extension_supported(curr_arch, ti.extension.adstack)
+    if not arch_supported:
+        pytest.skip(reason=f"architecture not supported for adstack {curr_arch}")
+
     def added_files():
         return cache_files_cnt() - count_of_cache_file
 
@@ -280,11 +285,11 @@ def test_multiple_ib_with_offline_cache(curr_arch):
         assert y[None] == 12.0
         assert x.grad[None] == 12.0
 
-    ti.init(arch=curr_arch, enable_fallback=False, **current_thread_ext_options())
+    ti.init(arch=curr_arch, enable_fallback=False, ad_stack_experimental_enabled=True, **current_thread_ext_options())
     helper()
     assert added_files() == expected_num_cache_files()
 
-    ti.init(arch=curr_arch, enable_fallback=False, **current_thread_ext_options())
+    ti.init(arch=curr_arch, enable_fallback=False, ad_stack_experimental_enabled=True, **current_thread_ext_options())
     assert added_files() == expected_num_cache_files(9)
     helper()
 
@@ -501,7 +506,7 @@ def test_offline_cache_cleaning(curr_arch, factor, policy):
             offline_cache_cleaning_policy=policy,
             offline_cache_max_size_of_files=max_size,  # bytes
             offline_cache_cleaning_factor=factor,
-            **current_thread_ext_options()
+            **current_thread_ext_options(),
         )
 
     def run_simple_kernels(max_size):

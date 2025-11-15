@@ -1,7 +1,6 @@
 # type: ignore
 
-from gstaichi._funcs import field_fill_gstaichi_scope
-from gstaichi._lib.utils import get_os_name
+from gstaichi._funcs import field_fill_gstaichi_scope  # noqa
 from gstaichi.lang import ops
 from gstaichi.lang._ndrange import ndrange
 from gstaichi.lang.expr import Expr
@@ -11,11 +10,9 @@ from gstaichi.lang.kernel_impl import func, kernel
 from gstaichi.lang.misc import loop_config
 from gstaichi.lang.simt import block, warp
 from gstaichi.lang.snode import deactivate
-from gstaichi.math import vec3
-from gstaichi.types import ndarray_type, texture_type, vector
+from gstaichi.types import ndarray_type
 from gstaichi.types.annotations import template
-from gstaichi.types.enums import Format
-from gstaichi.types.primitive_types import f16, f32, f64, i32, u8
+from gstaichi.types.primitive_types import f16, f32, f64, i32, u8  # noqa pylint: disable=unused-import
 
 
 # A set of helper (meta)functions
@@ -73,59 +70,6 @@ def ndarray_matrix_to_ext_arr(
                         arr[I, p, q] = ndarray[I][p, q]
                     else:
                         arr[p, q, I] = ndarray[I][p, q]
-
-
-@kernel
-def vector_to_fast_image(img: template(), out: ndarray_type.ndarray()):
-    static_assert(len(img.shape) == 2)
-    offset = static(img.snode.ptr.offset if len(img.snode.ptr.offset) != 0 else [0, 0])
-    i_offset = static(offset[0])
-    j_offset = static(offset[1])
-    # FIXME: Why is ``for i, j in img:`` slower than:
-    for i, j in ndrange(*img.shape):
-        r, g, b = 0, 0, 0
-        color = img[i + i_offset, (img.shape[1] + j_offset) - 1 - j]
-        if static(img.dtype in [f16, f32, f64]):
-            r, g, b = ops.min(255, ops.max(0, int(color * 255)))[:3]
-        else:
-            static_assert(img.dtype == u8)
-            r, g, b = color[:3]
-
-        idx = j * img.shape[0] + i
-        # We use i32 for |out| since Metal doesn't support u8 types
-        if static(get_os_name() != "osx"):
-            out[idx] = (r << 16) + (g << 8) + b
-        else:
-            # What's -16777216?
-            #
-            # On Mac, we need to set the alpha channel to 0xff. Since Mac's GUI
-            # is big-endian, the color is stored in ABGR order, and we need to
-            # add 0xff000000, which is -16777216 in I32's legit range. (Albeit
-            # the clarity, adding 0xff000000 doesn't work.)
-            alpha = -16777216
-            out[idx] = (b << 16) + (g << 8) + r + alpha
-
-
-@kernel
-def tensor_to_image(tensor: template(), arr: ndarray_type.ndarray()):
-    # default value of offset is [], replace it with [0] * len
-    offset = static(tensor.snode.ptr.offset if len(tensor.snode.ptr.offset) != 0 else [0] * len(tensor.shape))
-    for I in grouped(tensor):
-        t = ops.cast(tensor[I], f32)
-        arr[I - offset, 0] = t
-        arr[I - offset, 1] = t
-        arr[I - offset, 2] = t
-
-
-@kernel
-def vector_to_image(mat: template(), arr: ndarray_type.ndarray()):
-    # default value of offset is [], replace it with [0] * len
-    offset = static(mat.snode.ptr.offset if len(mat.snode.ptr.offset) != 0 else [0] * len(mat.shape))
-    for I in grouped(mat):
-        for p in static(range(mat.n)):
-            arr[I - offset, p] = ops.cast(mat[I][p], f32)
-            if static(mat.n <= 2):
-                arr[I - offset, 2] = 0
 
 
 @kernel
@@ -274,27 +218,6 @@ def snode_deactivate_dynamic(b: template()):
         deactivate(b, I)
 
 
-@kernel
-def load_texture_from_numpy(
-    tex: texture_type.rw_texture(num_dimensions=2, fmt=Format.rgba8, lod=0),
-    img: ndarray_type.ndarray(dtype=vec3, ndim=2),
-):
-    for i, j in img:
-        tex.store(
-            vector(2, i32)([i, j]),
-            vector(4, f32)([img[i, j][0], img[i, j][1], img[i, j][2], 0]) / 255.0,
-        )
-
-
-@kernel
-def save_texture_to_numpy(
-    tex: texture_type.rw_texture(num_dimensions=2, fmt=Format.rgba8, lod=0),
-    img: ndarray_type.ndarray(dtype=vec3, ndim=2),
-):
-    for i, j in img:
-        img[i, j] = ops.round(tex.load(vector(2, i32)([i, j])).rgb * 255)
-
-
 # Odd-even merge sort
 @kernel
 def sort_stage(
@@ -330,7 +253,7 @@ def sort_stage(
 def warp_shfl_up_i32(val: template()):
     global_tid = block.global_thread_idx()
     WARP_SZ = 32
-    lane_id = global_tid % WARP_SZ
+    lane_id = global_tid % WARP_SZ  # type: ignore
     # Intra-warp scan, manually unrolled
     offset_j = 1
     n = warp.shfl_up_i32(warp.active_mask(), val, offset_j)
@@ -382,19 +305,19 @@ def scan_add_inclusive(
         # Put warp scan results to smem
         # TODO replace smem with real smem when available
         if thread_id % WARP_SZ == WARP_SZ - 1:
-            pad_shared[warp_id] = val
+            pad_shared[warp_id] = val  # type: ignore
         block.sync()
 
         # Inter-warp scan, use the first thread in the first warp
         if warp_id == 0 and lane_id == 0:
-            for k in range(1, BLOCK_SZ / WARP_SZ):
-                pad_shared[k] += pad_shared[k - 1]
+            for k in range(1, BLOCK_SZ / WARP_SZ):  # type: ignore
+                pad_shared[k] += pad_shared[k - 1]  # type: ignore
         block.sync()
 
         # Update data with warp sums
         warp_sum = 0
         if warp_id > 0:
-            warp_sum = pad_shared[warp_id - 1]
+            warp_sum = pad_shared[warp_id - 1]  # type: ignore
         val += warp_sum
         arr_in[i] = val
 

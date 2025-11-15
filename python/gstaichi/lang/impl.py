@@ -1,6 +1,7 @@
 import numbers
+import weakref
 from types import FunctionType, MethodType
-from typing import Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 import numpy as np
 
@@ -11,10 +12,9 @@ from gstaichi._lib.core.gstaichi_python import (
     KernelCxx,
     Program,
 )
-from gstaichi._snode.fields_builder import FieldsBuilder
+from gstaichi._snode import fields_builder
 from gstaichi.lang._ndarray import ScalarNdarray
 from gstaichi.lang._ndrange import GroupedNDRange, _Ndrange
-from gstaichi.lang._texture import RWTextureAccessor
 from gstaichi.lang.any_array import AnyArray
 from gstaichi.lang.exception import (
     GsTaichiCompilationError,
@@ -56,6 +56,7 @@ from gstaichi.lang.util import (
     warning,
 )
 from gstaichi.types.enums import SNodeGradType
+from gstaichi.types.ndarray_type import NdarrayType
 from gstaichi.types.primitive_types import (
     all_types,
     f16,
@@ -67,6 +68,9 @@ from gstaichi.types.primitive_types import (
     u32,
     u64,
 )
+
+if TYPE_CHECKING:
+    from gstaichi.lang._ndarray import Ndarray
 
 
 @gstaichi_scope
@@ -124,7 +128,7 @@ def expr_init_func(rhs):  # temporary solution to allow passing in fields as arg
 
 
 def begin_frontend_struct_for(ast_builder, group, loop_range):
-    if not isinstance(loop_range, (AnyArray, Field, SNode, RWTextureAccessor, _Root)):
+    if not isinstance(loop_range, (AnyArray, Field, SNode, _Root)):
         raise TypeError(
             f"Cannot loop over the object {type(loop_range)} in GsTaichi scope. Only GsTaichi fields (via template) or dense arrays (via types.ndarray) are supported."
         )
@@ -135,7 +139,7 @@ def begin_frontend_struct_for(ast_builder, group, loop_range):
             'use "for I in ti.grouped(x)" to group all indices into a single vector I?'
         )
     dbg_info = _ti_core.DebugInfo(get_runtime().get_current_src_info())
-    if isinstance(loop_range, (AnyArray, RWTextureAccessor)):
+    if isinstance(loop_range, AnyArray):
         ast_builder.begin_frontend_struct_for_on_external_tensor(group, loop_range._loop_range(), dbg_info)
     else:
         ast_builder.begin_frontend_struct_for_on_snode(group, loop_range._loop_range(), dbg_info)
@@ -206,6 +210,10 @@ def subscript(ast_builder, value, *_indices, skip_reordered=False):
             SharedArray,
         ),
     ):
+        if isinstance(value, NdarrayType):
+            raise Exception(
+                "Cannot subscript NdarrayType. Did you access a global py dataclass inadvertently?", value, type(value)
+            )
         if len(_indices) == 1:
             _indices = _indices[0]
         return value.__getitem__(_indices)
@@ -347,6 +355,7 @@ class PyGsTaichi:
         self.fwd_mode_manager = None
         self.grad_replaced = False
         self.kernels: list[Kernel] = kernels or []
+        self.ndarrays: weakref.WeakSet[Ndarray] = weakref.WeakSet()
         self._signal_handler_registry = None
         self.unfinalized_fields_builder = {}
         self.print_non_pure: bool = False
@@ -441,7 +450,7 @@ class PyGsTaichi:
 
         root.finalize(raise_warning=not is_first_call)
         global _root_fb
-        _root_fb = FieldsBuilder()
+        _root_fb = fields_builder.FieldsBuilder()
 
     @staticmethod
     def _get_tb(_var):
@@ -463,17 +472,19 @@ class PyGsTaichi:
             )
 
     def _check_gradient_field_not_placed(self, gradient_type):
-        not_placed = set()
-        gradient_vars = []
         if gradient_type == "grad":
             gradient_vars = self.grad_vars
         elif gradient_type == "dual":
             gradient_vars = self.dual_vars
+        else:
+            return
+
+        not_placed = set()
         for _var in gradient_vars:
             if _var.ptr.snode() is None:
                 not_placed.add(self._get_tb(_var))
 
-        if len(not_placed):
+        if not_placed:
             bar = "=" * 44 + "\n"
             raise RuntimeError(
                 f"These field(s) requrie `needs_{gradient_type}=True`, however their {gradient_type} field(s) are not placed:\n{bar}"
@@ -539,9 +550,12 @@ def get_runtime() -> PyGsTaichi:
 
 def reset():
     global pygstaichi
+    old_ndarrays = pygstaichi.ndarrays
     old_kernels = pygstaichi.kernels
     pygstaichi.clear()
     pygstaichi = PyGsTaichi(old_kernels)
+    for nd in old_ndarrays:
+        nd._reset()
     for k in old_kernels:
         k.reset()
     _ti_core.reset_default_compile_config()
@@ -616,7 +630,7 @@ _root_fb = _UninitializedRootFieldsBuilder()
 
 def deactivate_all_snodes():
     """Recursively deactivate all SNodes."""
-    for root_fb in FieldsBuilder._finalized_roots():
+    for root_fb in fields_builder.FieldsBuilder._finalized_roots():
         root_fb.deactivate_all()
 
 
@@ -626,19 +640,19 @@ class _Root:
     @staticmethod
     def parent(n=1):
         """Same as :func:`gstaichi.SNode.parent`"""
-        assert isinstance(_root_fb, FieldsBuilder)
+        assert isinstance(_root_fb, fields_builder.FieldsBuilder)
         return _root_fb.root.parent(n)
 
     @staticmethod
     def _loop_range():
         """Same as :func:`gstaichi.SNode.loop_range`"""
-        assert isinstance(_root_fb, FieldsBuilder)
+        assert isinstance(_root_fb, fields_builder.FieldsBuilder)
         return _root_fb.root._loop_range()
 
     @staticmethod
     def _get_children():
         """Same as :func:`gstaichi.SNode.get_children`"""
-        assert isinstance(_root_fb, FieldsBuilder)
+        assert isinstance(_root_fb, fields_builder.FieldsBuilder)
         return _root_fb.root._get_children()
 
     # TODO: Record all of the SNodeTrees that finalized under 'ti.root'
@@ -650,12 +664,12 @@ class _Root:
     @property
     def shape(self):
         """Same as :func:`gstaichi.SNode.shape`"""
-        assert isinstance(_root_fb, FieldsBuilder)
+        assert isinstance(_root_fb, fields_builder.FieldsBuilder)
         return _root_fb.root.shape
 
     @property
     def _id(self):
-        assert isinstance(_root_fb, FieldsBuilder)
+        assert isinstance(_root_fb, fields_builder.FieldsBuilder)
         return _root_fb.root._id
 
     def __getattr__(self, item):

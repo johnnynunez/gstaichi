@@ -140,11 +140,11 @@ if (TI_BUILD_TESTS)
   include(cmake/GsTaichiTests.cmake)
 endif()
 
-message("C++ Flags: ${CMAKE_CXX_FLAGS}")
+string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)
+message("C++ Flags: ${CMAKE_CXX_FLAGS_${_BUILD_TYPE}} ${CMAKE_CXX_FLAGS}")
 message("Build type: ${CMAKE_BUILD_TYPE}")
 
 if (NOT TI_WITH_CUDA)
-    set(CUDA_VERSION "0.0")
     set(CUDA_TOOLKIT_ROOT_DIR "")
 endif()
 

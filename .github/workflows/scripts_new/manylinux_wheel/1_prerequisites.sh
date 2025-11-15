@@ -3,13 +3,16 @@
 set -ex
 
 # yum update
-yum install -y git wget libXrandr-devel libXinerama-devel libXcursor-devel libXi-devel
+yum install -y git wget
 # Note: following depends on the name of the repo:
 git config --global --add safe.directory /__w/gstaichi/gstaichi
 git submodule update --init --jobs 2
 
-wget -q https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.4/clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
-tar -xf clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+LLVM_DIR=$(python download_llvm.py | tail -n 1)
+export PATH=${LLVM_DIR}/bin:$PATH
+chmod +x ${LLVM_DIR}/bin/*
+clang --version
+which clang
 
 # clang++ searches for libstd++.so, not libstdc++.so.6
 # without this, then the compiler checks will fail

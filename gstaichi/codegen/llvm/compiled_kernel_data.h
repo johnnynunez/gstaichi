@@ -13,7 +13,7 @@ namespace LLVM {
 class CompiledKernelData : public lang::CompiledKernelData {
  public:
   struct InternalData {
-    std::vector<std::pair<std::vector<int>, Callable::Parameter>> args;
+    std::vector<std::pair<int, Callable::Parameter>> args;
     std::vector<Callable::Ret> rets;
     LLVMCompiledKernel compiled_data;
 
@@ -57,6 +57,9 @@ class CompiledKernelData : public lang::CompiledKernelData {
   const InternalData &get_internal_data() const {
     return data_;
   }
+
+  std::string debug_dump_to_string()
+      const override;  // for debug/dev/testing only
 
  protected:
   Err load_impl(const CompiledKernelDataFile &file) override;
